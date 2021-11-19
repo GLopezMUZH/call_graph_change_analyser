@@ -106,8 +106,8 @@ def _jarWrapper(*args):
     ret = []
     while process.poll() is None:
         line = process.stdout.readline()
-        print(line)
-        print(type(line))
+        #print(line)
+        #print(type(line))
         if line != '' and line.endswith(b'\n'):
             ret.append(line[:-1])
     stdout, stderr = process.communicate()

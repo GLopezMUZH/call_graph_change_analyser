@@ -1,13 +1,13 @@
 # %%
 import os
-#import subprocess
+import subprocess
 from subprocess import *
 from models import *
 import models
 from pathlib import Path
 from imp import reload
-
 from pydriller import *
+from bs4 import BeautifulSoup
 
 from models import MethodCallChangeInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
@@ -185,10 +185,22 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                     save_new_file_data(file_path_current)
                 """
 
-                # Any number of args to be passed to the jar file
-                args = [proj_config.get_path_to_src_diff_jar(), file_path_previous.__str__()]
+                # Execute the jar for finding the source differences
+                args = [proj_config.get_path_to_src_diff_jar(), file_path_previous.__str__(), 'TRUE']
                 result = _jarWrapper(*args)
-                print(result)
+                #print(result)
+                diff_xml_results = b''.join(result).decode('utf-8')
+
+                """
+                # read xml in case saved on file
+                with open('dict.xml', 'r') as f:
+                    data = f.read()
+                """
+                diff_data = BeautifulSoup(diff_xml_results, "xml")
+                action_nodes = diff_data.find_all('action')
+                
+                print(action_nodes)
+
 
                 # Save method/function call change info
                 # ggg save_method_call_change_info(file_path_sourcediff)

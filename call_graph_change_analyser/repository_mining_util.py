@@ -1,6 +1,7 @@
 # %%
 import os
-import subprocess
+#import subprocess
+from subprocess import *
 from models import *
 import models
 from pathlib import Path
@@ -24,7 +25,6 @@ os.environ['COMSPEC']
 # %%
 # con.close()
 
-
 # %%
 # Functions
 def save_source_code(file_path, source_text):
@@ -41,7 +41,7 @@ def save_source_code(file_path, source_text):
 
 def save_source_code_xml(file_path):
     exec_cmd = "srcml"
-    xml_filename = file_path + ".xml"
+    xml_filename = file_path.__str__() + ".xml"
     arg_target_symbol = ">"
     subprocess.run(
         [exec_cmd, file_path, arg_target_symbol, xml_filename],
@@ -101,18 +101,20 @@ def save_method_call_change_info(file_path_sourcediff):
 
 #from subprocess import *
 
-def jarWrapper(*args):
+def _jarWrapper(*args):
     process = Popen(['java', '-jar']+list(args), stdout=PIPE, stderr=PIPE)
     ret = []
     while process.poll() is None:
         line = process.stdout.readline()
-        if line != '' and line.endswith('\n'):
+        print(line)
+        print(type(line))
+        if line != '' and line.endswith(b'\n'):
             ret.append(line[:-1])
     stdout, stderr = process.communicate()
-    ret += stdout.split('\n')
+    ret += stdout.split(b'\n')
     if stderr != '':
-        ret += stderr.split('\n')
-    ret.remove('')
+        ret += stderr.split(b'\n')
+    ret.remove(b'')
     return ret
 
 
@@ -126,18 +128,25 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
         repository_generator = Repository(
                 path_to_repo=proj_config.get_path_to_repo(),
                 since=proj_config.get_start_repo_date).traverse_commits()
-                #only_modifications_with_file_types=proj_config.get_commit_file_types
+                #only_modifications_with_file_types=proj_config.get_commit_file_types()
     else:
         repository_generator = Repository(
                 path_to_repo=proj_config.get_path_to_repo(),
                 since=proj_config.get_start_repo_date,
                 to=proj_config.get_end_repo_date()).traverse_commits()
     """
+    print(proj_config.get_path_to_repo())
+    print(proj_config.get_start_repo_date())
+    print(proj_config.get_start_repo_date().tzinfo)
+    print(proj_config.get_end_repo_date())
+    print(proj_config.get_commit_file_types())
+
     # default is order='reverse'
     for commit in Repository(
                 path_to_repo=proj_config.get_path_to_repo(),
                 since=proj_config.get_start_repo_date(),
-                to=proj_config.get_end_repo_date()).traverse_commits():
+                to=proj_config.get_end_repo_date(),
+                only_modifications_with_file_types=proj_config.get_commit_file_types()).traverse_commits():
         for mod_file in commit.modified_files:
             # print('Extension: ', str(mod_file._new_path)[-3:])
             if (is_valid_file_type(str(mod_file._new_path))):
@@ -177,8 +186,8 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 """
 
                 # Any number of args to be passed to the jar file
-                args = [proj_config.get_path_to_src_diff_jar, file_path_previous]
-                result = jarWrapper(*args)
+                args = [proj_config.get_path_to_src_diff_jar(), file_path_previous.__str__()]
+                result = _jarWrapper(*args)
                 print(result)
 
                 # Save method/function call change info

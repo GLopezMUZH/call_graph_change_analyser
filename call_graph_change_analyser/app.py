@@ -27,13 +27,13 @@ def _replace_timezone(dt: datetime):
 # %%
 st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
 st_date = _replace_timezone(st_date)
-end_date = datetime(2021, 10, 15, 0, 1, 0, 79043)
+end_date = datetime(2021, 10, 3, 0, 1, 0, 79043)
 end_date = _replace_timezone(end_date)
 
 proj_config = ProjectConfig(proj_name='PX4-Autopilot',
                             proj_lang='cpp',
                             commit_file_types=['.cpp'],
-                            path_to_src_diff_jar='C:\\Users\\lopm\\Documents\\mt\\sandbox\\astChangeAnalyzer_0_1_cpp.jar',
+                            path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',  # 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\astChangeAnalyzer_0_1_cpp.jar',
                             path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                             start_repo_date=st_date,
                             end_repo_date=end_date)

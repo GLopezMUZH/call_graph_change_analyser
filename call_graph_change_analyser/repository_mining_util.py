@@ -136,7 +136,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
     # default is order='reverse'
     for commit in Repository(
                 path_to_repo=proj_config.get_path_to_repo(),
-                since=proj_config.get_start_repo_date,
+                since=proj_config.get_start_repo_date(),
                 to=proj_config.get_end_repo_date()).traverse_commits():
         for mod_file in commit.modified_files:
             # print('Extension: ', str(mod_file._new_path)[-3:])

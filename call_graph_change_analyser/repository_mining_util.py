@@ -9,7 +9,7 @@ from imp import reload
 from pydriller import *
 from bs4 import BeautifulSoup
 
-from models import MethodCallChangeInfo, ProjectPaths, ProjectConfig
+from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from utils_sql import initate_analytics_db
 
@@ -27,6 +27,8 @@ os.environ['COMSPEC']
 
 # %%
 # Functions
+
+
 def save_source_code(file_path, source_text):
     if not os.path.exists(str(file_path.parent)):
         os.makedirs(str(file_path.parent))
@@ -99,6 +101,35 @@ def save_method_call_change_info(file_path_sourcediff):
     return mcci
 
 
+def get_file_imports(source_code: str, mod_file_data: FileData):
+    count = 0
+    r = []
+    for line in source_code.splitlines():
+        count += 1
+        if count < 500:
+            if line.startswith("#include "):
+                print("Line{}: {}".format(count, line.strip()))
+                f_path = line[9:len(line)+1].replace('"', '')
+                f_path = f_path.replace('<', '')
+                print(f_path)
+                f_name = ''
+                for x in str(f_path).split('/'):
+                    if(x.__contains__('.h') or x.__contains__('.hpp')):
+                        f_name = x.replace('>', '')
+                        print("File name: ", f_name)
+                f_path = f_path.replace('>', '')
+                f_path = f_path.replace(f_name, '')
+                print("File path: ", f_path)
+                import_default_dir_path = mod_file_data.file_dir_path if line.__contains__(
+                    '"') else f_path
+                fi = FileImports(src_file_data=mod_file_data,
+                                 import_file_dir_path=import_default_dir_path,
+                                 import_file_name=f_name)
+                print(fi)
+        else:
+            break
+
+
 #from subprocess import *
 
 def _jarWrapper(*args):
@@ -106,8 +137,8 @@ def _jarWrapper(*args):
     ret = []
     while process.poll() is None:
         line = process.stdout.readline()
-        #print(line)
-        #print(type(line))
+        # print(line)
+        # print(type(line))
         if line != '' and line.endswith(b'\n'):
             ret.append(line[:-1])
     stdout, stderr = process.communicate()
@@ -116,6 +147,23 @@ def _jarWrapper(*args):
         ret += stderr.split(b'\n')
     ret.remove(b'')
     return ret
+
+
+def read_xml_diffs_from_file(file_path: str):
+    # read xml in case saved on file
+    with open(file_path, 'r') as f:
+        data = f.read()
+
+
+def parse_xml_diffs(diff_xml_file):
+
+    for an in diff_xml_file.find_all('action'):
+        print('---action node----')
+        # print(type(an))
+        # print(an)
+        for at in an.find_all('actionText'):
+            print(type(at))
+            print(at)
 
 
 # %%
@@ -143,10 +191,10 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
 
     # default is order='reverse'
     for commit in Repository(
-                path_to_repo=proj_config.get_path_to_repo(),
-                since=proj_config.get_start_repo_date(),
-                to=proj_config.get_end_repo_date(),
-                only_modifications_with_file_types=proj_config.get_commit_file_types()).traverse_commits():
+            path_to_repo=proj_config.get_path_to_repo(),
+            since=proj_config.get_start_repo_date(),
+            to=proj_config.get_end_repo_date(),
+            only_modifications_with_file_types=proj_config.get_commit_file_types()).traverse_commits():
         for mod_file in commit.modified_files:
             # print('Extension: ', str(mod_file._new_path)[-3:])
             if (is_valid_file_type(str(mod_file._new_path))):
@@ -156,6 +204,9 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 print(mod_file._old_path)
                 # print(mod_file._new_path)
                 # print(mod_file.diff)
+
+                mod_file_data = FileData(str(mod_file._new_path))
+                print("mod_file_data. ", mod_file_data)
 
                 # Save new source code
                 file_path_current = Path(
@@ -185,22 +236,19 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                     save_new_file_data(file_path_current)
                 """
 
+                # Save file imports
+                get_file_imports(mod_file.source_code, mod_file_data)
+
                 # Execute the jar for finding the source differences
-                args = [proj_config.get_path_to_src_diff_jar(), file_path_previous.__str__(), 'TRUE']
+                args = [proj_config.get_path_to_src_diff_jar(
+                ), file_path_previous.__str__(), 'TRUE']
                 result = _jarWrapper(*args)
-                #print(result)
+
+                # convert to string -> xml
                 diff_xml_results = b''.join(result).decode('utf-8')
+                diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
 
-                """
-                # read xml in case saved on file
-                with open('dict.xml', 'r') as f:
-                    data = f.read()
-                """
-                diff_data = BeautifulSoup(diff_xml_results, "xml")
-                action_nodes = diff_data.find_all('action')
-                
-                print(action_nodes)
-
+                parse_xml_diffs(diff_data_xml)
 
                 # Save method/function call change info
                 # ggg save_method_call_change_info(file_path_sourcediff)

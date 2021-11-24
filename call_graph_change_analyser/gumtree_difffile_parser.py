@@ -2,7 +2,7 @@
 import os
 import re
 
-from models import MethodCallChangeInfo
+from models import CallCommitInfo
 
 #%%
 def find_whole_word(w):
@@ -63,7 +63,7 @@ def get_method_call_change_info_cpp(path_to_diff_file, path_to_src_file):
                     print("BLK STOP ************")
 
     
-    MethodCallChangeInfo(source_node, end_node, start_date, end_date)
+    #MethodCallChangeInfo(source_node, end_node, start_date, end_date)
 
     return 
 

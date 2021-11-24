@@ -4,7 +4,7 @@ import call_graph_analysis
 from datetime import datetime
 from imp import reload
 
-from models import MethodCallChangeInfo, ProjectPaths, ProjectConfig
+from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from repository_mining_util import load_source_repository_data
 from utils_sql import initate_analytics_db
@@ -14,7 +14,10 @@ from call_graph_analysis import get_call_graph, print_graph_stats
 import repository_mining_util
 reload(repository_mining_util)
 from repository_mining_util import load_source_repository_data
-reload(call_graph_analysis)
+
+import models
+reload(models)
+from models import *
 
 
 #%%
@@ -27,7 +30,7 @@ def _replace_timezone(dt: datetime):
 # %%
 st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
 st_date = _replace_timezone(st_date)
-end_date = datetime(2021, 10, 3, 0, 1, 0, 79043)
+end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
 end_date = _replace_timezone(end_date)
 
 proj_config = ProjectConfig(proj_name='PX4-Autopilot',
@@ -38,7 +41,9 @@ proj_config = ProjectConfig(proj_name='PX4-Autopilot',
                             start_repo_date=st_date,
                             end_repo_date=end_date)
 proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                          path_cache_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\')
+                          path_to_cache_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\',
+                          path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
+                          path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
 
 
 #%%

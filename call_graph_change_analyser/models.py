@@ -21,8 +21,6 @@ class ProjectConfig:
         self.end_repo_date = end_repo_date
         self.path_to_src_diff_jar = path_to_src_diff_jar
 
-        #self.start_repo_date.tzinfo.tzname = ''
-
     def get_path_to_repo(self):
         return self.path_to_repo
 
@@ -74,7 +72,7 @@ class ProjectPaths:
         return self.path_to_srctrail_db
 
     def __str__(self) -> str:
-        return("Analytics db: {0}".format(self.path_to_project_db))
+        return("ProjectPaths. Analytics db: {0}".format(self.path_to_project_db))
 
 
 class CallCommitInfo:
@@ -105,7 +103,7 @@ class CallCommitInfo:
 class FileData():
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
-
+        # calculate dir path and file name
         for x in file_path.split('\\'):
             if(x.__contains__('.cpp')):
                 file_name = x
@@ -115,12 +113,14 @@ class FileData():
         self.file_name = file_name
 
     def __str__(self) -> str:
-        return("FileData. file_name: {0}, file_dir_path: {1}".format(self.file_name, self.file_dir_path))
+        return("FileData [file_name: {0}, file_dir_path: {1}]"
+               .format(self.file_name,
+                       self.file_dir_path))
 
 
 class FileImports():
     def __init__(self, src_file_data: FileData, import_file_dir_path: str,
-                 import_file_name: str, 
+                 import_file_name: str,
                  start_date=None, end_date=None,
                  commit_hash_start=None, commit_hash_end=None) -> None:
         self.src_file_path = src_file_data.file_path
@@ -134,7 +134,8 @@ class FileImports():
         self.commit_hash_end = commit_hash_end
 
     def __str__(self) -> str:
-        return("FileImports: file_path: {0}".format(self.src_file_path))
+        return("FileImports[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"
+               .format(self.src_file_path, self.import_file_name, self.import_file_dir_path))
 
 
 """

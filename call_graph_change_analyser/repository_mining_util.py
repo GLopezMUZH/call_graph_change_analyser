@@ -2,13 +2,16 @@
 import os
 import subprocess
 from subprocess import *
-from models import *
-import models
+from typing import Optional
+import logging
+
 from pathlib import Path
 from imp import reload
 from pydriller import *
 from bs4 import BeautifulSoup
 
+from models import *
+import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from utils_sql import initate_analytics_db
@@ -108,26 +111,28 @@ def get_file_imports(source_code: str, mod_file_data: FileData):
         count += 1
         if count < 500:
             if line.startswith("#include "):
-                print("Line{}: {}".format(count, line.strip()))
-                f_path = line[9:len(line)+1].replace('"', '')
+                logging.debug("Include line{}: {}".format(count, line.strip()))
+                f_path = line[9:len(line)].replace('"', '')
                 f_path = f_path.replace('<', '')
-                print(f_path)
+                f_path = f_path.replace('>', '')
                 f_name = ''
                 for x in str(f_path).split('/'):
                     if(x.__contains__('.h') or x.__contains__('.hpp')):
-                        f_name = x.replace('>', '')
-                        print("File name: ", f_name)
+                        f_name = x
                 f_path = f_path.replace('>', '')
                 f_path = f_path.replace(f_name, '')
-                print("File path: ", f_path)
                 import_default_dir_path = mod_file_data.file_dir_path if line.__contains__(
                     '"') else f_path
+                # TODO GGG replace  backslash from unix path ???
                 fi = FileImports(src_file_data=mod_file_data,
                                  import_file_dir_path=import_default_dir_path,
                                  import_file_name=f_name)
-                print(fi)
+                r.append(fi)
+                logging.debug(fi)
         else:
             break
+
+    return r
 
 
 #from subprocess import *
@@ -137,8 +142,6 @@ def _jarWrapper(*args):
     ret = []
     while process.poll() is None:
         line = process.stdout.readline()
-        # print(line)
-        # print(type(line))
         if line != '' and line.endswith(b'\n'):
             ret.append(line[:-1])
     stdout, stderr = process.communicate()
@@ -158,12 +161,12 @@ def read_xml_diffs_from_file(file_path: str):
 def parse_xml_diffs(diff_xml_file):
 
     for an in diff_xml_file.find_all('action'):
-        print('---action node----')
+        logging.debug('---action node----')
         # print(type(an))
         # print(an)
         for at in an.find_all('actionText'):
-            print(type(at))
-            print(at)
+            logging.debug(type(at))
+            logging.debug(at)
 
 
 # %%
@@ -183,11 +186,12 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 since=proj_config.get_start_repo_date,
                 to=proj_config.get_end_repo_date()).traverse_commits()
     """
-    print(proj_config.get_path_to_repo())
-    print(proj_config.get_start_repo_date())
-    print(proj_config.get_start_repo_date().tzinfo)
-    print(proj_config.get_end_repo_date())
-    print(proj_config.get_commit_file_types())
+
+    logging.debug(proj_config.get_path_to_repo())
+    logging.debug(proj_config.get_start_repo_date())
+    logging.debug(proj_config.get_start_repo_date().tzinfo)
+    logging.debug(proj_config.get_end_repo_date())
+    logging.debug(proj_config.get_commit_file_types())
 
     # default is order='reverse'
     for commit in Repository(
@@ -198,15 +202,15 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
         for mod_file in commit.modified_files:
             # print('Extension: ', str(mod_file._new_path)[-3:])
             if (is_valid_file_type(str(mod_file._new_path))):
-                print('---------------------------')
-                print(mod_file.change_type)
-                print(str(mod_file._new_path))
-                print(mod_file._old_path)
-                # print(mod_file._new_path)
-                # print(mod_file.diff)
+                logging.debug('---------------------------')
+                logging.debug(mod_file.change_type)
+                logging.debug(str(mod_file._new_path))
+                logging.debug(mod_file._old_path)
+                # logging.debug(mod_file._new_path)
+                # logging.debug(mod_file.diff)
 
                 mod_file_data = FileData(str(mod_file._new_path))
-                print("mod_file_data. ", mod_file_data)
+                logging.debug(mod_file_data)
 
                 # Save new source code
                 file_path_current = Path(
@@ -237,7 +241,8 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 """
 
                 # Save file imports
-                get_file_imports(mod_file.source_code, mod_file_data)
+                fis = get_file_imports(mod_file.source_code, mod_file_data)
+                logging.debug("File imports: ",fis)
 
                 # Execute the jar for finding the source differences
                 args = [proj_config.get_path_to_src_diff_jar(
@@ -262,13 +267,14 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                     source_node, target_node, commit.author.name
                 )
                 """
-
+                """
                 print('Nloc:', mod_file.nloc)
                 print('---------------------------')
                 print(mod_file.complexity)
                 print('---------------------------')
                 print(mod_file.token_count)
                 print('---------------------------')
+                """
                 """
                 for m in mod_file.methods:
                     print(m.name)
@@ -277,7 +283,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                     print(m.fan_out)
                     print(m.general_fan_out)
                 """
-                print('---------------------------')
+                logging.debug('---------------------------')
                 # print(mod_file.methods_before)
                 break
 

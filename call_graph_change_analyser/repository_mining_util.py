@@ -158,15 +158,42 @@ def read_xml_diffs_from_file(file_path: str):
         data = f.read()
 
 
-def parse_xml_diffs(diff_xml_file):
+def get_calls(raw):
+    indents = [(0,0,'root')]
+    for a in raw.split('\n'):
+        indent = 0
+        while (a[indent] == ' '): 
+            indent+=1
+        if indent % 4:
+            print("not multiple of 4")
+            break
+        cnt = a.replace('  ','')
+        cnt = cnt.split("[", -1)[0]
+        indents.append((len(indents), int(indent/4)+1,cnt))
+    for a in indents: print(a)    
 
-    for an in diff_xml_file.find_all('action'):
-        logging.debug('---action node----')
-        # print(type(an))
-        # print(an)
-        for at in an.find_all('actionText'):
-            logging.debug(type(at))
-            logging.debug(at)
+
+def parse_xml_diffs(diff_xml_file):
+    try:
+        f_name = diff_xml_file.srcFile.get_text()
+        print(f_name)
+
+        for an in diff_xml_file.find_all('action'):
+            logging.debug('---action node----')
+            action_node_type = an.actionNodeType.get_text()
+            print(action_node_type)
+            action_class = an.actionClassName.get_text()
+            print(action_class)
+            handled = an.handled.get_text()
+            print(handled)
+            parent_function_name = an.parentFunction.get_text()
+            print(parent_function_name)
+
+            for at in an.find_all('actionText'):
+                logging.debug(at.get_text())
+                get_calls(at.get_text())
+    except:
+        logging.error("Could not parse xml file content.")
 
 
 # %%

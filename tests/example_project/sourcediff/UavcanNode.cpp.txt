@@ -1,0 +1,61 @@
+<actions>
+<srcFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/previous/src/drivers/uavcannode/UavcanNode.cpp</srcFile>
+<dstFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/current/src/drivers/uavcannode/UavcanNode.cpp</dstFile>
+<resultsFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/sourcediff/src/drivers/uavcannode/UavcanNode.cpp.txt</resultsFile>
+<action>
+<actionNodeType>name</actionNodeType>
+<actionClassName>com.github.gumtreediff.actions.model.Insert</actionClassName>
+<handled>TODO</handled>
+<parentFunction>uavcannodeNO_NAME_FOUND</parentFunction>
+<calls></calls>
+<actionText>===
+insert-node
+---
+name: uavcannode [2515,2525]
+to
+namespace [2466,14229]
+at 0</actionText>
+</action>
+<action>
+<actionNodeType>expr_stmt</actionNodeType>
+<actionClassName>com.github.gumtreediff.actions.model.TreeInsert</actionClassName>
+<handled>yes</handled>
+<parentFunction>UavcanNode::init(parameter, parameter)</parentFunction>
+<calls><callName>_subscriber_list.add(argument)</callName><callName>RTCMStream(argument)</callName></calls>
+<actionText>===
+insert-tree
+---
+expr_stmt [9364,9408]
+    expr [9364,9407]
+        call [9364,9407]
+            name [9364,9384]
+                name: _subscriber_list [9364,9380]
+                operator: . [9380,9381]
+                name: add [9381,9384]
+            argument_list [9384,9407]
+                argument [9385,9406]
+                    expr [9385,9406]
+                        operator: new [9385,9388]
+                        call [9389,9406]
+                            name: RTCMStream [9389,9399]
+                            argument_list [9399,9406]
+                                argument [9400,9405]
+                                    expr [9400,9405]
+                                        name: _node [9400,9405]
+to
+block_content [8305,10426]
+at 17</actionText>
+</action>
+<action>
+<actionNodeType>name</actionNodeType>
+<actionClassName>com.github.gumtreediff.actions.model.Delete</actionClassName>
+<handled>TODO</handled>
+<parentFunction>uavcannodeNO_NAME_FOUND</parentFunction>
+<calls></calls>
+<actionText>===
+delete-node
+---
+name: uavcannode [2476,2486]
+===</actionText>
+</action>
+</actions>

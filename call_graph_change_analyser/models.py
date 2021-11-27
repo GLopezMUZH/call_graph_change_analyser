@@ -76,28 +76,34 @@ class ProjectPaths:
 
 
 class CallCommitInfo:
-    def __init__(self, file_path, call_node, called_node, commit_hast, commit_date) -> None:
+    def __init__(self, file_path: str, call_node: str, called_node: str,
+                 commit_hash: Optional[str] = None, commit_date: Optional[str] = None) -> None:
         """
-        A node is a method or a function, it can exist in the database without being called,
-        when called, an edge will be generated with a start_date,
-        when a call is deleted, an end_date will be set to the respective edge 
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
         """
         self.file_path = file_path
         self.call_node = call_node
         self.called_node = called_node
         self.start_date = None
         self.end_date = None
-        self.commit_hast = commit_hast
+        self.commit_hash = commit_hash
         self.commit_date = commit_date
 
     def set_start_date(self, start_date):
         self.start_date = start_date
-
     def set_end_date(self, end_date):
         self.end_date = end_date
+    def set_commit_hash(self, commit_hash):
+        self.commit_hash = commit_hash
+    def set_commit_date(self, commit_date):
+        self.commit_date = commit_date
 
     def __str__(self) -> str:
-        return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}".format(self.call_node, self.called_node, self.start_date, self.end_date))
+        return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
+               .format(self.call_node, self.called_node, self.start_date, self.end_date, self.file_path))
 
 
 class FileData():
@@ -118,7 +124,7 @@ class FileData():
                        self.file_dir_path))
 
 
-class FileImports():
+class FileImport():
     def __init__(self, src_file_data: FileData, import_file_dir_path: str,
                  import_file_name: str,
                  start_date=None, end_date=None,
@@ -133,8 +139,11 @@ class FileImports():
         self.commit_hash_start = commit_hash_start
         self.commit_hash_end = commit_hash_end
 
+    def get_import_file_name(self) -> str:
+        return self.import_file_name
+
     def __str__(self) -> str:
-        return("FileImports[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"
+        return("FileImport[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"
                .format(self.src_file_path, self.import_file_name, self.import_file_dir_path))
 
 

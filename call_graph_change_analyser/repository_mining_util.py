@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 
 from models import *
 import models
-from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData
+from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from utils_sql import initate_analytics_db
 
@@ -104,7 +104,7 @@ def save_method_call_change_info(file_path_sourcediff):
     return mcci
 
 
-def get_file_imports(source_code: str, mod_file_data: FileData):
+def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImport]:
     count = 0
     r = []
     for line in source_code.splitlines():
@@ -124,7 +124,7 @@ def get_file_imports(source_code: str, mod_file_data: FileData):
                 import_default_dir_path = mod_file_data.file_dir_path if line.__contains__(
                     '"') else f_path
                 # TODO GGG replace  backslash from unix path ???
-                fi = FileImports(src_file_data=mod_file_data,
+                fi = FileImport(src_file_data=mod_file_data,
                                  import_file_dir_path=import_default_dir_path,
                                  import_file_name=f_name)
                 r.append(fi)
@@ -173,27 +173,36 @@ def get_calls(raw):
     for a in indents: print(a)    
 
 
-def parse_xml_diffs(diff_xml_file):
+def parse_xml_diffs(diff_xml_file) -> list[CallCommitInfo]:
+    r = []
     try:
         f_name = diff_xml_file.srcFile.get_text()
-        print(f_name)
+        print("Src file name: ", f_name)
 
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')
             action_node_type = an.actionNodeType.get_text()
-            print(action_node_type)
+            print("Action node type: ", action_node_type)
             action_class = an.actionClassName.get_text()
-            print(action_class)
+            print("Action class: ", action_class)
             handled = an.handled.get_text()
-            print(handled)
+            print("Handled: ", handled)
             parent_function_name = an.parentFunction.get_text()
-            print(parent_function_name)
+            print("Parent: ", parent_function_name)
+            an_calls = an.calls
+            print("an_calls: ", an_calls)
 
-            for at in an.find_all('actionText'):
-                logging.debug(at.get_text())
-                get_calls(at.get_text())
-    except:
-        logging.error("Could not parse xml file content.")
+            for ncall in an.calls.find_all('callName'):
+                logging.debug(ncall.get_text())
+                print(ncall.get_text())
+                call_node_name = ncall.get_text()
+                cci = CallCommitInfo(f_name, parent_function_name, call_node_name)
+                r.append(cci)
+                #get_calls(at.get_text())
+    except Exception as exceptionMsg:
+        logging.error(exceptionMsg)
+        print(exceptionMsg)
+    return r
 
 
 # %%

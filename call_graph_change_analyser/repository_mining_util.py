@@ -125,8 +125,8 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
                     '"') else f_path
                 # TODO GGG replace  backslash from unix path ???
                 fi = FileImport(src_file_data=mod_file_data,
-                                 import_file_dir_path=import_default_dir_path,
-                                 import_file_name=f_name)
+                                import_file_dir_path=import_default_dir_path,
+                                import_file_name=f_name)
                 r.append(fi)
                 logging.debug(fi)
         else:
@@ -159,25 +159,27 @@ def read_xml_diffs_from_file(file_path: str):
 
 
 def get_calls(raw):
-    indents = [(0,0,'root')]
+    indents = [(0, 0, 'root')]
     for a in raw.split('\n'):
         indent = 0
-        while (a[indent] == ' '): 
-            indent+=1
+        while (a[indent] == ' '):
+            indent += 1
         if indent % 4:
             print("not multiple of 4")
             break
-        cnt = a.replace('  ','')
+        cnt = a.replace('  ', '')
         cnt = cnt.split("[", -1)[0]
-        indents.append((len(indents), int(indent/4)+1,cnt))
-    for a in indents: print(a)    
+        indents.append((len(indents), int(indent/4)+1, cnt))
+    for a in indents:
+        print(a)
 
 
-def parse_xml_diffs(diff_xml_file) -> list[CallCommitInfo]:
+def parse_xml_diffs(diff_xml_file, path_to_cache_current) -> list[CallCommitInfo]:
     r = []
     try:
-        f_name = diff_xml_file.srcFile.get_text()
-        print("Src file name: ", f_name)
+        f_name = diff_xml_file.dstFile.get_text()
+        f_name.replace('get_path_to_cache_current','')
+        print("Dest file name: ", f_name)
 
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')
@@ -196,9 +198,10 @@ def parse_xml_diffs(diff_xml_file) -> list[CallCommitInfo]:
                 logging.debug(ncall.get_text())
                 print(ncall.get_text())
                 call_node_name = ncall.get_text()
-                cci = CallCommitInfo(f_name, parent_function_name, call_node_name)
+                cci = CallCommitInfo(
+                    f_name, parent_function_name, call_node_name)
                 r.append(cci)
-                #get_calls(at.get_text())
+                # get_calls(at.get_text())
     except Exception as exceptionMsg:
         logging.error(exceptionMsg)
         print(exceptionMsg)
@@ -278,7 +281,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
 
                 # Save file imports
                 fis = get_file_imports(mod_file.source_code, mod_file_data)
-                logging.debug("File imports: ",fis)
+                logging.debug("File imports: ", fis)
 
                 # Execute the jar for finding the source differences
                 args = [proj_config.get_path_to_src_diff_jar(
@@ -289,7 +292,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 diff_xml_results = b''.join(result).decode('utf-8')
                 diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
 
-                parse_xml_diffs(diff_data_xml)
+                ccis = parse_xml_diffs(diff_data_xml)
 
                 # Save method/function call change info
                 # ggg save_method_call_change_info(file_path_sourcediff)
@@ -321,7 +324,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 """
                 logging.debug('---------------------------')
                 # print(mod_file.methods_before)
-                break
+                # break
 
 
 # %%

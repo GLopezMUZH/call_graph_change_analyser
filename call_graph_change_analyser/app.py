@@ -2,7 +2,7 @@
 from models import *
 import models
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from imp import reload
 import pytz
 
@@ -19,17 +19,15 @@ reload(repository_mining_util)
 reload(models)
 
 # %%
-
-
 def main():
-    print('Started App')
+    print('Started App - ', datetime.now())
     path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
     proj_name = 'PX4-Autopilot'
     log_filepath = path_to_cache_dir+proj_name+'\\app.log'
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logging.info('Started App')
+                        format='%(asctime)-15s %(levelname)%(user)-8s %(message)s')
+    logging.info('Started App - ', datetime.now())
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = _replace_timezone(st_date)
@@ -51,8 +49,8 @@ def main():
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
-    logging.info('Finished App')
-    print('Finished App')
+    logging.info('Finished App - ', datetime.now())
+    print('Finished App -', datetime.now())
 
 
 if __name__ == '__main__':

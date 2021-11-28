@@ -2,21 +2,25 @@
 from models import *
 import models
 import logging
-from datetime import date, datetime
+from datetime import datetime
 from imp import reload
-import pytz
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from repository_mining_util import load_source_repository_data
 from utils_sql import initate_analytics_db
+from utils_py import replace_timezone
 from call_graph_analysis import get_call_graph, print_graph_stats
+
 
 # %%
 import repository_mining_util
 reload(repository_mining_util)
+from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_diffs, parse_mod_file
 
+import models
 reload(models)
+from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 
 # %%
 def main():
@@ -26,7 +30,7 @@ def main():
     log_filepath = path_to_cache_dir+proj_name+'\\app.log'
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s %(levelname)%(user)-8s %(message)s')
+                        format='%(asctime)-15s %(levelname)-8s %(message)s')
     logging.info('Started App - ', datetime.now())
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
@@ -53,15 +57,13 @@ def main():
     print('Finished App -', datetime.now())
 
 
+#%%
 if __name__ == '__main__':
     main()
 
 
 # %%
-def _replace_timezone(dt: datetime):
-    if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-        dt = dt.replace(tzinfo=pytz.utc)
-    return dt
+
 
 
 # %%

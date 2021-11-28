@@ -12,27 +12,30 @@ class ProjectConfig:
             self,  proj_name:
             str, proj_lang: str, commit_file_types: List[str], path_to_src_diff_jar: str,
             path_to_repo: str,
-            start_repo_date: datetime, end_repo_date: Optional[datetime]) -> None:
+            start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
+            repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
         self.path_to_repo = path_to_repo
         self.start_repo_date = start_repo_date
         self.end_repo_date = end_repo_date
+        self.repo_from_tag = repo_from_tag
+        self.repo_to_tag = repo_to_tag
         self.path_to_src_diff_jar = path_to_src_diff_jar
 
     def get_path_to_repo(self):
         return self.path_to_repo
-
     def get_commit_file_types(self):
         return self.commit_file_types
-
     def get_start_repo_date(self):
         return self.start_repo_date
-
     def get_end_repo_date(self):
         return self.end_repo_date
-
+    def get_repo_from_tag(self):
+        return self.repo_from_tag
+    def get_repo_to_tag(self):
+        return self.repo_to_tag
     def get_path_to_src_diff_jar(self):
         return self.path_to_src_diff_jar
 

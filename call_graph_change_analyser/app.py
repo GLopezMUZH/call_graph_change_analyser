@@ -8,7 +8,7 @@ from imp import reload
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from repository_mining_util import load_source_repository_data
-from utils_sql import initate_analytics_db
+from utils_sql import initate_analytics_db, create_commit_based_tables
 from utils_py import replace_timezone
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -33,19 +33,25 @@ def main():
                         format='%(asctime)-15s %(levelname)-8s %(message)s')
     logging.info('Started App - ', datetime.now())
 
+    # source trail db 9.10.2021
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)
     end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
     end_date = replace_timezone(end_date)
 
+    from_tag = 'v1.12.0'
+    to_tag = 'v1.12.3'
+
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                # 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\astChangeAnalyzer_0_1_cpp.jar',
                                 path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                                 start_repo_date=st_date,
-                                end_repo_date=end_date)
+                                end_repo_date=end_date
+                                #repo_from_tag=from_tag,
+                                #repo_to_tag=to_tag
+                                )
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
                               path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
@@ -63,7 +69,6 @@ if __name__ == '__main__':
 
 
 # %%
-
 
 
 # %%

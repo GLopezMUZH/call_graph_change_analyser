@@ -177,7 +177,7 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileDat
     try:
         f_name = diff_xml_file.dstFile.get_text()
         # TODO check how path is written
-        f_name.replace(path_to_cache_current, '')
+        f_name = f_name.replace(path_to_cache_current, '')
         print("Dest file name: ", f_name)
 
         for an in diff_xml_file.find_all('action'):
@@ -210,8 +210,6 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileDat
 
 # %%
 def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
-    is_valid_file_type = get_file_type_validation_function(
-        proj_config.proj_lang)
 
     """
     if proj_config.get_end_repo_date == None:
@@ -233,12 +231,38 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
     logging.debug(proj_config.get_end_repo_date())
     logging.debug(proj_config.get_commit_file_types())
 
-    # default is order='reverse'
+    if proj_config.get_start_repo_date() is not None:
+        traverse_on_dates(proj_config, proj_paths)
+    elif proj_config.get_repo_from_tag() is not None:
+        traverse_on_tags(proj_config, proj_paths)
+
+
+def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
     for commit in Repository(
             path_to_repo=proj_config.get_path_to_repo(),
             since=proj_config.get_start_repo_date(),
             to=proj_config.get_end_repo_date(),
-            only_modifications_with_file_types=proj_config.get_commit_file_types()).traverse_commits():
+            only_modifications_with_file_types=proj_config.get_commit_file_types(),
+            order='reverse').traverse_commits():
+        for mod_file in commit.modified_files:
+            if (is_valid_file_type(str(mod_file._new_path))):
+                r = parse_mod_file(mod_file, proj_paths, proj_config)
+                for fi in r[0]:
+                    print(fi)
+
+
+
+def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
+    for commit in Repository(
+            path_to_repo=proj_config.get_path_to_repo(),
+            from_tag=proj_config.get_repo_from_tag(),
+            to_tag=proj_config.get_repo_to_tag(),
+            only_modifications_with_file_types=proj_config.get_commit_file_types(),
+            order='reverse').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 r = parse_mod_file(mod_file, proj_paths, proj_config)
@@ -334,4 +358,4 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     logging.debug('---------------------------')
     # print(mod_file.methods_before)
     # break
-    return Tuple[fis, ccis]
+    return (fis, ccis)

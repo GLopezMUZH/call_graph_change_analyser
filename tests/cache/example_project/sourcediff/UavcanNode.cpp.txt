@@ -1,12 +1,12 @@
 <actions>
-<srcFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/previous/src/drivers/uavcannode/UavcanNode.cpp</srcFile>
-<dstFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/current/src/drivers/uavcannode/UavcanNode.cpp</dstFile>
-<resultsFile>C:/Users/lopm/Documents/mt/sandbox/.cache/PX4-Autopilot/sourcediff/src/drivers/uavcannode/UavcanNode.cpp.txt</resultsFile>
+<srcFile>..\tests\cache\example_project\previous\UavcanNode.cpp</srcFile>
+<dstFile>..\tests\cache\example_project\current\UavcanNode.cpp</dstFile>
+<resultsFile>..\tests\cache\example_project\sourcediff\UavcanNode.cpp.txt</resultsFile>
 <action>
 <actionNodeType>name</actionNodeType>
 <actionClassName>com.github.gumtreediff.actions.model.Insert</actionClassName>
 <handled>TODO</handled>
-<parentFunction>uavcannodeNO_NAME_FOUND</parentFunction>
+<parentFunction>uavcannode NO_PARAMETERS_FOUND</parentFunction>
 <calls></calls>
 <actionText>===
 insert-node
@@ -50,7 +50,7 @@ at 17</actionText>
 <actionNodeType>name</actionNodeType>
 <actionClassName>com.github.gumtreediff.actions.model.Delete</actionClassName>
 <handled>TODO</handled>
-<parentFunction>uavcannodeNO_NAME_FOUND</parentFunction>
+<parentFunction>uavcannode NO_PARAMETERS_FOUND</parentFunction>
 <calls></calls>
 <actionText>===
 delete-node

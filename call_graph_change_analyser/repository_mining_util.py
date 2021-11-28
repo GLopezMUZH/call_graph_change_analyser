@@ -2,7 +2,7 @@
 import os
 import subprocess
 from subprocess import *
-from typing import Optional
+from typing import Optional, Tuple
 import logging
 
 from pathlib import Path
@@ -111,7 +111,6 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
         count += 1
         if count < 500:
             if line.startswith("#include "):
-                logging.debug("Include line{}: {}".format(count, line.strip()))
                 f_path = line[9:len(line)].replace('"', '')
                 f_path = f_path.replace('<', '')
                 f_path = f_path.replace('>', '')
@@ -128,7 +127,6 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
                                 import_file_dir_path=import_default_dir_path,
                                 import_file_name=f_name)
                 r.append(fi)
-                logging.debug(fi)
         else:
             break
 
@@ -178,7 +176,8 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current) -> list[CallCommitInfo
     r = []
     try:
         f_name = diff_xml_file.dstFile.get_text()
-        f_name.replace('get_path_to_cache_current','')
+        # TODO check how path is written
+        f_name.replace(path_to_cache_current, '')
         print("Dest file name: ", f_name)
 
         for an in diff_xml_file.find_all('action'):
@@ -226,6 +225,7 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 to=proj_config.get_end_repo_date()).traverse_commits()
     """
 
+    logging.debug('Start load_source_repository_data')
     logging.debug(proj_config.get_path_to_repo())
     logging.debug(proj_config.get_start_repo_date())
     logging.debug(proj_config.get_start_repo_date().tzinfo)
@@ -239,60 +239,8 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types()).traverse_commits():
         for mod_file in commit.modified_files:
-            # print('Extension: ', str(mod_file._new_path)[-3:])
             if (is_valid_file_type(str(mod_file._new_path))):
-                logging.debug('---------------------------')
-                logging.debug(mod_file.change_type)
-                logging.debug(str(mod_file._new_path))
-                logging.debug(mod_file._old_path)
-                # logging.debug(mod_file._new_path)
-                # logging.debug(mod_file.diff)
-
-                mod_file_data = FileData(str(mod_file._new_path))
-                logging.debug(mod_file_data)
-
-                # Save new source code
-                file_path_current = Path(
-                    proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
-                save_source_code(file_path_current, mod_file.source_code)
-
-                # Save old source code
-                if mod_file.change_type != ModificationType.ADD:
-                    file_path_previous = Path(
-                        proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
-                    save_source_code(file_path_previous,
-                                     mod_file.source_code_before)
-
-                # Create sourcediff directory
-                file_path_sourcediff = Path(
-                    proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
-                if not os.path.exists(str(file_path_sourcediff.parent)):
-                    os.makedirs(str(file_path_sourcediff.parent))
-
-                # Create sourcediff file
-                """
-                if mod_file.change_type != ModificationType.ADD:
-                    save_source_code_diff_file(
-                        file_path_previous, file_path_current, file_path_sourcediff)
-                else:
-                    # adds new nodes, edges to the db
-                    save_new_file_data(file_path_current)
-                """
-
-                # Save file imports
-                fis = get_file_imports(mod_file.source_code, mod_file_data)
-                logging.debug("File imports: ", fis)
-
-                # Execute the jar for finding the source differences
-                args = [proj_config.get_path_to_src_diff_jar(
-                ), file_path_previous.__str__(), 'TRUE']
-                result = _jarWrapper(*args)
-
-                # convert to string -> xml
-                diff_xml_results = b''.join(result).decode('utf-8')
-                diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
-
-                ccis = parse_xml_diffs(diff_data_xml)
+                r = parse_mod_file(mod_file, proj_paths, proj_config)
 
                 # Save method/function call change info
                 # ggg save_method_call_change_info(file_path_sourcediff)
@@ -301,30 +249,88 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                 source_node = 'TBD'
                 target_node = 'TBD'
                 """
-                save_source_change_row (
-                    commit.hash, str(commit.author_date), str(mod_file._new_path), 
-                    source_node, target_node, commit.author.name
-                )
+                            save_source_change_row (
+                                commit.hash, str(commit.author_date), str(mod_file._new_path), 
+                                source_node, target_node, commit.author.name
+                            )
+                            """
                 """
+                            print('Nloc:', mod_file.nloc)
+                            print('---------------------------')
+                            print(mod_file.complexity)
+                            print('---------------------------')
+                            print(mod_file.token_count)
+                            print('---------------------------')
+                            """
                 """
-                print('Nloc:', mod_file.nloc)
-                print('---------------------------')
-                print(mod_file.complexity)
-                print('---------------------------')
-                print(mod_file.token_count)
-                print('---------------------------')
-                """
-                """
-                for m in mod_file.methods:
-                    print(m.name)
-                    print(m.parameters)
-                    print(m.fan_in)
-                    print(m.fan_out)
-                    print(m.general_fan_out)
-                """
-                logging.debug('---------------------------')
-                # print(mod_file.methods_before)
-                # break
+                            for m in mod_file.methods:
+                                print(m.name)
+                                print(m.parameters)
+                                print(m.fan_in)
+                                print(m.fan_out)
+                                print(m.general_fan_out)
+                            """
 
 
 # %%
+def parse_mod_file(mod_file, proj_paths: ProjectPaths,
+                   proj_config: ProjectConfig) -> Tuple[list[FileImport], list[CallCommitInfo]]:
+    # print('Extension: ', str(mod_file._new_path)[-3:])
+    logging.debug('---------------------------')
+    logging.debug(mod_file.change_type)
+    logging.debug(str(mod_file._new_path))
+    logging.debug(mod_file._old_path)
+    # logging.debug(mod_file._new_path)
+    # logging.debug(mod_file.diff)
+
+    mod_file_data = FileData(str(mod_file._new_path))
+    logging.debug(mod_file_data)
+
+    # Save new source code
+    file_path_current = Path(
+        proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
+    save_source_code(file_path_current, mod_file.source_code)
+
+    # Save old source code
+    if mod_file.change_type != ModificationType.ADD:
+        file_path_previous = Path(
+            proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
+        save_source_code(file_path_previous,
+                         mod_file.source_code_before)
+
+    # Create sourcediff directory
+    file_path_sourcediff = Path(
+        proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
+    if not os.path.exists(str(file_path_sourcediff.parent)):
+        os.makedirs(str(file_path_sourcediff.parent))
+
+    # Create sourcediff file: not currently because relevant differences files are created in jar
+    """
+                if mod_file.change_type != ModificationType.ADD:
+                    save_source_code_diff_file(
+                        file_path_previous, file_path_current, file_path_sourcediff)
+                else:
+                    # adds new nodes, edges to the db
+                    save_new_file_data(file_path_current)
+                """
+
+    # Save file imports
+    fis = get_file_imports(mod_file.source_code, mod_file_data)
+    logging.debug("File imports: ", fis)
+
+    # Execute the jar for finding the source differences
+    args = [proj_config.get_path_to_src_diff_jar(
+    ), file_path_previous.__str__(), 'TRUE']
+    result = _jarWrapper(*args)
+
+    # convert to string -> xml
+    diff_xml_results = b''.join(result).decode('utf-8')
+    diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
+
+    ccis = parse_xml_diffs(
+        diff_data_xml, proj_paths.get_path_to_cache_current())
+
+    logging.debug('---------------------------')
+    # print(mod_file.methods_before)
+    # break
+    return Tuple[fis, ccis]

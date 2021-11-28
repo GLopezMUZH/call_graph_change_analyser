@@ -1,7 +1,7 @@
 .. _intro_toplevel:
 
 ==================
-Overview / Install
+Overview
 ==================
 
 call_graph_change_analyser is a Python tool that helps the understanding of software evolution. 

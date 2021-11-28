@@ -248,8 +248,8 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             order='reverse').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                r = parse_mod_file(mod_file, proj_paths, proj_config)
-                for fi in r[0]:
+                fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
+                for fi in fis:
                     print(fi)
 
 

@@ -34,9 +34,9 @@ def main():
     logging.info('Started App - ', datetime.now())
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
-    st_date = _replace_timezone(st_date)
+    st_date = replace_timezone(st_date)
     end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
-    end_date = _replace_timezone(end_date)
+    end_date = replace_timezone(end_date)
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',

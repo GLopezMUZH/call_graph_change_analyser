@@ -46,7 +46,11 @@ def create_tables(path_to_project_db, drop=False):
         try:
             cur.execute('''DROP TABLE function_to_file''')
         except Exception as error:
-            print("edge_call ", error)
+            print("function_to_file ", error)
+        try:
+            cur.execute('''DROP TABLE file_import''')
+        except Exception as error:
+            print("file_import ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS source_changes
                 (commit_hash text, commit_datetime text, source_file text, source_node text, target_node text, commit_author text)''')
@@ -62,6 +66,9 @@ def create_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
                 (function_node_id number, file_node_id number, nr_calls number)''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS file_import
+                (file_name text, dir_path text, import_file_name text, import_file_dir_path text, start_datetime text, end_datetime text)''')
 
 
 

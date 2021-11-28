@@ -124,8 +124,8 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
                     '"') else f_path
                 # TODO GGG replace  backslash from unix path ???
                 fi = FileImport(src_file_data=mod_file_data,
-                                import_file_dir_path=import_default_dir_path,
-                                import_file_name=f_name)
+                                import_file_name=f_name,
+                                import_file_dir_path=import_default_dir_path)
                 r.append(fi)
         else:
             break
@@ -172,7 +172,7 @@ def get_calls(raw):
         print(a)
 
 
-def parse_xml_diffs(diff_xml_file, path_to_cache_current) -> list[CallCommitInfo]:
+def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileData) -> list[CallCommitInfo]:
     r = []
     try:
         f_name = diff_xml_file.dstFile.get_text()
@@ -196,9 +196,10 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current) -> list[CallCommitInfo
             for ncall in an.calls.find_all('callName'):
                 logging.debug(ncall.get_text())
                 print(ncall.get_text())
-                call_node_name = ncall.get_text()
-                cci = CallCommitInfo(
-                    f_name, parent_function_name, call_node_name)
+                called_node_name = ncall.get_text()
+                cci = CallCommitInfo(src_file_data=mod_file_data,
+                                     call_node=parent_function_name,
+                                     called_node=called_node_name)
                 r.append(cci)
                 # get_calls(at.get_text())
     except Exception as exceptionMsg:
@@ -318,7 +319,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     fis = get_file_imports(mod_file.source_code, mod_file_data)
     logging.debug("File imports: ", fis)
 
-    # Execute the jar for finding the source differences
+    # Execute the jar for finding the relevant source differences (function/method call changes)
     args = [proj_config.get_path_to_src_diff_jar(
     ), file_path_previous.__str__(), 'TRUE']
     result = _jarWrapper(*args)
@@ -328,7 +329,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
 
     ccis = parse_xml_diffs(
-        diff_data_xml, proj_paths.get_path_to_cache_current())
+        diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
 
     logging.debug('---------------------------')
     # print(mod_file.methods_before)

@@ -1,6 +1,8 @@
 import os
 import pandas
 import sqlite3
+from typing import Optional
+from models import FileImport
 
 import models
 from models import ProjectPaths
@@ -89,10 +91,12 @@ def create_commit_based_tables(path_to_project_db, drop=False):
             print("call_commit ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
-                (file_name text, file_dir_path text, file_path text, import_file_name text, import_file_dir_path text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text)''')
+                (file_name text, file_dir_path text, file_path text, import_file_name text, import_file_dir_path text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
+                primary key (file_path, import_file_name, import_file_dir_path ))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
-                (file_name text, file_dir_path text, file_path text, calling_function_node text, called_function_node text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text)''')
+                (file_name text, file_dir_path text, file_path text, calling_function_node text, called_function_node text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
+                primary key (file_path, calling_function_node, called_function_node ))''')
 
 
 def save_source_change_row(
@@ -218,6 +222,60 @@ def get_graph_edges(path_to_project_db) -> pandas.DataFrame:
     select source_node_id, target_node_id from edge_call
     """
     return(pandas.read_sql_query(sql_statement, con_analytics_db))
+
+
+def update_file_imports(fis: list[FileImport],
+                        path_to_project_db: str,
+                        commit_hash_start: str,
+                        commit_start_datetime: str,
+                        commit_hash_end: Optional[str] = None,
+                        commit_end_datetime: Optional[str] = None,):
+    print("update_file_imports")
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    cur = con_analytics_db.cursor()
+    for fi in fis:
+        print(fi)
+        insert_or_update_file_import(con_analytics_db=con_analytics_db,
+                                     cur=cur,
+                                     file_import=fi,
+                                     commit_hash_start=commit_hash_start,
+                                     commit_start_datetime=commit_start_datetime,
+                                     commit_hash_end=commit_hash_end,
+                                     commit_end_datetime=commit_end_datetime)
+
+
+def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
+                                 cur: sqlite3.Cursor,
+                                 file_import: FileImport,
+                                 commit_hash_start: str,
+                                 commit_start_datetime: str,
+                                 commit_hash_end: Optional[str] = '',
+                                 commit_end_datetime: Optional[str] = '',
+                                 ):
+    print("insert_or_update_file_import")
+    print(file_import.get_file_name())
+    sql_string = """INSERT INTO file_import 
+                (file_name, file_dir_path, file_path, 
+                import_file_name, import_file_dir_path, commit_hash_start, 
+                commit_start_datetime, commit_hash_end, commit_end_datetime)
+            VALUES 
+                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
+            ON CONFLICT (file_path, import_file_name, import_file_dir_path) 
+            DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
+                commit_start_datetime = excluded.commit_start_datetime,
+                commit_hash_end = excluded.commit_hash_end,
+                commit_end_datetime = excluded.commit_end_datetime;""".format(
+        file_import.get_file_name(),
+        file_import.get_file_dir_path(),
+        file_import.get_file_path(),
+        file_import.get_import_file_name(),
+        file_import.get_import_file_dir_path(),
+        commit_hash_start,
+        commit_start_datetime, commit_hash_end, commit_end_datetime)
+
+    print(sql_string)
+    cur.execute(sql_string)
+    con_analytics_db.commit()
 
 
 """

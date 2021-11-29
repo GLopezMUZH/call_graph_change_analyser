@@ -22,7 +22,7 @@ def test_get_file_imports():
 
     fis = get_file_imports(source_code=file_contents, mod_file_data=file_data)
     for fi in fis:
-        print(fi.get_src_file_name)
+        print(fi.get_file_name())
 
     fis_should = ['UavcanNode.hpp',
                   'boot_app_shared.h',

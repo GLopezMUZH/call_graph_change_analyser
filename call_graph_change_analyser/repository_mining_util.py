@@ -14,7 +14,7 @@ from models import *
 import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from utils_sql import initate_analytics_db
+from utils_sql import update_file_imports
 
 # %%
 import utils_sql
@@ -210,20 +210,6 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileDat
 
 # %%
 def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
-
-    """
-    if proj_config.get_end_repo_date == None:
-        repository_generator = Repository(
-                path_to_repo=proj_config.get_path_to_repo(),
-                since=proj_config.get_start_repo_date).traverse_commits()
-                #only_modifications_with_file_types=proj_config.get_commit_file_types()
-    else:
-        repository_generator = Repository(
-                path_to_repo=proj_config.get_path_to_repo(),
-                since=proj_config.get_start_repo_date,
-                to=proj_config.get_end_repo_date()).traverse_commits()
-    """
-
     logging.debug('Start load_source_repository_data')
     logging.debug(proj_config.get_path_to_repo())
     logging.debug(proj_config.get_start_repo_date())
@@ -249,9 +235,10 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
-                for fi in fis:
-                    print(fi)
-
+                update_file_imports(fis,
+                                    proj_paths.get_path_to_project_db(),
+                                    commit_hash_start=commit.hash,
+                                    commit_start_datetime=commit.committer_date)
 
 
 def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):

@@ -136,9 +136,9 @@ class FileImport():
                  import_file_dir_path: str,
                  commit_hash_start=None, commit_start_datetime=None,
                  commit_hash_end=None, commit_end_datetime=None) -> None:
-        self.src_file_name = src_file_data.file_name
-        self.src_file_dir_path = src_file_data.file_dir_path
-        self.src_file_path = src_file_data.file_path
+        self.file_name = src_file_data.file_name
+        self.file_dir_path = src_file_data.file_dir_path
+        self.file_path = src_file_data.file_path
         self.import_file_name = import_file_name
         self.import_file_dir_path = import_file_dir_path
         self.commit_hash_start = commit_hash_start
@@ -146,12 +146,28 @@ class FileImport():
         self.commit_hash_end = commit_hash_end
         self.commit_end_datetime = commit_end_datetime
 
+    def get_file_name(self) -> str:
+        return self.file_name
+    def get_file_dir_path(self) -> str:
+        return self.file_dir_path
+    def get_file_path(self) -> str:
+        return self.file_path
     def get_import_file_name(self) -> str:
         return self.import_file_name
+    def get_import_file_dir_path(self) -> str:
+        return self.import_file_dir_path
+    def get_commit_hash_start(self) -> str:
+        return self.commit_hash_start
+    def get_commit_start_datetime(self) -> str:
+        return self.commit_start_datetime
+    def get_commit_hash_end(self) -> str:
+        return self.commit_hash_end
+    def get_commit_end_datetime(self) -> str:
+        return self.commit_end_datetime
 
     def __str__(self) -> str:
         return("FileImport[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"
-               .format(self.src_file_path, self.import_file_name, self.import_file_dir_path))
+               .format(self.file_path, self.import_file_name, self.import_file_dir_path))
 
 
 """

@@ -10,6 +10,8 @@ from models import ProjectPaths
 
 
 def create_db_tables(proj_paths: ProjectPaths, drop=False):
+    if not os.path.exists(str(proj_paths.get_path_to_proj_data_dir())):
+        os.makedirs(str(proj_paths.get_path_to_proj_data_dir()))
     print("create_db_tables drop", drop)
     create_graph_based_tables(proj_paths.path_to_project_db, drop)
     create_commit_based_tables(proj_paths.path_to_project_db, drop)

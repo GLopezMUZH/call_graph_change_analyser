@@ -8,10 +8,13 @@ import models
 from models import ProjectPaths
 
 
-# Initate database
-def initate_analytics_db(proj_paths: ProjectPaths, drop=False, load_init_graph=True, load_function_to_file=False):
+def create_db_tables(proj_paths: ProjectPaths, drop=False):
     create_graph_based_tables(proj_paths.path_to_project_db, drop)
+    create_commit_based_tables(proj_paths.path_to_project_db, drop)
 
+
+# Initate database
+def load_graph_data(proj_paths: ProjectPaths, delete_existings=False, load_init_graph=True, load_function_to_file=False):
     con_graph_db = sqlite3.connect(proj_paths.path_to_srctrail_db)
     print("proj_paths.path_to_srctrail_db: ", proj_paths.path_to_srctrail_db)
     con_analytics_db = sqlite3.connect(proj_paths.path_to_project_db)

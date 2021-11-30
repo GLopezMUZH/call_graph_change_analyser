@@ -223,6 +223,14 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
         traverse_on_tags(proj_config, proj_paths)
 
 
+def process_file_commit(proj_config, proj_paths, commit, mod_file):
+    fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
+    update_file_imports(fis,
+                        proj_paths.get_path_to_project_db(),
+                        commit_hash_start=commit.hash,
+                        commit_start_datetime=commit.committer_date)
+
+
 def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
@@ -234,11 +242,7 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             order='reverse').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
-                update_file_imports(fis,
-                                    proj_paths.get_path_to_project_db(),
-                                    commit_hash_start=commit.hash,
-                                    commit_start_datetime=commit.committer_date)
+                process_file_commit(proj_config, proj_paths, commit, mod_file)
 
 
 def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -252,8 +256,7 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             order='reverse').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                r = parse_mod_file(mod_file, proj_paths, proj_config)
-
+                process_file_commit(proj_config, proj_paths, commit, mod_file)
                 # Save method/function call change info
                 # ggg save_method_call_change_info(file_path_sourcediff)
 

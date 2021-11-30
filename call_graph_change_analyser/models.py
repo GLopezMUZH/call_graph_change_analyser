@@ -44,12 +44,14 @@ class ProjectPaths:
     def __init__(self, proj_name: str, path_to_cache_dir: str,
                  path_to_proj_data_dir: str, path_to_git_folder: str) -> None:
         proj_folder = proj_name + '\\'
-        # source and diff folders
+        # temporary source and diff folders
         self.path_to_cache_dir = path_to_cache_dir
         self.path_to_cache_current = path_to_cache_dir + \
             str(proj_folder) + 'current\\'
         self.path_to_cache_previous = path_to_cache_dir + proj_folder + 'previous\\'
         self.path_to_cache_sourcediff = path_to_cache_dir + proj_folder + 'sourcediff\\'
+        # project data directory
+        self.path_to_proj_data_dir = path_to_proj_data_dir + proj_folder
         # analytics database
         self.path_to_project_db = path_to_proj_data_dir + \
             proj_folder + proj_name + '_analytics.db'
@@ -61,16 +63,15 @@ class ProjectPaths:
 
     def get_path_to_cache_current(self):
         return self.path_to_cache_current
-
     def get_path_to_cache_previous(self):
         return self.path_to_cache_previous
-
     def get_path_to_cache_sourcediff(self):
         return self.path_to_cache_sourcediff
 
+    def get_path_to_proj_data_dir(self):
+        return self.path_to_proj_data_dir
     def get_path_to_project_db(self):
         return self.path_to_project_db
-
     def get_path_to_srctrail_db(self):
         return self.path_to_srctrail_db
 

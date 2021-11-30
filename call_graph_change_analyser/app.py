@@ -16,7 +16,7 @@ from call_graph_analysis import get_call_graph, print_graph_stats
 # %%
 import repository_mining_util
 reload(repository_mining_util)
-from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_diffs, parse_mod_file
+from repository_mining_util import save_source_code
 
 import models
 reload(models)
@@ -25,7 +25,7 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 # %%
 def main():
     print('Started App ------------ ', datetime.now())
-    proj_config, proj_paths = execute_project_conf_PX4()
+    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
     logging.info('Started App ---------- ', datetime.now())
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
@@ -108,12 +108,11 @@ if __name__ == '__main__':
 
 
 #%%
-"""
 from utils_sql import create_db_tables
 # INITIALIZE DATABASE ------------------------------
-proj_config, proj_paths = execute_project_conf_PX4()
+proj_config, proj_paths = execute_project_conf_JKQtPlotter()
 create_db_tables(proj_paths, drop=True)
-"""
+
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)

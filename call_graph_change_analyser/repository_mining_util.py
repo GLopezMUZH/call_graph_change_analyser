@@ -35,11 +35,25 @@ os.environ['COMSPEC']
 def save_source_code(file_path, source_text):
     if not os.path.exists(str(file_path.parent)):
         os.makedirs(str(file_path.parent))
+
+    print(type(source_text))
+    logging.debug(type(source_text))
+
+    if isinstance(source_text, bytes):
+        logging.debug("save_source_code was bytes")
+        source_text = source_text.decode('utf-8')
+    
     try:
-        f = open(file_path, 'x')
+        f = open(file_path, 'x', encoding='utf-8')
     except FileExistsError:
-        f = open(file_path, 'w')
-    f.writelines(source_text)
+        f = open(file_path, 'w', encoding='utf-8')
+
+    try:
+        f.writelines(source_text)
+    except UnicodeEncodeError:
+        print(type(source_text))
+        print(type(source_text.encode('utf-8-sig')))
+        f.write(source_text.encode('utf-8-sig'))
     f.close()
     save_source_code_xml(file_path)
 
@@ -77,7 +91,7 @@ def is_java_file(mod_file: str):
 
 
 def is_cpp_file(mod_file: str):
-    return mod_file[-4:] == '.cpp' or mod_file[-2:] == '.c' or mod_file[-2:] == '.h'
+    return mod_file[-4:] == '.cpp' or mod_file[-2:] == '.c'  #or mod_file[-2:] == '.h'
 
 
 def is_python_file(mod_file: str):

@@ -487,3 +487,10 @@ reload(repository_mining_util)
 from repository_mining_util import process_file_commit
 
 # %%
+from repository_mining_util import get_file_type_validation_function
+is_valid_file_type = get_file_type_validation_function('cpp')
+print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.h'))
+print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.cpp'))
+print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.what'))
+
+# %%

@@ -8,7 +8,7 @@ from imp import reload
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from repository_mining_util import load_source_repository_data
-from utils_sql import initate_analytics_db, create_commit_based_tables
+from utils_sql import create_commit_based_tables
 from utils_py import replace_timezone
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -25,6 +25,16 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 # %%
 def main():
     print('Started App - ', datetime.now())
+    proj_config, proj_paths = execute_project_conf_PX4()
+
+    load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
+
+    logging.info('Finished App - ', datetime.now())
+    print('Finished App -', datetime.now())
+
+
+
+def execute_project_conf_PX4():
     path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
     proj_name = 'PX4-Autopilot'
     log_filepath = path_to_cache_dir+proj_name+'\\app.log'
@@ -56,11 +66,37 @@ def main():
                               path_to_cache_dir=path_to_cache_dir,
                               path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
                               path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
+                              
+    return proj_config,proj_paths
 
-    load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
-    logging.info('Finished App - ', datetime.now())
-    print('Finished App -', datetime.now())
+def execute_project_conf_JKQtPlotter():
+    path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
+    proj_name = 'JKQtPlotter'
+    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s %(levelname)-8s %(message)s')
+    logging.info('Started App - ', datetime.now())
+
+    from_tag = 'v2019.11.0'
+    to_tag = 'v2019.11.1'
+
+    proj_config = ProjectConfig(proj_name=proj_name,
+                                proj_lang='cpp',
+                                commit_file_types=['.cpp'],
+                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
+                                repo_from_tag=from_tag,
+                                repo_to_tag=to_tag
+                                )
+    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
+                              path_to_cache_dir=path_to_cache_dir,
+                              path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
+                              path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
+                              
+    return proj_config,proj_paths
+
 
 
 #%%

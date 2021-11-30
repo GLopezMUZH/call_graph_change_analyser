@@ -212,15 +212,19 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileDat
 def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     logging.debug('Start load_source_repository_data')
     logging.debug(proj_config.get_path_to_repo())
-    logging.debug(proj_config.get_start_repo_date())
-    logging.debug(proj_config.get_start_repo_date().tzinfo)
-    logging.debug(proj_config.get_end_repo_date())
     logging.debug(proj_config.get_commit_file_types())
 
     if proj_config.get_start_repo_date() is not None:
+        logging.debug(proj_config.get_start_repo_date())
+        logging.debug(proj_config.get_start_repo_date().tzinfo)
+        logging.debug(proj_config.get_end_repo_date())
         traverse_on_dates(proj_config, proj_paths)
     elif proj_config.get_repo_from_tag() is not None:
+        logging.debug(proj_config.get_repo_from_tag())
+        logging.debug(proj_config.get_repo_to_tag())
         traverse_on_tags(proj_config, proj_paths)
+    else:
+        traverse_all(proj_config, proj_paths)
 
 
 def process_file_commit(proj_config, proj_paths, commit, mod_file):
@@ -235,6 +239,17 @@ def process_file_commit(proj_config, proj_paths, commit, mod_file):
                         commit_hash_start=commit.hash,
                         commit_start_datetime=str(commit.committer_date))
 
+
+def traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
+    for commit in Repository(
+            path_to_repo=proj_config.get_path_to_repo(),
+            only_modifications_with_file_types=proj_config.get_commit_file_types(),
+            order='reverse').traverse_commits():
+        for mod_file in commit.modified_files:
+            if (is_valid_file_type(str(mod_file._new_path))):
+                process_file_commit(proj_config, proj_paths, commit, mod_file)
 
 def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(

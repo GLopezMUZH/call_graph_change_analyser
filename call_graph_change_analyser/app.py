@@ -24,13 +24,14 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 
 # %%
 def main():
-    print('Started App - ', datetime.now())
+    print('Started App ------------ ', datetime.now())
     proj_config, proj_paths = execute_project_conf_PX4()
+    logging.info('Started App ---------- ', datetime.now())
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
-    logging.info('Finished App - ', datetime.now())
-    print('Finished App -', datetime.now())
+    logging.info('Finished App ---------- ', datetime.now())
+    print('Finished App -------------', datetime.now())
 
 
 
@@ -74,10 +75,11 @@ def execute_project_conf_JKQtPlotter():
     path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
     proj_name = 'JKQtPlotter'
     log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+    print(log_filepath)
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s %(levelname)-8s %(message)s')
-    logging.info('Started App - ', datetime.now())
+    logging.debug('Started App - ', datetime.now())
 
     from_tag = 'v2019.11.0'
     to_tag = 'v2019.11.1'
@@ -86,15 +88,15 @@ def execute_project_conf_JKQtPlotter():
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
-                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
-                                repo_from_tag=from_tag,
-                                repo_to_tag=to_tag
+                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git'
                                 )
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
                               path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
                               path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
-                              
+
+    logging.debug(proj_config)
+    logging.debug(proj_paths)                              
     return proj_config,proj_paths
 
 
@@ -104,8 +106,14 @@ if __name__ == '__main__':
     main()
 
 
-# %%
 
+#%%
+"""
+from utils_sql import create_db_tables
+# INITIALIZE DATABASE ------------------------------
+proj_config, proj_paths = execute_project_conf_PX4()
+create_db_tables(proj_paths, drop=True)
+"""
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)

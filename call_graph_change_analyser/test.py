@@ -1,40 +1,58 @@
 # %%
 #import pydriller
-from pydriller.domain.commit import ModifiedFile
 import pytest
-from bs4 import BeautifulSoup
-
-
-from utils_sql import create_commit_based_tables, update_file_imports
-import utils_sql
-from models import CallCommitInfo, ProjectPaths, FileData, FileImport
-from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_diffs, parse_mod_file, process_file_commit
-import gumtree_difffile_parser
-from models import *
-import models
-from gumtree_difffile_parser import get_method_call_change_info_cpp
-from imp import reload
-from pydriller import *
-from datetime import datetime
+import time
 import logging
+from bs4 import BeautifulSoup
+from imp import reload
+from datetime import datetime
 
+from pydriller import *
+from pydriller.domain.commit import ModifiedFile
 
+from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
+from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_diffs, parse_mod_file, process_file_commit
+from gumtree_difffile_parser import get_method_call_change_info_cpp
+
+from utils_sql import create_commit_based_tables, update_file_imports, create_db_tables
 from utils_py import replace_timezone
 
 
 # %%
-for commit in Repository("https://github.com/PX4/PX4-Autopilot.git", since=datetime(2021, 11, 15, 0, 1, 0, 79043)).traverse_commits():
-    print(commit.author_date)
+def execute_project_conf_example_project():
+    path_to_cache_dir = '..\\tests\\cache\\'
+    proj_name = 'example_project'
+    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s %(levelname)-8s %(message)s')
+    logging.info('Started App - ' + str(datetime.now()))
+
+    st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
+    st_date = replace_timezone(st_date)
+    end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
+    end_date = replace_timezone(end_date)
+
+    proj_config = ProjectConfig(proj_name=proj_name,
+                                proj_lang='cpp',
+                                commit_file_types=['.cpp'],
+                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_repo='',
+                                start_repo_date=st_date,
+                                end_repo_date=end_date)
+    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
+                              path_to_cache_dir=path_to_cache_dir,
+                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
+                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+                              
+    return proj_config,proj_paths
 
 
-# %%
-
-# %%
-reload(models)
-
-# %%
-reload(gumtree_difffile_parser)
-
+#%%
+# INITIALIZE DATABASE ------------------------------
+proj_config, proj_paths = execute_project_conf_example_project()
+create_db_tables(proj_paths, drop=True)
+#create_commit_based_tables(proj_paths.get_path_to_project_db(), drop=True)
 
 # %%
 mcci = get_method_call_change_info_cpp(
@@ -213,7 +231,7 @@ for cci in r:
 
 # %%
 cci = CallCommitInfo(
-    'f_name_TEST', 'parent_function_name_TEST', 'call_node_name_TEST')
+    'f_name_TEST', 'parent_function_name_TEST', 'calling_node_name_TEST')
 print(cci)
 
 # %%
@@ -370,47 +388,62 @@ def test_analytics_db():
 
 test_analytics_db()
 
+#%%
+from git import Commit as GitCommit,  Actor, Repo
+from pydriller import Commit
+import hashlib
 
-# %%
-import utils_sql
-reload(utils_sql)
-from utils_sql import update_file_imports, insert_or_update_file_import
+def create_local_commit() -> Commit:
+    repo = Repo('C:\\Users\\lopm\\Documents\\gitprojects\\call_graph_change_analyser')
 
-import models
-reload(models)
-from models import CallCommitInfo, ProjectPaths, FileData, FileImport
+    message = 'hash_test_process_file_commit message'
 
-import repository_mining_util
-reload(repository_mining_util)
-from repository_mining_util import process_file_commit
+    tree = repo.index.write_tree()
+    parents = [repo.head.commit]
+
+    # Committer and Author
+    actor = Actor("Gab", "Gab@testing.dev")
+    cr = repo.config_reader()
+    committer = Actor.committer(cr)
+    author = Actor.author(cr)
+
+    # Custom Date
+    t = int(time.time())
+    offset = time.altzone
+    author_time, author_offset = t, offset
+    committer_time, committer_offset = t, offset
+
+    # UTF-8 Default
+    conf_encoding = 'UTF-8'
+
+    hash_obj = hashlib.sha1(b'Hello, Python!')
+
+    comm = GitCommit(repo, GitCommit.NULL_BIN_SHA,  #hash_obj.digest(),  # Commit.NULL_BIN_SHA,
+                tree,
+                author, author_time, author_offset,
+                committer, committer_time, committer_offset,
+                message, parents, conf_encoding)
+
+
+    print("Git Commit----")
+
+    print(comm)
+    print(comm.author)
+    print(comm.hexsha)
+
+    py_comm = Commit(comm, conf_encoding)
+
+    print("PyDriller Commit--- ")
+    print(py_comm.author)
+    print(py_comm.hash)
+
+    return py_comm
+
 
 # %%
 def test_process_file_commit():
 
-    path_to_cache_dir = '..\\tests\\cache\\'
-    proj_name = 'example_project'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s %(levelname)-8s %(message)s')
-    logging.info('Started App - ' + str(datetime.now()))
-
-    st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
-    st_date = replace_timezone(st_date)
-    end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
-    end_date = replace_timezone(end_date)
-
-    proj_config = ProjectConfig(proj_name=proj_name,
-                                proj_lang='cpp',
-                                commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
-                                path_to_repo='',
-                                start_repo_date=st_date,
-                                end_repo_date=end_date)
-    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
-                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+    proj_config, proj_paths = execute_project_conf_example_project()
 
     print(proj_config)
     print(proj_paths)
@@ -432,15 +465,25 @@ def test_process_file_commit():
                             "UavcanNode.cpp",
                             ModificationType.MODIFY, diff_and_sc)
 
-    class PeudoCommit():
-        def __init__(self, hash, committer_date) -> None:
-            self.hash = hash
-            self.committer_date = committer_date
-    
-
-    commit = PeudoCommit('hash_test_process_file_commit','211130')
-    process_file_commit(proj_config, proj_paths, PeudoCommit, mod_file)
+    local_commit = create_local_commit()
+    process_file_commit(proj_config, proj_paths, local_commit, mod_file)
 
 
 test_process_file_commit()
+# %%
+
+# %%
+import utils_sql
+reload(utils_sql)
+from utils_sql import update_file_imports, insert_or_update_file_import
+from utils_sql import create_db_tables, create_commit_based_tables, insert_or_update_call_commit
+
+import models
+reload(models)
+from models import CallCommitInfo, ProjectPaths, FileData, FileImport
+
+import repository_mining_util
+reload(repository_mining_util)
+from repository_mining_util import process_file_commit
+
 # %%

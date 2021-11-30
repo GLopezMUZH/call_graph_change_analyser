@@ -1,14 +1,16 @@
+import logging
 import os
 import pandas
 import sqlite3
 from typing import Optional
-from models import FileImport
+from models import FileImport, CallCommitInfo
 
 import models
 from models import ProjectPaths
 
 
 def create_db_tables(proj_paths: ProjectPaths, drop=False):
+    print("create_db_tables drop", drop)
     create_graph_based_tables(proj_paths.path_to_project_db, drop)
     create_commit_based_tables(proj_paths.path_to_project_db, drop)
 
@@ -31,6 +33,8 @@ def load_graph_data(proj_paths: ProjectPaths, delete_existings=False, load_init_
 
 
 def create_graph_based_tables(path_to_project_db, drop=False):
+    print("create_graph_based_tables drop", drop)
+
     con = sqlite3.connect(path_to_project_db)
     cur = con.cursor()
 
@@ -55,10 +59,6 @@ def create_graph_based_tables(path_to_project_db, drop=False):
             cur.execute('''DROP TABLE function_to_file''')
         except Exception as error:
             print("function_to_file ", error)
-        try:
-            cur.execute('''DROP TABLE file_import''')
-        except Exception as error:
-            print("file_import ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS source_changes
                 (commit_hash text, commit_datetime text, source_file text, source_node text, target_node text, commit_author text)''')
@@ -75,11 +75,9 @@ def create_graph_based_tables(path_to_project_db, drop=False):
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
                 (function_node_id number, file_node_id number, nr_calls number)''')
 
-    cur.execute('''CREATE TABLE IF NOT EXISTS file_import
-                (file_name text, dir_path text, import_file_name text, import_file_dir_path text, start_datetime text, end_datetime text)''')
-
 
 def create_commit_based_tables(path_to_project_db, drop=False):
+    print("create_commit_based_tables drop", drop)
     con = sqlite3.connect(path_to_project_db)
     cur = con.cursor()
 
@@ -98,8 +96,8 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 primary key (file_path, import_file_name, import_file_dir_path ))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
-                (file_name text, file_dir_path text, file_path text, calling_function_node text, called_function_node text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, calling_function_node, called_function_node ))''')
+                (file_name text, file_dir_path text, file_path text, calling_node text, called_node text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
+                primary key (file_path, calling_node, called_node ))''')
 
 
 def save_source_change_row(
@@ -277,9 +275,64 @@ def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
         commit_start_datetime, commit_hash_end, commit_end_datetime)
 
     print(sql_string)
+    logging.debug(sql_string)
     cur.execute(sql_string)
     con_analytics_db.commit()
 
+
+
+def update_call_commits(ccis: list[CallCommitInfo],
+                        path_to_project_db: str,
+                        commit_hash_start: str,
+                        commit_start_datetime: str,
+                        commit_hash_end: Optional[str] = None,
+                        commit_end_datetime: Optional[str] = None,):
+    print("update_call_commits")
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    cur = con_analytics_db.cursor()
+    for cc in ccis:
+        print(cc)
+        insert_or_update_call_commit(con_analytics_db=con_analytics_db,
+                                     cur=cur,
+                                     call_commit=cc,
+                                     commit_hash_start=commit_hash_start,
+                                     commit_start_datetime=commit_start_datetime,
+                                     commit_hash_end=commit_hash_end,
+                                     commit_end_datetime=commit_end_datetime)
+
+
+def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
+                                 cur: sqlite3.Cursor,
+                                 call_commit: CallCommitInfo,
+                                 commit_hash_start: str,
+                                 commit_start_datetime: str,
+                                 commit_hash_end: Optional[str] = '',
+                                 commit_end_datetime: Optional[str] = '',
+                                 ):
+    print("insert_or_update_file_import")
+    print(call_commit.get_file_name())
+    sql_string = """INSERT INTO call_commit 
+                (file_name, file_dir_path, file_path, 
+                calling_node, called_node, commit_hash_start, 
+                commit_start_datetime, commit_hash_end, commit_end_datetime)
+            VALUES 
+                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
+            ON CONFLICT (file_path, calling_node, called_node) 
+            DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
+                commit_start_datetime = excluded.commit_start_datetime,
+                commit_hash_end = excluded.commit_hash_end,
+                commit_end_datetime = excluded.commit_end_datetime;""".format(
+        call_commit.get_file_name(),
+        call_commit.get_file_dir_path(),
+        call_commit.get_file_path(),
+        call_commit.get_calling_node(),
+        call_commit.get_called_node(),
+        commit_hash_start,
+        commit_start_datetime, commit_hash_end, commit_end_datetime)
+
+    print(sql_string)
+    cur.execute(sql_string)
+    con_analytics_db.commit()
 
 """
 create table edge_node_info (edge_id, edge_type, source_node_id, source_node_type, source_node_name, target_node_id, target_node_type, target_node_name)

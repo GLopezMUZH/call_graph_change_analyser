@@ -97,7 +97,7 @@ class FileData():
 
 
 class CallCommitInfo:
-    def __init__(self, src_file_data: FileData, call_node: str, called_node: str,
+    def __init__(self, src_file_data: FileData, calling_node: str, called_node: str,
                  commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
                  commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
         """
@@ -109,12 +109,32 @@ class CallCommitInfo:
         self.file_name = src_file_data.file_name
         self.file_dir_path = src_file_data.file_dir_path
         self.file_path = src_file_data.file_path
-        self.call_node = call_node
+        self.calling_node = calling_node
         self.called_node = called_node
         self.commit_hash_start = commit_hash_start
         self.commit_start_datetime = commit_start_datetime
         self.commit_hash_end = commit_hash_end
         self.commit_end_datetime = commit_end_datetime
+
+    def get_file_name(self) -> str:
+        return self.file_name
+    def get_file_dir_path(self) -> str:
+        return self.file_dir_path
+    def get_file_path(self) -> str:
+        return self.file_path
+    def get_calling_node(self) -> str:
+        return self.calling_node
+    def get_called_node(self) -> str:
+        return self.called_node
+    def get_commit_hash_start(self) -> str:
+        return self.commit_hash_start
+    def get_commit_start_datetime(self) -> str:
+        return self.commit_start_datetime
+    def get_commit_hash_end(self) -> str:
+        return self.commit_hash_end
+    def get_commit_end_datetime(self) -> str:
+        return self.commit_end_datetime
+
 
     def set_commit_hash_start(self, commit_hash_start):
         self.commit_hash_start = commit_hash_start
@@ -127,7 +147,7 @@ class CallCommitInfo:
 
     def __str__(self) -> str:
         return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
-               .format(self.call_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
+               .format(self.calling_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
 
 
 class FileImport():
@@ -164,6 +184,11 @@ class FileImport():
         return self.commit_hash_end
     def get_commit_end_datetime(self) -> str:
         return self.commit_end_datetime
+
+    def set_commit_hash_end(self, commit_hash_end):
+        self.commit_hash_end = commit_hash_end
+    def set_commit_end_datetime(self, commit_end_datetime):
+        self.commit_end_datetime = commit_end_datetime
 
     def __str__(self) -> str:
         return("FileImport[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"

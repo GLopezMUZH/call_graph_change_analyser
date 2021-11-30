@@ -14,7 +14,7 @@ from models import *
 import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from utils_sql import update_file_imports
+from utils_sql import update_file_imports, update_call_commits
 
 # %%
 import utils_sql
@@ -133,7 +133,7 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
     return r
 
 
-#from subprocess import *
+# from subprocess import *
 
 def _jarWrapper(*args):
     process = Popen(['java', '-jar']+list(args), stdout=PIPE, stderr=PIPE)
@@ -198,7 +198,7 @@ def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileDat
                 print(ncall.get_text())
                 called_node_name = ncall.get_text()
                 cci = CallCommitInfo(src_file_data=mod_file_data,
-                                     call_node=parent_function_name,
+                                     calling_node=parent_function_name,
                                      called_node=called_node_name)
                 r.append(cci)
                 # get_calls(at.get_text())
@@ -228,7 +228,12 @@ def process_file_commit(proj_config, proj_paths, commit, mod_file):
     update_file_imports(fis,
                         proj_paths.get_path_to_project_db(),
                         commit_hash_start=commit.hash,
-                        commit_start_datetime=commit.committer_date)
+                        commit_start_datetime=str(commit.committer_date))
+
+    update_call_commits(ccis,
+                        proj_paths.get_path_to_project_db(),
+                        commit_hash_start=commit.hash,
+                        commit_start_datetime=str(commit.committer_date))
 
 
 def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -265,7 +270,8 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                 target_node = 'TBD'
                 """
                             save_source_change_row (
-                                commit.hash, str(commit.author_date), str(mod_file._new_path), 
+                                commit.hash, str(commit.author_date), str(
+                                    mod_file._new_path),
                                 source_node, target_node, commit.author.name
                             )
                             """

@@ -3,7 +3,7 @@ import os
 import pandas
 import sqlite3
 from typing import Optional
-from models import FileImport, CallCommitInfo
+from models import FileImport, CallCommitInfo, ActionClass
 
 import models
 from models import ProjectPaths
@@ -234,17 +234,20 @@ def update_file_imports(fis: list[FileImport],
                         commit_hash_end: Optional[str] = None,
                         commit_end_datetime: Optional[str] = None,):
     print("update_file_imports")
-    con_analytics_db = sqlite3.connect(path_to_project_db)
-    cur = con_analytics_db.cursor()
-    for fi in fis:
-        print(fi)
-        insert_or_update_file_import(con_analytics_db=con_analytics_db,
-                                     cur=cur,
-                                     file_import=fi,
-                                     commit_hash_start=commit_hash_start,
-                                     commit_start_datetime=commit_start_datetime,
-                                     commit_hash_end=commit_hash_end,
-                                     commit_end_datetime=commit_end_datetime)
+    if len(fis) > 0:
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+        for fi in fis:
+            print(fi)
+            insert_or_update_file_import(con_analytics_db=con_analytics_db,
+                                        cur=cur,
+                                        file_import=fi,
+                                        commit_hash_start=commit_hash_start,
+                                        commit_start_datetime=commit_start_datetime,
+                                        commit_hash_end=commit_hash_end,
+                                        commit_end_datetime=commit_end_datetime)
+    else:
+        logging.debug("no import_files")
 
 
 def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
@@ -282,7 +285,6 @@ def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
     con_analytics_db.commit()
 
 
-
 def update_call_commits(ccis: list[CallCommitInfo],
                         path_to_project_db: str,
                         commit_hash_start: str,
@@ -290,17 +292,21 @@ def update_call_commits(ccis: list[CallCommitInfo],
                         commit_hash_end: Optional[str] = None,
                         commit_end_datetime: Optional[str] = None,):
     print("update_call_commits")
-    con_analytics_db = sqlite3.connect(path_to_project_db)
-    cur = con_analytics_db.cursor()
-    for cc in ccis:
-        print(cc)
-        insert_or_update_call_commit(con_analytics_db=con_analytics_db,
-                                     cur=cur,
-                                     call_commit=cc,
-                                     commit_hash_start=commit_hash_start,
-                                     commit_start_datetime=commit_start_datetime,
-                                     commit_hash_end=commit_hash_end,
-                                     commit_end_datetime=commit_end_datetime)
+    logging.debug('update_call_commits')
+    if len(ccis) > 0:
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+        for cci in ccis:
+            print(cci)
+            insert_or_update_call_commit(con_analytics_db=con_analytics_db,
+                                        cur=cur,
+                                        call_commit=cci,
+                                        commit_hash_start=commit_hash_start,
+                                        commit_start_datetime=commit_start_datetime,
+                                        commit_hash_end=commit_hash_end,
+                                        commit_end_datetime=commit_end_datetime)
+    else:
+        logging.debug("no call_commits")
 
 
 def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
@@ -312,29 +318,63 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
                                  commit_end_datetime: Optional[str] = '',
                                  ):
     print("insert_or_update_file_import")
-    print(call_commit.get_file_name())
-    sql_string = """INSERT INTO call_commit 
-                (file_name, file_dir_path, file_path, 
-                calling_node, called_node, commit_hash_start, 
-                commit_start_datetime, commit_hash_end, commit_end_datetime)
-            VALUES 
-                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
-            ON CONFLICT (file_path, calling_node, called_node) 
-            DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
-                commit_start_datetime = excluded.commit_start_datetime,
-                commit_hash_end = excluded.commit_hash_end,
-                commit_end_datetime = excluded.commit_end_datetime;""".format(
-        call_commit.get_file_name(),
-        call_commit.get_file_dir_path(),
-        call_commit.get_file_path(),
-        call_commit.get_calling_node(),
-        call_commit.get_called_node(),
-        commit_hash_start,
-        commit_start_datetime, commit_hash_end, commit_end_datetime)
+    logging.debug(call_commit.get_file_name())
+    execute_sql = False
 
-    print(sql_string)
-    cur.execute(sql_string)
-    con_analytics_db.commit()
+    if call_commit.get_action_class() is ActionClass.DELETE:
+        commit_hash_end = commit_hash_start
+        commit_end_datetime = commit_start_datetime
+        sql_string = """INSERT INTO call_commit 
+                    (file_name, file_dir_path, file_path, 
+                    calling_node, called_node,commit_hash_end, commit_end_datetime)
+                VALUES 
+                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}') 
+                ON CONFLICT (file_path, calling_node, called_node) 
+                DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
+                    commit_hash_end = excluded.commit_hash_end,
+                    commit_end_datetime = excluded.commit_end_datetime;""".format(
+            call_commit.get_file_name(),
+            call_commit.get_file_dir_path(),
+            call_commit.get_file_path(),
+            call_commit.get_calling_node(),
+            call_commit.get_called_node(),
+            commit_hash_end, commit_end_datetime)
+        execute_sql = True
+    elif call_commit.get_action_class() is ActionClass.INSERT or call_commit.get_action_class() is ActionClass.ADD:
+        sql_string = """INSERT INTO call_commit 
+                    (file_name, file_dir_path, file_path, 
+                    calling_node, called_node, commit_hash_start, 
+                    commit_start_datetime, commit_hash_end, commit_end_datetime)
+                VALUES 
+                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
+                ON CONFLICT (file_path, calling_node, called_node) 
+                DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
+                    commit_start_datetime = excluded.commit_start_datetime,
+                    commit_hash_end = excluded.commit_hash_end,
+                    commit_end_datetime = excluded.commit_end_datetime;""".format(
+            call_commit.get_file_name(),
+            call_commit.get_file_dir_path(),
+            call_commit.get_file_path(),
+            call_commit.get_calling_node(),
+            call_commit.get_called_node(),
+            commit_hash_start,
+            commit_start_datetime, commit_hash_end, commit_end_datetime)
+        execute_sql = True
+    elif call_commit.get_action_class() is ActionClass.MOVE:
+        logging.debug(
+            "TODO, check if calling function is the same, else set end and insert", call_commit.get_action_class())
+    else:
+        logging.error("not valid Commit ActionClass",
+                      call_commit.get_action_class())
+
+    if execute_sql:
+        print(sql_string)
+        cur.execute(sql_string)
+        con_analytics_db.commit()
+    else:
+        logging.warning("Nothing to insert call_commit",
+                        call_commit.get_action_class())
+
 
 """
 create table edge_node_info (edge_id, edge_type, source_node_id, source_node_type, source_node_name, target_node_id, target_node_type, target_node_name)

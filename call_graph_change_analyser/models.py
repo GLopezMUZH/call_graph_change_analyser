@@ -7,13 +7,21 @@ from typing import Optional, List
 # class CommitInfo:
 
 
+class ActionClass(Enum):
+    ADD = 1
+    DELETE = 2
+    INSERT = 3
+    MOVE = 4
+
+
 class ProjectConfig:
     def __init__(
             self,  proj_name:
             str, proj_lang: str, commit_file_types: List[str], path_to_src_diff_jar: str,
             path_to_repo: str,
             start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
-            repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None) -> None:
+            repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
+            delete_cache_files: Optional[bool] = True) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
@@ -23,21 +31,31 @@ class ProjectConfig:
         self.repo_from_tag = repo_from_tag
         self.repo_to_tag = repo_to_tag
         self.path_to_src_diff_jar = path_to_src_diff_jar
+        self.delete_cache_files = delete_cache_files
 
     def get_path_to_repo(self):
         return self.path_to_repo
+
     def get_commit_file_types(self):
         return self.commit_file_types
+
     def get_start_repo_date(self):
         return self.start_repo_date
+
     def get_end_repo_date(self):
         return self.end_repo_date
+
     def get_repo_from_tag(self):
         return self.repo_from_tag
+
     def get_repo_to_tag(self):
         return self.repo_to_tag
+
     def get_path_to_src_diff_jar(self):
         return self.path_to_src_diff_jar
+
+    def get_delete_cache_files(self) -> bool:
+        return self.delete_cache_files
 
 
 class ProjectPaths:
@@ -63,15 +81,19 @@ class ProjectPaths:
 
     def get_path_to_cache_current(self):
         return self.path_to_cache_current
+
     def get_path_to_cache_previous(self):
         return self.path_to_cache_previous
+
     def get_path_to_cache_sourcediff(self):
         return self.path_to_cache_sourcediff
 
     def get_path_to_proj_data_dir(self):
         return self.path_to_proj_data_dir
+
     def get_path_to_project_db(self):
         return self.path_to_project_db
+
     def get_path_to_srctrail_db(self):
         return self.path_to_srctrail_db
 
@@ -99,6 +121,7 @@ class FileData():
 
 class CallCommitInfo:
     def __init__(self, src_file_data: FileData, calling_node: str, called_node: str,
+                 action_class: ActionClass,
                  commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
                  commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
         """
@@ -112,6 +135,7 @@ class CallCommitInfo:
         self.file_path = src_file_data.file_path
         self.calling_node = calling_node
         self.called_node = called_node
+        self.action_class = action_class
         self.commit_hash_start = commit_hash_start
         self.commit_start_datetime = commit_start_datetime
         self.commit_hash_end = commit_hash_end
@@ -119,30 +143,43 @@ class CallCommitInfo:
 
     def get_file_name(self) -> str:
         return self.file_name
+
     def get_file_dir_path(self) -> str:
         return self.file_dir_path
+
     def get_file_path(self) -> str:
         return self.file_path
+
     def get_calling_node(self) -> str:
         return self.calling_node
+
     def get_called_node(self) -> str:
         return self.called_node
+
+    def get_action_class(self) -> ActionClass:
+        return self.action_class
+
     def get_commit_hash_start(self) -> str:
         return self.commit_hash_start
+
     def get_commit_start_datetime(self) -> str:
         return self.commit_start_datetime
+
     def get_commit_hash_end(self) -> str:
         return self.commit_hash_end
+
     def get_commit_end_datetime(self) -> str:
         return self.commit_end_datetime
 
-
     def set_commit_hash_start(self, commit_hash_start):
         self.commit_hash_start = commit_hash_start
+
     def set_commit_start_datetime(self, commit_start_datetime):
         self.commit_start_datetime = commit_start_datetime
+
     def set_commit_hash_end(self, commit_hash_end):
         self.commit_hash_end = commit_hash_end
+
     def set_commit_end_datetime(self, commit_end_datetime):
         self.commit_end_datetime = commit_end_datetime
 
@@ -169,25 +206,34 @@ class FileImport():
 
     def get_file_name(self) -> str:
         return self.file_name
+
     def get_file_dir_path(self) -> str:
         return self.file_dir_path
+
     def get_file_path(self) -> str:
         return self.file_path
+
     def get_import_file_name(self) -> str:
         return self.import_file_name
+
     def get_import_file_dir_path(self) -> str:
         return self.import_file_dir_path
+
     def get_commit_hash_start(self) -> str:
         return self.commit_hash_start
+
     def get_commit_start_datetime(self) -> str:
         return self.commit_start_datetime
+
     def get_commit_hash_end(self) -> str:
         return self.commit_hash_end
+
     def get_commit_end_datetime(self) -> str:
         return self.commit_end_datetime
 
     def set_commit_hash_end(self, commit_hash_end):
         self.commit_hash_end = commit_hash_end
+
     def set_commit_end_datetime(self, commit_end_datetime):
         self.commit_end_datetime = commit_end_datetime
 

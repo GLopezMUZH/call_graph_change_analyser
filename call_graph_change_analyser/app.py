@@ -41,7 +41,7 @@ def execute_project_conf_PX4():
     log_filepath = path_to_cache_dir+proj_name+'\\app.log'
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s %(levelname)-8s %(message)s')
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
     logging.info('Started App - ', datetime.now())
 
     # source trail db 9.10.2021
@@ -59,7 +59,8 @@ def execute_project_conf_PX4():
                                 path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                                 start_repo_date=st_date,
-                                end_repo_date=end_date
+                                end_repo_date=end_date,
+                                delete_cache_files=False
                                 #repo_from_tag=from_tag,
                                 #repo_to_tag=to_tag
                                 )
@@ -78,7 +79,7 @@ def execute_project_conf_JKQtPlotter():
     print(log_filepath)
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s %(levelname)-8s %(message)s')
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
     logging.debug('Started App - ', datetime.now())
 
     from_tag = 'v2019.11.0'
@@ -88,8 +89,8 @@ def execute_project_conf_JKQtPlotter():
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
-                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git'
-                                )
+                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
+                                delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
                               path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',

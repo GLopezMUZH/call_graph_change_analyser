@@ -15,6 +15,7 @@ import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from utils_sql import update_file_imports, update_call_commits
+import utils_py
 
 # %%
 import utils_sql
@@ -36,23 +37,22 @@ def save_source_code(file_path, source_text):
     if not os.path.exists(str(file_path.parent)):
         os.makedirs(str(file_path.parent))
 
-    print(type(source_text))
-    logging.debug(type(source_text))
-
     if isinstance(source_text, bytes):
         logging.debug("save_source_code was bytes")
         source_text = source_text.decode('utf-8')
     
     try:
-        f = open(file_path, 'x', encoding='utf-8')
-    except FileExistsError:
         f = open(file_path, 'w', encoding='utf-8')
+    except:
+        logging.error("could not open/write file: ", file_path)
+        
 
     try:
         f.writelines(source_text)
     except UnicodeEncodeError:
-        print(type(source_text))
-        print(type(source_text.encode('utf-8-sig')))
+        # some pydriller.commit.mod_file.source_text has encoding differences
+        print("ERROR writelines", type(source_text))
+        logging.warning("ERROR writelines", type(source_text))
         f.write(source_text.encode('utf-8-sig'))
     f.close()
     save_source_code_xml(file_path)
@@ -186,34 +186,34 @@ def get_calls(raw):
         print(a)
 
 
-def parse_xml_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileData) -> list[CallCommitInfo]:
+def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileData) -> list[CallCommitInfo]:
     r = []
     try:
         f_name = diff_xml_file.dstFile.get_text()
         # TODO check how path is written
         f_name = f_name.replace(path_to_cache_current, '')
-        print("Dest file name: ", f_name)
+        logging.debug("Dest file name: ", f_name)
 
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')
             action_node_type = an.actionNodeType.get_text()
-            print("Action node type: ", action_node_type)
-            action_class = an.actionClassName.get_text()
-            print("Action class: ", action_class)
+            logging.debug("Action node type: ", str(action_node_type))
+            ac = utils_py.get_action_class(an.actionClassName.get_text())
+            logging.debug("Action class: ", an.actionClassName.get_text(), ", ac: ", str(ac))
             handled = an.handled.get_text()
-            print("Handled: ", handled)
+            logging.debug("Handled: ", handled)
             parent_function_name = an.parentFunction.get_text()
-            print("Parent: ", parent_function_name)
+            logging.debug("Parent: ", parent_function_name)
             an_calls = an.calls
-            print("an_calls: ", an_calls)
+            logging.debug("an_calls: ", an_calls)
 
             for ncall in an.calls.find_all('callName'):
                 logging.debug(ncall.get_text())
-                print(ncall.get_text())
                 called_node_name = ncall.get_text()
                 cci = CallCommitInfo(src_file_data=mod_file_data,
                                      calling_node=parent_function_name,
-                                     called_node=called_node_name)
+                                     called_node=called_node_name,
+                                     action_class=ac)
                 r.append(cci)
                 # get_calls(at.get_text())
     except Exception as exceptionMsg:
@@ -332,6 +332,8 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     logging.debug(mod_file._old_path)
     # logging.debug(mod_file._new_path)
     # logging.debug(mod_file.diff)
+    ccis = []
+    fis = []
 
     mod_file_data = FileData(str(mod_file._new_path))
     logging.debug(mod_file_data)
@@ -349,10 +351,11 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
                          mod_file.source_code_before)
 
     # Create sourcediff directory
-    file_path_sourcediff = Path(
-        proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
-    if not os.path.exists(str(file_path_sourcediff.parent)):
-        os.makedirs(str(file_path_sourcediff.parent))
+    if mod_file.change_type != ModificationType.ADD:    
+        file_path_sourcediff = Path(
+            proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
+        if not os.path.exists(str(file_path_sourcediff.parent)):
+            os.makedirs(str(file_path_sourcediff.parent))
 
     # Create sourcediff file: not currently because relevant differences files are created in jar
     """
@@ -369,16 +372,45 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     logging.debug("File imports: ", fis)
 
     # Execute the jar for finding the relevant source differences (function/method call changes)
-    args = [proj_config.get_path_to_src_diff_jar(
-    ), file_path_previous.__str__(), 'TRUE']
-    result = _jarWrapper(*args)
+    if mod_file.change_type != ModificationType.ADD:
+        args = [proj_config.get_path_to_src_diff_jar(
+        ), file_path_previous.__str__(), 'TRUE']
+        result = _jarWrapper(*args)
 
-    # convert to string -> xml
-    diff_xml_results = b''.join(result).decode('utf-8')
-    diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
+        # convert to string -> xml
+        diff_xml_results = b''.join(result).decode('utf-8')
+        diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
 
-    ccis = parse_xml_diffs(
-        diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
+        ccis = parse_xml_call_diffs(
+            diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
+
+    else:
+        print("")
+        logging.debug("ADD file")
+
+    # Delete temporary files after processing
+    if proj_config.get_delete_cache_files():
+        if os.path.isfile(file_path_current):
+            os.remove(file_path_current)
+        else:
+            print("Error: %s file not found" % file_path_current)
+            logging.error("Error: %s file not found" % file_path_current)
+
+        if mod_file.change_type != ModificationType.ADD:
+            if os.path.isfile(file_path_previous):
+                os.remove(file_path_previous)
+            else: 
+                print("Error: %s file not found" % file_path_previous)
+                logging.error("Error: %s file not found" % file_path_previous)
+
+        """
+        if mod_file.change_type != ModificationType.ADD:
+            if os.path.isfile(file_path_sourcediff):
+                os.remove(file_path_sourcediff)
+            else:    ## Show an error ##
+                print("Error: %s file not found" % file_path_sourcediff)
+                logging.error("Error: %s file not found" % file_path_sourcediff)
+        """
 
     logging.debug('---------------------------')
     # print(mod_file.methods_before)

@@ -272,6 +272,30 @@ def get_graph_edges(path_to_project_db) -> pandas.DataFrame:
     return(pandas.read_sql_query(sql_statement, con_analytics_db))
 
 
+def insert_git_commit(path_to_project_db: str, commit_hash: Optional[str] = None,
+                      commit_commiter_datetime: Optional[str] = None, author: Optional[str] = None,
+                      in_main_branch: Optional[bool] = None, merge: Optional[bool] = None,
+                      nr_modified_files: Optional[int] = None, nr_deletions: Optional[int] = None,
+                      nr_insertions: Optional[int] = None, nr_lines: Optional[int] = None):
+    print("insert_git_commit")
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    cur = con_analytics_db.cursor()
+
+    sql_string = """INSERT INTO git_commit 
+                (commit_hash, commit_commiter_datetime, author, 
+                in_main_branch, merge, 
+                nr_modified_files, nr_deletions, nr_insertions, nr_lines)
+            VALUES 
+                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
+        commit_hash, commit_commiter_datetime, author, in_main_branch, 
+        merge, nr_modified_files, nr_deletions, nr_insertions, nr_lines)
+
+    print(sql_string)
+    logging.debug(sql_string)
+    cur.execute(sql_string)
+    con_analytics_db.commit()
+
+
 def update_file_imports(fis: list[FileImport],
                         path_to_project_db: str,
                         commit_hash_start: str,
@@ -371,12 +395,11 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
         commit_end_datetime = commit_start_datetime
         sql_string = """INSERT INTO call_commit 
                     (file_name, file_dir_path, file_path, 
-                    calling_function, called_function,commit_hash_end, commit_end_datetime)
+                    calling_function, called_function, commit_hash_end, commit_end_datetime)
                 VALUES 
                     ('{0}','{1}','{2}','{3}','{4}','{5}','{6}') 
                 ON CONFLICT (file_path, calling_function, called_function) 
-                DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
-                    commit_hash_end = excluded.commit_hash_end,
+                DO UPDATE SET commit_hash_end = excluded.commit_hash_end,
                     commit_end_datetime = excluded.commit_end_datetime;""".format(
             call_commit.get_file_name(),
             call_commit.get_file_dir_path(),
@@ -388,22 +411,19 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
     elif call_commit.get_action_class() is ActionClass.INSERT or call_commit.get_action_class() is ActionClass.ADD:
         sql_string = """INSERT INTO call_commit 
                     (file_name, file_dir_path, file_path, 
-                    calling_function, called_function, commit_hash_start, 
-                    commit_start_datetime, commit_hash_end, commit_end_datetime)
+                    calling_function, called_function, 
+                    commit_hash_start, commit_start_datetime)
                 VALUES 
-                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
+                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}') 
                 ON CONFLICT (file_path, calling_function, called_function) 
                 DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
-                    commit_start_datetime = excluded.commit_start_datetime,
-                    commit_hash_end = excluded.commit_hash_end,
-                    commit_end_datetime = excluded.commit_end_datetime;""".format(
+                    commit_start_datetime = excluded.commit_start_datetime;""".format(
             call_commit.get_file_name(),
             call_commit.get_file_dir_path(),
             call_commit.get_file_path(),
             call_commit.get_calling_function(),
             call_commit.get_called_function(),
-            commit_hash_start,
-            commit_start_datetime, commit_hash_end, commit_end_datetime)
+            commit_hash_start, commit_start_datetime)
         execute_sql = True
     elif call_commit.get_action_class() is ActionClass.MOVE:
         logging.debug(

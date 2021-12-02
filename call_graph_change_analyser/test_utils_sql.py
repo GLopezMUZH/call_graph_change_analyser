@@ -1,18 +1,17 @@
-#%%
+# %%
 import pytest
 import logging
 from bs4 import BeautifulSoup
 from imp import reload
 from datetime import datetime
+from git import Commit as GitCommit
 
 from pydriller import *
 from pydriller.domain.commit import ModifiedFile
 
-from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
-from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file, process_file_commit
-from gumtree_difffile_parser import get_method_call_change_info_cpp
+from models import ProjectPaths, ProjectConfig, CallCommitInfo,  FileData, FileImport
 
-from utils_sql import create_commit_based_tables, update_file_imports, create_db_tables
+from utils_sql import create_commit_based_tables, update_file_imports, create_db_tables, insert_git_commit
 from utils_py import replace_timezone
 
 # %%
@@ -42,15 +41,24 @@ def execute_project_conf_example_project():
                               path_to_cache_dir=path_to_cache_dir,
                               path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
                               path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
-                              
-    return proj_config,proj_paths
 
+    return proj_config, proj_paths
 
-#%%
-# INITIALIZE DATABASE ------------------------------
 proj_config, proj_paths = execute_project_conf_example_project()
+
+
+# %%
+# INITIALIZE DATABASE ------------------------------
 create_db_tables(proj_paths, drop=True)
 #create_commit_based_tables(proj_paths.get_path_to_project_db(), drop=True)
 
+
+# %%
+insert_git_commit(proj_paths.get_path_to_project_db(),
+                  commit_hash='GitCommit.NULL_BIN_SHA000000000000000000',
+                  commit_commiter_datetime=str(datetime(2021, 11, 19, 0, 1, 0, 79043)),
+                  author='GGG', in_main_branch=1,
+                  merge=0, nr_modified_files=5,
+                  nr_deletions=8, nr_insertions=4, nr_lines=12)
 
 # %%

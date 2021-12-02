@@ -14,7 +14,7 @@ from models import *
 import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from utils_sql import update_file_imports, update_call_commits
+from utils_sql import update_file_imports, update_call_commits, insert_git_commit, insert_file_commit
 import utils_py
 
 # %%
@@ -40,12 +40,11 @@ def save_source_code(file_path, source_text):
     if isinstance(source_text, bytes):
         logging.debug("save_source_code was bytes")
         source_text = source_text.decode('utf-8')
-    
+
     try:
         f = open(file_path, 'w', encoding='utf-8')
     except:
         logging.error("could not open/write file: ", file_path)
-        
 
     try:
         f.writelines(source_text)
@@ -91,7 +90,8 @@ def is_java_file(mod_file: str):
 
 
 def is_cpp_file(mod_file: str):
-    return mod_file[-4:] == '.cpp' or mod_file[-2:] == '.c'  #or mod_file[-2:] == '.h'
+    # or mod_file[-2:] == '.h'
+    return mod_file[-4:] == '.cpp' or mod_file[-2:] == '.c'
 
 
 def is_python_file(mod_file: str):
@@ -201,7 +201,8 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
             action_node_type = an.actionNodeType.get_text()
             logging.debug("Action node type: ", str(action_node_type))
             ac = utils_py.get_action_class(an.actionClassName.get_text())
-            logging.debug("Action class: ", an.actionClassName.get_text(), ", ac: ", str(ac))
+            logging.debug("Action class: ",
+                          an.actionClassName.get_text(), ", ac: ", str(ac))
             handled = an.handled.get_text()
             logging.debug("Handled: ", handled)
             parent_function_name = an.parentFunction.get_text()
@@ -230,6 +231,20 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
     logging.debug(proj_config.get_path_to_repo())
     logging.debug(proj_config.get_commit_file_types())
 
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
+
+    for commit in Repository('https://github.com/jkriege2/JKQtPlotter.git',
+                             single='fc321f027ba5741de1be56bdee4379155647385a',
+                             only_no_merge=True,
+                             only_in_branch='master').traverse_commits():
+        for mod_file in commit.modified_files:
+            if (is_valid_file_type(str(mod_file._new_path))):
+                #changed_methods = mod_file.changed_methods
+                #for cm in changed_methods:
+                #    print(cm)
+                process_file_commit(proj_config, proj_paths, commit, mod_file)
+    """
     if proj_config.get_start_repo_date() is not None:
         logging.debug(proj_config.get_start_repo_date())
         logging.debug(proj_config.get_start_repo_date().tzinfo)
@@ -241,10 +256,26 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
         traverse_on_tags(proj_config, proj_paths)
     else:
         traverse_all(proj_config, proj_paths)
+    """
 
 
-def process_file_commit(proj_config, proj_paths, commit, mod_file):
+def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: ModifiedFile):
+    mod_file_data = FileData(str(mod_file._new_path))
+
+    # git_commit
+    insert_git_commit(proj_paths.get_path_to_project_db(),
+                      commit_hash=commit.hash, commit_commiter_datetime=str(
+                          commit.committer_date),
+                      author=commit.author.name, in_main_branch=commit.in_main_branch,
+                      merge=commit.merge, nr_modified_files=commit.files,
+                      nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
     # file_commit
+    insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
+                        commit_hash=commit.hash, commit_commiter_datetime=commit.committer_date,
+                        commit_file_name=mod_file.filename,
+                        commit_new_path=mod_file.new_path, commit_old_path=mod_file.old_path,
+                        change_type=mod_file.change_type)
 
     # file_method
 
@@ -272,6 +303,7 @@ def traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
+
 
 def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
@@ -359,7 +391,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
                          mod_file.source_code_before)
 
     # Create sourcediff directory
-    if mod_file.change_type != ModificationType.ADD:    
+    if mod_file.change_type != ModificationType.ADD:
         file_path_sourcediff = Path(
             proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
         if not os.path.exists(str(file_path_sourcediff.parent)):
@@ -407,7 +439,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
         if mod_file.change_type != ModificationType.ADD:
             if os.path.isfile(file_path_previous):
                 os.remove(file_path_previous)
-            else: 
+            else:
                 print("Error: %s file not found" % file_path_previous)
                 logging.error("Error: %s file not found" % file_path_previous)
 

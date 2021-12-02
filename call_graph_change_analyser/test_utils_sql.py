@@ -11,8 +11,9 @@ from pydriller.domain.commit import ModifiedFile
 
 from models import ProjectPaths, ProjectConfig, CallCommitInfo,  FileData, FileImport
 
-from utils_sql import create_commit_based_tables, update_file_imports, create_db_tables, insert_git_commit
+from utils_sql import create_db_tables, insert_git_commit, update_file_imports
 from utils_py import replace_timezone
+
 
 # %%
 def execute_project_conf_example_project():
@@ -44,6 +45,7 @@ def execute_project_conf_example_project():
 
     return proj_config, proj_paths
 
+
 proj_config, proj_paths = execute_project_conf_example_project()
 
 
@@ -60,5 +62,36 @@ insert_git_commit(proj_paths.get_path_to_project_db(),
                   author='GGG', in_main_branch=1,
                   merge=0, nr_modified_files=5,
                   nr_deletions=8, nr_insertions=4, nr_lines=12)
+
+# %%
+def test_update_file_imports():
+    commit_hash_start = 'test_update_file_imports0000000000000000'
+    commit_start_datetime = str(datetime(2021, 11, 19, 0, 1, 0, 79043))
+    commit_hash_end='hash_end_0000000000000000000000000000000'
+    commit_end_datetime = str(datetime(2021, 11, 30, 10, 11, 10, 79043))
+
+    file_path = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot\\current\\src\\drivers\\uavcannode\\UavcanNode.cpp'
+
+    file_data = FileData(file_path)
+
+    fis = []
+    fi1 = FileImport(src_file_data=file_data,
+                     import_file_name='cmath',
+                     import_file_dir_path='cmat')
+    fi2 = FileImport(src_file_data=file_data,
+                     import_file_name='jkqtpcontour.h',
+                     import_file_dir_path='lib\\jkqtplotter\\graphs\\')
+    fis.append(fi1)
+    fis.append(fi2)
+
+    update_file_imports(fis,
+                        proj_paths.get_path_to_project_db(),
+                        commit_hash_start=commit_hash_start,
+                        commit_start_datetime=commit_start_datetime,
+                        commit_hash_end=commit_hash_end,
+                        commit_end_datetime=commit_end_datetime)
+
+
+test_update_file_imports()
 
 # %%

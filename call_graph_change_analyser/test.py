@@ -49,12 +49,6 @@ def execute_project_conf_example_project():
     return proj_config,proj_paths
 
 
-#%%
-# INITIALIZE DATABASE ------------------------------
-proj_config, proj_paths = execute_project_conf_example_project()
-create_db_tables(proj_paths, drop=True)
-#create_commit_based_tables(proj_paths.get_path_to_project_db(), drop=True)
-
 # %%
 mcci = get_method_call_change_info_cpp(
     'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot_textdiff\\sourcediff\\src\\drivers\\camera_trigger\\camera_trigger.cpp')
@@ -224,7 +218,7 @@ diff_data_xml = BeautifulSoup(file_contents, "xml")
 
 mod_file_data = FileData(file_path)
 
-r = parse_xml_call_diffs(diff_data_xml, path_to_cache_current=, mod_file_data=mod_file_data)
+r = parse_xml_call_diffs(diff_data_xml, path_to_cache_current=None, mod_file_data=mod_file_data)
 
 for cci in r:
     print(cci)
@@ -354,11 +348,7 @@ test_parse_model_file()
 
 
 # %%
-def test_update_file_imports():
-    test_path_to_project_db = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\PX4-Autopilot\\PX4-Autopilot_analytics.db'
-    commit_hash_start = 'hash_blabla'
-    commit_start_datetime='20211129'
-
+def test_get_file_imports():
     file_path = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot\\current\\src\\drivers\\uavcannode\\UavcanNode.cpp'
     file_contents = ''
     with open(file_path, "r") as f:
@@ -368,12 +358,9 @@ def test_update_file_imports():
     print(file_data)
 
     fis = get_file_imports(source_code=file_contents, mod_file_data=file_data)
-    update_file_imports(fis,
-                        test_path_to_project_db,
-                        commit_hash_start=commit_hash_start,
-                        commit_start_datetime=commit_start_datetime)
+    # TODO complete test_get_file_imports
 
-test_update_file_imports()
+test_get_file_imports()
 
 
 # %%

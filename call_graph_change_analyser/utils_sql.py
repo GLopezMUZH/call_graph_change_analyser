@@ -301,7 +301,7 @@ def update_file_imports(fis: list[FileImport],
                         commit_hash_start: str,
                         commit_start_datetime: str,
                         commit_hash_end: Optional[str] = None,
-                        commit_end_datetime: Optional[str] = None,):
+                        commit_end_datetime: Optional[str] = None):
     print("update_file_imports")
     if len(fis) > 0:
         con_analytics_db = sqlite3.connect(path_to_project_db)

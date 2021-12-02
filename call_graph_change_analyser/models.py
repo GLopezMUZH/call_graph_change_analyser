@@ -122,75 +122,6 @@ class FileData():
                        self.file_dir_path))
 
 
-class CallCommitInfo:
-    def __init__(self, src_file_data: FileData, calling_node: str, called_node: str,
-                 action_class: ActionClass,
-                 commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
-                 commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
-        """
-        A CallCommitInfo represents the relationship between a function in a file
-        and one of the functions it calls within. There can be many CCI pro file and
-        function, if it calls several others. Based in the FileImport data the source 
-        of the called function can be inferred. 
-        """
-        self.file_name = src_file_data.file_name
-        self.file_dir_path = src_file_data.file_dir_path
-        self.file_path = src_file_data.file_path
-        self.calling_node = calling_node
-        self.called_node = called_node
-        self.action_class = action_class
-        self.commit_hash_start = commit_hash_start
-        self.commit_start_datetime = commit_start_datetime
-        self.commit_hash_end = commit_hash_end
-        self.commit_end_datetime = commit_end_datetime
-
-    def get_file_name(self) -> str:
-        return self.file_name
-
-    def get_file_dir_path(self) -> str:
-        return self.file_dir_path
-
-    def get_file_path(self) -> str:
-        return self.file_path
-
-    def get_calling_node(self) -> str:
-        return self.calling_node
-
-    def get_called_node(self) -> str:
-        return self.called_node
-
-    def get_action_class(self) -> ActionClass:
-        return self.action_class
-
-    def get_commit_hash_start(self) -> str:
-        return self.commit_hash_start
-
-    def get_commit_start_datetime(self) -> str:
-        return self.commit_start_datetime
-
-    def get_commit_hash_end(self) -> str:
-        return self.commit_hash_end
-
-    def get_commit_end_datetime(self) -> str:
-        return self.commit_end_datetime
-
-    def set_commit_hash_start(self, commit_hash_start):
-        self.commit_hash_start = commit_hash_start
-
-    def set_commit_start_datetime(self, commit_start_datetime):
-        self.commit_start_datetime = commit_start_datetime
-
-    def set_commit_hash_end(self, commit_hash_end):
-        self.commit_hash_end = commit_hash_end
-
-    def set_commit_end_datetime(self, commit_end_datetime):
-        self.commit_end_datetime = commit_end_datetime
-
-    def __str__(self) -> str:
-        return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
-               .format(self.calling_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
-
-
 class CommitInfo:
     def __init__(self, commit_hash: Optional[str] = None, commit_commiter_datetime: Optional[str] = None,
                  author: Optional[str] = None, in_main_branch: Optional[bool] = None,
@@ -275,6 +206,75 @@ class FunctionCommitInfo:
     def __str__(self) -> str:
         return("FunctionCommitInfo: function_name: {0}, file_name: {1}, commit_commiter_datetime: {2}, commit_hash: {3}, path_change: {4}"
                .format(self.function_name, self.file_name, self.commit_commiter_datetime, self.commit_hash, self.path_change))
+
+
+class CallCommitInfo:
+    def __init__(self, src_file_data: FileData, calling_node: str, called_node: str,
+                 action_class: ActionClass,
+                 commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
+                 commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
+        """
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
+        """
+        self.file_name = src_file_data.file_name
+        self.file_dir_path = src_file_data.file_dir_path
+        self.file_path = src_file_data.file_path
+        self.calling_node = calling_node
+        self.called_node = called_node
+        self.action_class = action_class
+        self.commit_hash_start = commit_hash_start
+        self.commit_start_datetime = commit_start_datetime
+        self.commit_hash_end = commit_hash_end
+        self.commit_end_datetime = commit_end_datetime
+
+    def get_file_name(self) -> str:
+        return self.file_name
+
+    def get_file_dir_path(self) -> str:
+        return self.file_dir_path
+
+    def get_file_path(self) -> str:
+        return self.file_path
+
+    def get_calling_node(self) -> str:
+        return self.calling_node
+
+    def get_called_node(self) -> str:
+        return self.called_node
+
+    def get_action_class(self) -> ActionClass:
+        return self.action_class
+
+    def get_commit_hash_start(self) -> str:
+        return self.commit_hash_start
+
+    def get_commit_start_datetime(self) -> str:
+        return self.commit_start_datetime
+
+    def get_commit_hash_end(self) -> str:
+        return self.commit_hash_end
+
+    def get_commit_end_datetime(self) -> str:
+        return self.commit_end_datetime
+
+    def set_commit_hash_start(self, commit_hash_start):
+        self.commit_hash_start = commit_hash_start
+
+    def set_commit_start_datetime(self, commit_start_datetime):
+        self.commit_start_datetime = commit_start_datetime
+
+    def set_commit_hash_end(self, commit_hash_end):
+        self.commit_hash_end = commit_hash_end
+
+    def set_commit_end_datetime(self, commit_end_datetime):
+        self.commit_end_datetime = commit_end_datetime
+
+    def __str__(self) -> str:
+        return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
+               .format(self.calling_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
 
 
 class FunctionToFile:

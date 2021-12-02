@@ -191,6 +191,60 @@ class CallCommitInfo:
                .format(self.calling_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
 
 
+class CommitInfo:
+    def __init__(self, commit_hash: Optional[str] = None, commit_commiter_datetime: Optional[str] = None,
+                 author: Optional[str] = None, in_main_branch: Optional[bool] = None,
+                 merge: Optional[bool] = None, nr_modified_files: Optional[int] = None,
+                 nr_deletions: Optional[int] = None, nr_insertions: Optional[int] = None, nr_lines: Optional[int] = None) -> None:
+        """
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
+        """
+        self.commit_hash = commit_hash
+        self.commit_commiter_datetime = commit_commiter_datetime
+        self.author = author
+        self.in_main_branch = in_main_branch
+        self.merge = merge
+        self.nr_modified_files = nr_modified_files
+        self.nr_deletions = nr_deletions
+        self.nr_insertions = nr_insertions
+        self.nr_lines = nr_lines
+
+    def __str__(self) -> str:
+        return("CommitInfo: commit_hash: {0}, commit_commiter_datetime: {1}, nr_modified_files: {2}"
+               .format(self.commit_hash, self.commit_commiter_datetime, self.nr_modified_files))
+
+
+class FileCommitInfo:
+    def __init__(self, src_file_data: FileData,
+                 commit_hash: Optional[str] = None, commit_commiter_datetime: Optional[str] = None,
+                 commit_file_name: Optional[str] = None,
+                 commit_new_path: Optional[str] = None, commit_old_path: Optional[str] = None,
+                 change_type: Optional[bool] = None) -> None:
+        """
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
+        """
+        self.file_name = src_file_data.file_name
+        self.file_dir_path = src_file_data.file_dir_path
+        self.file_path = src_file_data.file_path
+        self.commit_hash = commit_hash
+        self.commit_commiter_datetime = commit_commiter_datetime
+        self.commit_file_name = commit_file_name
+        self.commit_new_path = commit_new_path
+        self.commit_old_path = commit_old_path
+        self.change_type = change_type
+        self.path_change = False if commit_new_path == commit_old_path else True
+
+    def __str__(self) -> str:
+        return("FileCommitInfo: file_name: {0}, commit_file_name: {1}, commit_commiter_datetime: {2}, change_type: {3}, path_change: {4}"
+               .format(self.file_name, self.commit_file_name, self.commit_commiter_datetime, self.change_type, self.path_change))
+
+
 class FileImport():
     def __init__(self, src_file_data: FileData,
                  import_file_name: str,

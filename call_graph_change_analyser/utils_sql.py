@@ -137,10 +137,14 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 action_class text,
                 commit_hash_start text, commit_start_datetime text, 
                 commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, calling_function, called_function ))''')
+                primary key (file_path, calling_function, called_function))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
-                (function_node_id number, file_node_id number, nr_calls number)''')
+                (file_name text, file_dir_path text, file_path text, 
+                function_name text, function_long_name text, function_parameters text, 
+                commit_hash_start text, commit_start_datetime text, 
+                commit_hash_end text, commit_end_datetime text,
+                primary key (file_path, function_long_name))''')
 
 
 def save_source_change_row(
@@ -235,7 +239,7 @@ def load_initial_graph(
     print(df_table_node.head(3))
 
 
-def load_function_to_file(
+def load_function_to_file_DEPRECATED(
     con_graph_db: sqlite3.Connection,
     con_analytics_db: sqlite3.Connection
 ) -> None:

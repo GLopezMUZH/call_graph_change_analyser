@@ -3,7 +3,7 @@ import os
 import pandas
 import sqlite3
 from typing import Optional
-from models import FileImport, CallCommitInfo, ActionClass
+from models import FileImport, CallCommitInfo, ActionClass, FileData
 
 import models
 from models import ProjectPaths
@@ -69,6 +69,9 @@ def create_graph_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS edge_call
                 (type text, source_node_id number, target_node_id number, start_datetime text, end_datetime text)''')
+
+    con.commit()
+    cur.close()
 
 
 def create_commit_based_tables(path_to_project_db, drop=False):
@@ -145,6 +148,9 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 commit_hash_start text, commit_start_datetime text, 
                 commit_hash_end text, commit_end_datetime text,
                 primary key (file_path, function_long_name))''')
+
+    con.commit()
+    cur.close()
 
 
 def save_source_change_row(
@@ -277,23 +283,74 @@ def insert_git_commit(path_to_project_db: str, commit_hash: Optional[str] = None
                       in_main_branch: Optional[bool] = None, merge: Optional[bool] = None,
                       nr_modified_files: Optional[int] = None, nr_deletions: Optional[int] = None,
                       nr_insertions: Optional[int] = None, nr_lines: Optional[int] = None):
-    print("insert_git_commit")
-    con_analytics_db = sqlite3.connect(path_to_project_db)
-    cur = con_analytics_db.cursor()
+    try:
+        print("insert_git_commit")
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
 
-    sql_string = """INSERT INTO git_commit 
-                (commit_hash, commit_commiter_datetime, author, 
-                in_main_branch, merge, 
-                nr_modified_files, nr_deletions, nr_insertions, nr_lines)
-            VALUES 
-                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
-        commit_hash, commit_commiter_datetime, author, in_main_branch, 
-        merge, nr_modified_files, nr_deletions, nr_insertions, nr_lines)
+        sql_string = """INSERT INTO git_commit 
+                    (commit_hash, commit_commiter_datetime, author, 
+                    in_main_branch, merge, 
+                    nr_modified_files, nr_deletions, nr_insertions, nr_lines)
+                VALUES 
+                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
+            commit_hash, commit_commiter_datetime, author, in_main_branch,
+            merge, nr_modified_files, nr_deletions, nr_insertions, nr_lines)
 
-    print(sql_string)
-    logging.debug(sql_string)
-    cur.execute(sql_string)
-    con_analytics_db.commit()
+        print(sql_string)
+        logging.debug(sql_string)
+        cur.execute(sql_string)
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        print("IntegrityError. UNIQUE failed for [{0}] ".format(commit_hash))
+        logging.error("[{0}] ".format(commit_hash))
+        logging.error(err_message)
+
+
+def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
+                       commit_hash: str, commit_commiter_datetime: str,
+                       commit_file_name: str,
+                       commit_new_path: str, commit_old_path: str,
+                       change_type: str):
+    try:
+        print("insert_file_commit")
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        path_change = 0 if commit_new_path == commit_old_path else 1
+
+        sql_string = """INSERT INTO file_commit 
+                    (file_name, file_dir_path, file_path, 
+                    commit_hash, commit_commiter_datetime, commit_file_name, 
+                    commit_new_path, commit_old_path, change_type, path_change)
+                VALUES 
+                    ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}');""".format(
+            mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
+            ), mod_file_data.get_file_path(),
+            commit_hash, commit_commiter_datetime, commit_file_name,
+            commit_new_path, commit_old_path, change_type, path_change)
+
+        print(sql_string)
+        logging.debug(sql_string)
+        cur.execute(sql_string)
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        print("IntegrityError. UNIQUE failed for [{0},{1}] ".format(
+            commit_hash, mod_file_data.get_file_path()))
+        logging.error("[{0},{1}] ".format(commit_hash, mod_file_data.get_file_path()))
+        logging.error(err_message)
+
+
 
 
 def update_file_imports(fis: list[FileImport],

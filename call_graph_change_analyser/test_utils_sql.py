@@ -11,7 +11,7 @@ from pydriller.domain.commit import ModifiedFile
 
 from models import ProjectPaths, ProjectConfig, CallCommitInfo,  FileData, FileImport
 
-from utils_sql import create_db_tables, insert_git_commit, update_file_imports
+from utils_sql import create_db_tables, insert_git_commit, update_file_imports, insert_file_commit
 from utils_py import replace_timezone
 
 
@@ -56,18 +56,26 @@ create_db_tables(proj_paths, drop=True)
 
 
 # %%
-insert_git_commit(proj_paths.get_path_to_project_db(),
-                  commit_hash='GitCommit.NULL_BIN_SHA000000000000000000',
-                  commit_commiter_datetime=str(datetime(2021, 11, 19, 0, 1, 0, 79043)),
-                  author='GGG', in_main_branch=1,
-                  merge=0, nr_modified_files=5,
-                  nr_deletions=8, nr_insertions=4, nr_lines=12)
+def test_insert_git_commit():
+    commit_hash = 'test_insert_git_commit'.zfill(40)
+
+    insert_git_commit(proj_paths.get_path_to_project_db(),
+                      commit_hash=commit_hash,
+                      commit_commiter_datetime=str(datetime(2021, 11, 19, 0, 1, 0, 79043)),
+                      author='GGG', in_main_branch=1,
+                      merge=0, nr_modified_files=5,
+                      nr_deletions=8, nr_insertions=4, nr_lines=12)
+
+
+test_insert_git_commit()
 
 # %%
+
+
 def test_update_file_imports():
     commit_hash_start = 'test_update_file_imports0000000000000000'
     commit_start_datetime = str(datetime(2021, 11, 19, 0, 1, 0, 79043))
-    commit_hash_end='hash_end_0000000000000000000000000000000'
+    commit_hash_end = 'hash_end_0000000000000000000000000000000'
     commit_end_datetime = str(datetime(2021, 11, 30, 10, 11, 10, 79043))
 
     file_path = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot\\current\\src\\drivers\\uavcannode\\UavcanNode.cpp'
@@ -94,4 +102,27 @@ def test_update_file_imports():
 
 test_update_file_imports()
 
+# %%
+def test_insert_file_commit():
+    file_path = 'src\\drivers\\uavcannode\\UavcanNode.cpp'
+    commit_hash = 'test_insert_file_commit'.ljust(40,'0')
+
+    mod_file_data = FileData(file_path)
+
+    insert_file_commit(path_to_project_db=proj_paths.get_path_to_project_db(), 
+                mod_file_data=mod_file_data,
+                    commit_hash=commit_hash, 
+                    commit_commiter_datetime=str(datetime(2021, 11, 19, 0, 1, 0, 79043)),
+                    commit_file_name='UavcanNode.cpp',
+                    commit_new_path=file_path, 
+                    commit_old_path='src\\old_path\\uavcannode\\UavcanNode.cpp',
+                    change_type='Modify')
+
+test_insert_file_commit()
+
+# %%
+import utils_sql
+reload(utils_sql)
+from utils_sql import insert_file_commit
+# %%
 # %%

@@ -113,6 +113,13 @@ class FileData():
         self.file_dir_path = file_dir_path
         self.file_name = file_name
 
+    def get_file_name(self):
+        return self.file_name
+    def get_file_dir_path(self):
+        return self.file_dir_path
+    def get_file_path(self):
+        return self.file_path
+
     def __str__(self) -> str:
         return("FileData [file_name: {0}, file_dir_path: {1}]"
                .format(self.file_name,

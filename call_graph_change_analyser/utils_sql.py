@@ -57,10 +57,6 @@ def create_graph_based_tables(path_to_project_db, drop=False):
             cur.execute('''DROP TABLE edge_call''')
         except Exception as error:
             print("edge_call ", error)
-        try:
-            cur.execute('''DROP TABLE function_to_file''')
-        except Exception as error:
-            print("function_to_file ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS source_changes
                 (commit_hash text, commit_datetime text, source_file text, source_node text, target_node text, commit_author text)''')
@@ -74,9 +70,6 @@ def create_graph_based_tables(path_to_project_db, drop=False):
     cur.execute('''CREATE TABLE IF NOT EXISTS edge_call
                 (type text, source_node_id number, target_node_id number, start_datetime text, end_datetime text)''')
 
-    cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
-                (function_node_id number, file_node_id number, nr_calls number)''')
-
 
 def create_commit_based_tables(path_to_project_db, drop=False):
     print("create_commit_based_tables drop", drop)
@@ -89,17 +82,65 @@ def create_commit_based_tables(path_to_project_db, drop=False):
         except Exception as error:
             print("file_import ", error)
         try:
+            cur.execute('''DROP TABLE git_commit''')
+        except Exception as error:
+            print("call_commit ", error)
+        try:
+            cur.execute('''DROP TABLE file_commit''')
+        except Exception as error:
+            print("call_commit ", error)
+        try:
+            cur.execute('''DROP TABLE function_commit''')
+        except Exception as error:
+            print("call_commit ", error)
+        try:
             cur.execute('''DROP TABLE call_commit''')
         except Exception as error:
             print("call_commit ", error)
+        try:
+            cur.execute('''DROP TABLE function_to_file''')
+        except Exception as error:
+            print("function_to_file ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
-                (file_name text, file_dir_path text, file_path text, import_file_name text, import_file_dir_path text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, import_file_name, import_file_dir_path ))''')
+                (file_name text, file_dir_path text, file_path text, 
+                import_file_name text, import_file_dir_path text, 
+                commit_hash_start text, commit_start_datetime text, 
+                commit_hash_end text, commit_end_datetime text,
+                primary key (file_path, import_file_name, import_file_dir_path))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS git_commit
+                (commit_hash text, commit_commiter_datetime text, author text, 
+                in_main_branch integer, merge integer, 
+                nr_modified_files integer, nr_deletions integer, nr_insertions integer, nr_lines integer,
+                primary key (commit_hash))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS file_commit
+                (file_name text, file_dir_path text, file_path text, 
+                commit_hash text, 
+                commit_commiter_datetime text, commit_file_name text, 
+                commit_new_path text, commit_old_path text, change_type text,
+                path_change integer,
+                primary key (file_path, commit_hash))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS function_commit
+                (file_name text, file_dir_path text, file_path text, 
+                function_name text, function_long_name text, function_parameters text, function_nloc integer,
+                commit_hash text, commit_commiter_datetime text, 
+                commit_file_name text, commit_new_path text, commit_old_path text,
+                path_change integer,
+                primary key (file_path, function_long_name, commit_hash))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
-                (file_name text, file_dir_path text, file_path text, calling_node text, called_node text, commit_hash_start text, commit_start_datetime text, commit_hash_end text, commit_end_datetime text,
+                (file_name text, file_dir_path text, file_path text, 
+                calling_node text, called_node text, 
+                action_class text,
+                commit_hash_start text, commit_start_datetime text, 
+                commit_hash_end text, commit_end_datetime text,
                 primary key (file_path, calling_node, called_node ))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
+                (function_node_id number, file_node_id number, nr_calls number)''')
 
 
 def save_source_change_row(
@@ -240,12 +281,12 @@ def update_file_imports(fis: list[FileImport],
         for fi in fis:
             print(fi)
             insert_or_update_file_import(con_analytics_db=con_analytics_db,
-                                        cur=cur,
-                                        file_import=fi,
-                                        commit_hash_start=commit_hash_start,
-                                        commit_start_datetime=commit_start_datetime,
-                                        commit_hash_end=commit_hash_end,
-                                        commit_end_datetime=commit_end_datetime)
+                                         cur=cur,
+                                         file_import=fi,
+                                         commit_hash_start=commit_hash_start,
+                                         commit_start_datetime=commit_start_datetime,
+                                         commit_hash_end=commit_hash_end,
+                                         commit_end_datetime=commit_end_datetime)
     else:
         logging.debug("no import_files")
 
@@ -299,12 +340,12 @@ def update_call_commits(ccis: list[CallCommitInfo],
         for cci in ccis:
             print(cci)
             insert_or_update_call_commit(con_analytics_db=con_analytics_db,
-                                        cur=cur,
-                                        call_commit=cci,
-                                        commit_hash_start=commit_hash_start,
-                                        commit_start_datetime=commit_start_datetime,
-                                        commit_hash_end=commit_hash_end,
-                                        commit_end_datetime=commit_end_datetime)
+                                         cur=cur,
+                                         call_commit=cci,
+                                         commit_hash_start=commit_hash_start,
+                                         commit_start_datetime=commit_start_datetime,
+                                         commit_hash_end=commit_hash_end,
+                                         commit_end_datetime=commit_end_datetime)
     else:
         logging.debug("no call_commits")
 

@@ -3,9 +3,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 
-# Classes
-# class CommitInfo:
-
 
 class ActionClass(Enum):
     ADD = 1
@@ -122,7 +119,7 @@ class FileData():
                        self.file_dir_path))
 
 
-class CommitInfo:
+class GitCommitInfo:
     def __init__(self, commit_hash: Optional[str] = None, commit_commiter_datetime: Optional[str] = None,
                  author: Optional[str] = None, in_main_branch: Optional[bool] = None,
                  merge: Optional[bool] = None, nr_modified_files: Optional[int] = None,
@@ -144,7 +141,7 @@ class CommitInfo:
         self.nr_lines = nr_lines
 
     def __str__(self) -> str:
-        return("CommitInfo: commit_hash: {0}, commit_commiter_datetime: {1}, nr_modified_files: {2}"
+        return("GitCommitInfo: commit_hash: {0}, commit_commiter_datetime: {1}, nr_modified_files: {2}"
                .format(self.commit_hash, self.commit_commiter_datetime, self.nr_modified_files))
 
 

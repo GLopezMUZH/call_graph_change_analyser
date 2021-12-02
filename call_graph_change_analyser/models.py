@@ -206,7 +206,7 @@ class FunctionCommitInfo:
 
 
 class CallCommitInfo:
-    def __init__(self, src_file_data: FileData, calling_node: str, called_node: str,
+    def __init__(self, src_file_data: FileData, calling_function: str, called_function: str,
                  action_class: ActionClass,
                  commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
                  commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
@@ -219,8 +219,8 @@ class CallCommitInfo:
         self.file_name = src_file_data.file_name
         self.file_dir_path = src_file_data.file_dir_path
         self.file_path = src_file_data.file_path
-        self.calling_node = calling_node
-        self.called_node = called_node
+        self.calling_function = calling_function
+        self.called_function = called_function
         self.action_class = action_class
         self.commit_hash_start = commit_hash_start
         self.commit_start_datetime = commit_start_datetime
@@ -236,11 +236,11 @@ class CallCommitInfo:
     def get_file_path(self) -> str:
         return self.file_path
 
-    def get_calling_node(self) -> str:
-        return self.calling_node
+    def get_calling_function(self) -> str:
+        return self.calling_function
 
-    def get_called_node(self) -> str:
-        return self.called_node
+    def get_called_function(self) -> str:
+        return self.called_function
 
     def get_action_class(self) -> ActionClass:
         return self.action_class
@@ -270,8 +270,8 @@ class CallCommitInfo:
         self.commit_end_datetime = commit_end_datetime
 
     def __str__(self) -> str:
-        return("CallCommitInfo: source_node: {0}, called_node: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
-               .format(self.calling_node, self.called_node, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
+        return("CallCommitInfo: source_node: {0}, called_function: {1}, start_date: {2}, end_date: {3}, file_path: {4}"
+               .format(self.calling_function, self.called_function, self.commit_start_datetime, self.commit_end_datetime, self.file_path))
 
 
 class FunctionToFile:

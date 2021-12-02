@@ -211,10 +211,10 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
 
             for ncall in an.calls.find_all('callName'):
                 logging.debug(ncall.get_text())
-                called_node_name = ncall.get_text()
+                called_function_name = ncall.get_text()
                 cci = CallCommitInfo(src_file_data=mod_file_data,
-                                     calling_node=parent_function_name,
-                                     called_node=called_node_name,
+                                     calling_function=parent_function_name,
+                                     called_function=called_function_name,
                                      action_class=ac)
                 r.append(cci)
                 # get_calls(at.get_text())
@@ -244,12 +244,18 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
 
 
 def process_file_commit(proj_config, proj_paths, commit, mod_file):
+    # file_commit
+
+    # file_method
+
+    # file_imports
     fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
     update_file_imports(fis,
                         proj_paths.get_path_to_project_db(),
                         commit_hash_start=commit.hash,
                         commit_start_datetime=str(commit.committer_date))
 
+    # call_commits
     update_call_commits(ccis,
                         proj_paths.get_path_to_project_db(),
                         commit_hash_start=commit.hash,

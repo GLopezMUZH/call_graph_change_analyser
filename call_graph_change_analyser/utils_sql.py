@@ -133,11 +133,11 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
                 (file_name text, file_dir_path text, file_path text, 
-                calling_node text, called_node text, 
+                calling_function text, called_function text, 
                 action_class text,
                 commit_hash_start text, commit_start_datetime text, 
                 commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, calling_node, called_node ))''')
+                primary key (file_path, calling_function, called_function ))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
                 (function_node_id number, file_node_id number, nr_calls number)''')
@@ -367,28 +367,28 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
         commit_end_datetime = commit_start_datetime
         sql_string = """INSERT INTO call_commit 
                     (file_name, file_dir_path, file_path, 
-                    calling_node, called_node,commit_hash_end, commit_end_datetime)
+                    calling_function, called_function,commit_hash_end, commit_end_datetime)
                 VALUES 
                     ('{0}','{1}','{2}','{3}','{4}','{5}','{6}') 
-                ON CONFLICT (file_path, calling_node, called_node) 
+                ON CONFLICT (file_path, calling_function, called_function) 
                 DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
                     commit_hash_end = excluded.commit_hash_end,
                     commit_end_datetime = excluded.commit_end_datetime;""".format(
             call_commit.get_file_name(),
             call_commit.get_file_dir_path(),
             call_commit.get_file_path(),
-            call_commit.get_calling_node(),
-            call_commit.get_called_node(),
+            call_commit.get_calling_function(),
+            call_commit.get_called_function(),
             commit_hash_end, commit_end_datetime)
         execute_sql = True
     elif call_commit.get_action_class() is ActionClass.INSERT or call_commit.get_action_class() is ActionClass.ADD:
         sql_string = """INSERT INTO call_commit 
                     (file_name, file_dir_path, file_path, 
-                    calling_node, called_node, commit_hash_start, 
+                    calling_function, called_function, commit_hash_start, 
                     commit_start_datetime, commit_hash_end, commit_end_datetime)
                 VALUES 
                     ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
-                ON CONFLICT (file_path, calling_node, called_node) 
+                ON CONFLICT (file_path, calling_function, called_function) 
                 DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
                     commit_start_datetime = excluded.commit_start_datetime,
                     commit_hash_end = excluded.commit_hash_end,
@@ -396,8 +396,8 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
             call_commit.get_file_name(),
             call_commit.get_file_dir_path(),
             call_commit.get_file_path(),
-            call_commit.get_calling_node(),
-            call_commit.get_called_node(),
+            call_commit.get_calling_function(),
+            call_commit.get_called_function(),
             commit_hash_start,
             commit_start_datetime, commit_hash_end, commit_end_datetime)
         execute_sql = True

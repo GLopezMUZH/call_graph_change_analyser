@@ -245,6 +245,78 @@ class FileCommitInfo:
                .format(self.file_name, self.commit_file_name, self.commit_commiter_datetime, self.change_type, self.path_change))
 
 
+class FunctionCommitInfo:
+    def __init__(self, src_file_data: FileData,
+                 function_name: Optional[str] = None, function_long_name: Optional[str] = None,
+                 function_parameters: Optional[str] = None, function_nloc: Optional[str] = None,
+                 commit_hash: Optional[str] = None, commit_commiter_datetime: Optional[str] = None,
+                 commit_file_name: Optional[str] = None,
+                 commit_new_path: Optional[str] = None, commit_old_path: Optional[str] = None) -> None:
+        """
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
+        """
+        self.file_name = src_file_data.file_name
+        self.file_dir_path = src_file_data.file_dir_path
+        self.file_path = src_file_data.file_path
+        self.function_name = function_name
+        self.function_long_name = function_long_name
+        self.function_parameters = function_parameters
+        self.function_nloc = function_nloc
+        self.commit_hash = commit_hash
+        self.commit_commiter_datetime = commit_commiter_datetime
+        self.commit_file_name = commit_file_name
+        self.commit_new_path = commit_new_path
+        self.commit_old_path = commit_old_path
+        self.path_change = False if commit_new_path == commit_old_path else True
+
+    def __str__(self) -> str:
+        return("FunctionCommitInfo: function_name: {0}, file_name: {1}, commit_commiter_datetime: {2}, commit_hash: {3}, path_change: {4}"
+               .format(self.function_name, self.file_name, self.commit_commiter_datetime, self.commit_hash, self.path_change))
+
+
+class FunctionToFile:
+    def __init__(self, src_file_data: FileData,
+                 function_name: Optional[str] = None, function_long_name: Optional[str] = None,
+                 function_parameters: Optional[str] = None,
+                 commit_hash_start: Optional[str] = None, commit_start_datetime: Optional[str] = None,
+                 commit_hash_end: Optional[str] = None, commit_end_datetime: Optional[str] = None) -> None:
+        """
+        A CallCommitInfo represents the relationship between a function in a file
+        and one of the functions it calls within. There can be many CCI pro file and
+        function, if it calls several others. Based in the FileImport data the source 
+        of the called function can be inferred. 
+        """
+        self.file_name = src_file_data.file_name
+        self.file_dir_path = src_file_data.file_dir_path
+        self.file_path = src_file_data.file_path
+        self.function_name = function_name
+        self.function_long_name = function_long_name
+        self.function_parameters = function_parameters
+        self.commit_hash_start = commit_hash_start
+        self.commit_start_datetime = commit_start_datetime
+        self.commit_hash_end = commit_hash_end
+        self.commit_end_datetime = commit_end_datetime
+
+    def set_commit_hash_start(self, commit_hash_start):
+        self.commit_hash_start = commit_hash_start
+
+    def set_commit_start_datetime(self, commit_start_datetime):
+        self.commit_start_datetime = commit_start_datetime
+
+    def set_commit_hash_end(self, commit_hash_end):
+        self.commit_hash_end = commit_hash_end
+
+    def set_commit_end_datetime(self, commit_end_datetime):
+        self.commit_end_datetime = commit_end_datetime
+
+    def __str__(self) -> str:
+        return("FunctionToFile: file_name: {0}, function_name: {1}, file_path: {2}, commit_start_datetime: {3}, commit_end_datetime: {4}"
+               .format(self.file_name, self.function_name, self.file_path, self.commit_start_datetime, self.commit_end_datetime))
+
+
 class FileImport():
     def __init__(self, src_file_data: FileData,
                  import_file_name: str,

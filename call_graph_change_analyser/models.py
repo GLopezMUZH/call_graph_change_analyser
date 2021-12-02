@@ -57,6 +57,9 @@ class ProjectConfig:
     def get_delete_cache_files(self) -> bool:
         return self.delete_cache_files
 
+    def __str__(self) -> str:
+        return("ProjectConfig. Name: {0}, delete_cache_files: {1}".format(self.proj_name, self.delete_cache_files))
+
 
 class ProjectPaths:
     def __init__(self, proj_name: str, path_to_cache_dir: str,

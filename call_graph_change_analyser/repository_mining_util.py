@@ -125,17 +125,19 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImpo
         count += 1
         if count < 500:
             if line.startswith("#include "):
+                f_name = ''
                 f_path = line[9:len(line)].replace('"', '')
                 f_path = f_path.replace('<', '')
                 f_path = f_path.replace('>', '')
-                f_name = ''
                 for x in str(f_path).split('/'):
                     if(x.__contains__('.h') or x.__contains__('.hpp')):
                         f_name = x
-                f_path = f_path.replace('>', '')
                 f_path = f_path.replace(f_name, '')
-                import_default_dir_path = mod_file_data.file_dir_path if line.__contains__(
-                    '"') else f_path
+                # includes libraries eg. <cmath> <QApplication>
+                if f_name == '' and line.__contains__('<'):
+                    f_name = f_path
+                import_default_dir_path = mod_file_data.file_dir_path if (line.__contains__(
+                    '"') and not line.__contains__('/')) else f_path
                 # TODO GGG replace  backslash from unix path ???
                 fi = FileImport(src_file_data=mod_file_data,
                                 import_file_name=f_name,
@@ -260,7 +262,7 @@ def traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     for commit in Repository(
             path_to_repo=proj_config.get_path_to_repo(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse').traverse_commits():
+            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
@@ -273,7 +275,7 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             since=proj_config.get_start_repo_date(),
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse').traverse_commits():
+            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
@@ -287,7 +289,7 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             from_tag=proj_config.get_repo_from_tag(),
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse').traverse_commits():
+            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)

@@ -19,6 +19,7 @@ def main():
     logging.info('Started App ---------- ', datetime.now())
 
     args = sys.argv[1:]
+    print[args[0]]
 
     if len(args) == 1 and args[0] == '-init_db_yes':
         logging.info('Initialize the db.')    
@@ -30,39 +31,10 @@ def main():
     print('Finished App -------------', datetime.now())
 
 
-def execute_project_conf_JKQtPlotter():
-    path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
-    proj_name = 'JKQtPlotter'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
-    print(log_filepath)
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.debug('Started App - ', str(datetime.now()))
-
-    from_tag = 'v2019.11.0'
-    to_tag = 'v2019.11.1'
-
-    proj_config = ProjectConfig(proj_name=proj_name,
-                                proj_lang='cpp',
-                                commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
-                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
-                                delete_cache_files=False)
-    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
-                              path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
-
-    logging.debug(proj_config)
-    logging.debug(proj_paths)                              
-    return proj_config,proj_paths
-
-
 def execute_project_conf_example_project():
-    path_to_cache_dir = '..\\tests\\cache\\'
+    path_to_cache_dir = '../tests/cache/'
     proj_name = 'example_project'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+    log_filepath = path_to_cache_dir+proj_name+'/app.log'
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
@@ -76,17 +48,23 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar='../resources/astChangeAnalyzer_0_1_cpp.jar',
                                 path_to_repo='',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
-                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir='../tests/projects_data/',  # TODO verify
+                              path_to_git_folder='../tests/cache/gitprojects/' + proj_config.proj_name + '/')
 
     return proj_config, proj_paths
+
+#%%
+def init_db():
+    # INITIALIZE DATABASE ------------------------------
+    proj_config, proj_paths = execute_project_conf_example_project()
+    create_db_tables(proj_paths, drop=True)
 
 
 #%%
@@ -95,11 +73,7 @@ if __name__ == '__main__':
 
 
 
-#%%
-def init_db():
-    # INITIALIZE DATABASE ------------------------------
-    proj_config, proj_paths = execute_project_conf_example_project()
-    create_db_tables(proj_paths, drop=True)
+
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)

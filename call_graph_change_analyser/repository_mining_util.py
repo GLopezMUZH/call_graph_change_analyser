@@ -14,7 +14,7 @@ from models import *
 import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from utils_sql import update_file_imports, update_call_commits, insert_git_commit, insert_file_commit
+from utils_sql import update_file_imports, update_call_commits, insert_git_commit, insert_file_commit, insert_function_commit
 import utils_py
 
 # %%
@@ -24,7 +24,7 @@ reload(models)
 
 
 # %%
-#os.environ['COMSPEC']
+# os.environ['COMSPEC']
 
 # %%
 # con.close()
@@ -194,21 +194,20 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
         f_name = diff_xml_file.dstFile.get_text()
         # TODO check how path is written
         f_name = f_name.replace(path_to_cache_current, '')
-        logging.debug("Dest file name: ", f_name)
+        logging.debug("Dest file name: {0}".function(f_name))
 
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')
             action_node_type = an.actionNodeType.get_text()
-            logging.debug("Action node type: ", str(action_node_type))
+            logging.debug("Action node type: {0}".format(str(action_node_type)))
             ac = utils_py.get_action_class(an.actionClassName.get_text())
-            logging.debug("Action class: ",
-                          an.actionClassName.get_text(), ", ac: ", str(ac))
+            logging.debug("Action class: {0}, ac: {1} ".format(an.actionClassName.get_text(), str(ac)))
             handled = an.handled.get_text()
-            logging.debug("Handled: ", handled)
+            logging.debug("Handled: {0}".format(handled))
             parent_function_name = an.parentFunction.get_text()
-            logging.debug("Parent: ", parent_function_name)
+            logging.debug("Parent: {0}".format(parent_function_name))
             an_calls = an.calls
-            logging.debug("an_calls: ", an_calls)
+            logging.debug("an_calls: {0}".format(an_calls))
 
             for ncall in an.calls.find_all('callName'):
                 logging.debug(ncall.get_text())
@@ -240,18 +239,16 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                              only_in_branch='master').traverse_commits():
         # git_commit
         insert_git_commit(proj_paths.get_path_to_project_db(),
-                        commit_hash=commit.hash, commit_commiter_datetime=str(
-                            commit.committer_date),
-                        author=commit.author.name, 
-                        in_main_branch=True,   #commit.in_main_branch,
-                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
-                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+                          commit_hash=commit.hash, commit_commiter_datetime=str(
+            commit.committer_date),
+            author=commit.author.name,
+            in_main_branch=True,  # commit.in_main_branch,
+            merge=commit.merge, nr_modified_files=len(
+                              commit.modified_files),
+            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                #changed_methods = mod_file.changed_methods
-                #for cm in changed_methods:
-                #    print(cm)
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
     """
     if proj_config.get_start_repo_date() is not None:
@@ -273,12 +270,16 @@ def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: Modif
 
     # file_commit
     insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
-                        commit_hash=commit.hash, commit_commiter_datetime=commit.committer_date,
-                        commit_file_name=mod_file.filename,
-                        commit_new_path=mod_file.new_path, commit_old_path=mod_file.old_path,
-                        change_type=mod_file.change_type)
+                       commit_hash=commit.hash, commit_commiter_datetime=commit.committer_date,
+                       commit_file_name=mod_file.filename,
+                       commit_new_path=mod_file.new_path, commit_old_path=mod_file.old_path,
+                       change_type=mod_file.change_type)
 
-    # file_method
+    # function_commit
+    insert_function_commit(
+        proj_paths.get_path_to_project_db(), mod_file, commit)
+
+    # function_to_file
 
     # file_imports
     fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
@@ -304,12 +305,13 @@ def traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         # git_commit
         insert_git_commit(proj_paths.get_path_to_project_db(),
-                        commit_hash=commit.hash, commit_commiter_datetime=str(
-                            commit.committer_date),
-                        author=commit.author.name, 
-                        in_main_branch=True,   #commit.in_main_branch,
-                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
-                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+                          commit_hash=commit.hash, commit_commiter_datetime=str(
+            commit.committer_date),
+            author=commit.author.name,
+            in_main_branch=True,  # commit.in_main_branch,
+            merge=commit.merge, nr_modified_files=len(
+                              commit.modified_files),
+            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
@@ -328,13 +330,13 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         # git_commit
         insert_git_commit(proj_paths.get_path_to_project_db(),
-                        commit_hash=commit.hash, commit_commiter_datetime=str(
-                            commit.committer_date),
-                        author=commit.author.name, 
-                        in_main_branch=True,   #commit.in_main_branch,
-                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
-                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
-
+                          commit_hash=commit.hash, commit_commiter_datetime=str(
+            commit.committer_date),
+            author=commit.author.name,
+            in_main_branch=True,  # commit.in_main_branch,
+            merge=commit.merge, nr_modified_files=len(
+                              commit.modified_files),
+            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
@@ -353,12 +355,13 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         # git_commit
         insert_git_commit(proj_paths.get_path_to_project_db(),
-                        commit_hash=commit.hash, commit_commiter_datetime=str(
-                            commit.committer_date),
-                        author=commit.author.name, 
-                        in_main_branch=True,   #commit.in_main_branch,
-                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
-                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+                          commit_hash=commit.hash, commit_commiter_datetime=str(
+            commit.committer_date),
+            author=commit.author.name,
+            in_main_branch=True,  # commit.in_main_branch,
+            merge=commit.merge, nr_modified_files=len(
+                              commit.modified_files),
+            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):

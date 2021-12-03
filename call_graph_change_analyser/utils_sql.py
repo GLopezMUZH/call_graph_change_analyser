@@ -3,6 +3,8 @@ import os
 import pandas
 import sqlite3
 from typing import Optional, List
+
+from pydriller.domain.commit import Commit, ModifiedFile
 from models import FileImport, CallCommitInfo, ActionClass, FileData
 
 import models
@@ -347,7 +349,8 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
         err_message = template.format(type(er).__name__, er.args)
         print("IntegrityError. UNIQUE failed for [{0},{1}] ".format(
             commit_hash, mod_file_data.get_file_path()))
-        logging.error("[{0},{1}] ".format(commit_hash, mod_file_data.get_file_path()))
+        logging.error("[{0},{1}] ".format(
+            commit_hash, mod_file_data.get_file_path()))
         logging.error(err_message)
 
 
@@ -407,6 +410,53 @@ def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
     logging.debug(sql_string)
     cur.execute(sql_string)
     con_analytics_db.commit()
+
+
+def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit):
+    print("insert_function_commit")
+    logging.debug('insert_function_commit')
+    mod_file_data = FileData(str(mod_file._new_path))
+    try:
+        changed_methods = mod_file.changed_methods
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        for cm in changed_methods:
+            print(cm)
+            print(cm.__hash__())
+            print(cm.parameters)
+
+            params = ','.join(cm.parameters)
+
+            path_change = 0 if mod_file.new_path == mod_file.old_path else 1
+
+            sql_string = """INSERT INTO function_commit 
+                        (file_name, file_dir_path, file_path, 
+                        function_name, function_long_name, function_parameters, function_nloc,
+                        commit_hash, commit_commiter_datetime, 
+                        commit_file_name, commit_new_path, commit_old_path,
+                        path_change)
+                    VALUES 
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}');""".format(
+                mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
+                ), mod_file_data.get_file_path(),
+                cm.name, cm.long_name, params, cm.nloc,
+                commit.hash, commit.committer_date,
+                mod_file.filename, mod_file.new_path, mod_file.old_path,
+                path_change)
+
+            print(sql_string)
+            logging.debug(sql_string)
+            cur.execute(sql_string)
+
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        logging.error(err_message)
 
 
 def update_call_commits(ccis: List[CallCommitInfo],

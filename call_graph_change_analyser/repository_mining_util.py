@@ -24,7 +24,7 @@ reload(models)
 
 
 # %%
-os.environ['COMSPEC']
+#os.environ['COMSPEC']
 
 # %%
 # con.close()
@@ -238,6 +238,15 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
                              single='fc321f027ba5741de1be56bdee4379155647385a',
                              only_no_merge=True,
                              only_in_branch='master').traverse_commits():
+        # git_commit
+        insert_git_commit(proj_paths.get_path_to_project_db(),
+                        commit_hash=commit.hash, commit_commiter_datetime=str(
+                            commit.committer_date),
+                        author=commit.author.name, 
+                        in_main_branch=True,   #commit.in_main_branch,
+                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
+                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 #changed_methods = mod_file.changed_methods
@@ -261,14 +270,6 @@ def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectP
 
 def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
-
-    # git_commit
-    insert_git_commit(proj_paths.get_path_to_project_db(),
-                      commit_hash=commit.hash, commit_commiter_datetime=str(
-                          commit.committer_date),
-                      author=commit.author.name, in_main_branch=commit.in_main_branch,
-                      merge=commit.merge, nr_modified_files=commit.files,
-                      nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
     # file_commit
     insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
@@ -300,6 +301,16 @@ def traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             path_to_repo=proj_config.get_path_to_repo(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+
+        # git_commit
+        insert_git_commit(proj_paths.get_path_to_project_db(),
+                        commit_hash=commit.hash, commit_commiter_datetime=str(
+                            commit.committer_date),
+                        author=commit.author.name, 
+                        in_main_branch=True,   #commit.in_main_branch,
+                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
+                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
@@ -314,6 +325,17 @@ def traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+
+        # git_commit
+        insert_git_commit(proj_paths.get_path_to_project_db(),
+                        commit_hash=commit.hash, commit_commiter_datetime=str(
+                            commit.committer_date),
+                        author=commit.author.name, 
+                        in_main_branch=True,   #commit.in_main_branch,
+                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
+                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
+
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
@@ -328,6 +350,16 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+
+        # git_commit
+        insert_git_commit(proj_paths.get_path_to_project_db(),
+                        commit_hash=commit.hash, commit_commiter_datetime=str(
+                            commit.committer_date),
+                        author=commit.author.name, 
+                        in_main_branch=True,   #commit.in_main_branch,
+                        merge=commit.merge, nr_modified_files=len(commit.modified_files),
+                        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)

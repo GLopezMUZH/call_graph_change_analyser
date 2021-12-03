@@ -19,7 +19,7 @@ def main():
     logging.info('Started App ---------- ', datetime.now())
 
     args = sys.argv[1:]
-    print[args[0]]
+    print(args[0])
 
     if len(args) == 1 and args[0] == '-init_db_yes':
         logging.info('Initialize the db.')    

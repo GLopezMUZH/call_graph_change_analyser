@@ -70,8 +70,6 @@ def test_insert_git_commit():
 test_insert_git_commit()
 
 # %%
-
-
 def test_update_file_imports():
     commit_hash_start = 'test_update_file_imports0000000000000000'
     commit_start_datetime = str(datetime(2021, 11, 19, 0, 1, 0, 79043))

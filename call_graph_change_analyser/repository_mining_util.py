@@ -2,7 +2,7 @@
 import os
 import subprocess
 from subprocess import *
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import logging
 
 from pathlib import Path
@@ -118,7 +118,7 @@ def save_method_call_change_info(file_path_sourcediff):
     return mcci
 
 
-def get_file_imports(source_code: str, mod_file_data: FileData) -> list[FileImport]:
+def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
     r = []
     for line in source_code.splitlines():
@@ -188,7 +188,7 @@ def get_calls(raw):
         print(a)
 
 
-def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileData) -> list[CallCommitInfo]:
+def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: FileData) -> List[CallCommitInfo]:
     r = []
     try:
         f_name = diff_xml_file.dstFile.get_text()
@@ -396,7 +396,7 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
 # %%
 def parse_mod_file(mod_file, proj_paths: ProjectPaths,
-                   proj_config: ProjectConfig) -> Tuple[list[FileImport], list[CallCommitInfo]]:
+                   proj_config: ProjectConfig) -> Tuple[List[FileImport], List[CallCommitInfo]]:
     # print('Extension: ', str(mod_file._new_path)[-3:])
     logging.debug('---------------------------')
     logging.debug(mod_file.change_type)

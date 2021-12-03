@@ -2,7 +2,7 @@ import logging
 import os
 import pandas
 import sqlite3
-from typing import Optional
+from typing import Optional, List
 from models import FileImport, CallCommitInfo, ActionClass, FileData
 
 import models
@@ -351,9 +351,7 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
         logging.error(err_message)
 
 
-
-
-def update_file_imports(fis: list[FileImport],
+def update_file_imports(fis: List[FileImport],
                         path_to_project_db: str,
                         commit_hash_start: str,
                         commit_start_datetime: str,
@@ -411,7 +409,7 @@ def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
     con_analytics_db.commit()
 
 
-def update_call_commits(ccis: list[CallCommitInfo],
+def update_call_commits(ccis: List[CallCommitInfo],
                         path_to_project_db: str,
                         commit_hash_start: str,
                         commit_start_datetime: str,

@@ -4,11 +4,12 @@ import models
 import logging
 from datetime import datetime
 from importlib import reload
+import sys
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 from repository_mining_util import load_source_repository_data
-from utils_sql import create_commit_based_tables
+from utils_sql import create_db_tables
 from utils_py import replace_timezone
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -27,6 +28,12 @@ def main():
     print('Started App ------------ ', datetime.now())
     proj_config, proj_paths = execute_project_conf_JKQtPlotter()
     logging.info('Started App ---------- ', datetime.now())
+
+    args = sys.argv[1:]
+
+    if len(args) == 1 and args[0] == '-init_db_yes':
+        logging.info('Initialize the db.')    
+        init_db()
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
@@ -109,10 +116,10 @@ if __name__ == '__main__':
 
 
 #%%
-from utils_sql import create_db_tables
-# INITIALIZE DATABASE ------------------------------
-proj_config, proj_paths = execute_project_conf_JKQtPlotter()
-create_db_tables(proj_paths, drop=True)
+def init_db()
+    # INITIALIZE DATABASE ------------------------------
+    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
+    create_db_tables(proj_paths, drop=True)
 
 
 # %%

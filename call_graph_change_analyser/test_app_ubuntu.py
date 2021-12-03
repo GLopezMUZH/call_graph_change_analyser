@@ -3,7 +3,7 @@ from models import *
 import models
 import logging
 from datetime import datetime
-from importlib import reload
+import sys
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
@@ -17,6 +17,12 @@ def main():
     print('Started App ------------ ', datetime.now())
     proj_config, proj_paths = execute_project_conf_example_project()
     logging.info('Started App ---------- ', datetime.now())
+
+    args = sys.argv[1:]
+
+    if len(args) == 1 and args[0] == '-init_db_yes':
+        logging.info('Initialize the db.')    
+        init_db()
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
@@ -94,8 +100,6 @@ def init_db():
     # INITIALIZE DATABASE ------------------------------
     proj_config, proj_paths = execute_project_conf_example_project()
     create_db_tables(proj_paths, drop=True)
-
-init_db()
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)

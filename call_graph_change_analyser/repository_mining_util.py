@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 import logging
 
 from pathlib import Path
-from imp import reload
+from importlib import reload
 from pydriller import *
 from bs4 import BeautifulSoup
 

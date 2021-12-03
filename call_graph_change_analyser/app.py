@@ -3,7 +3,7 @@ from models import *
 import models
 import logging
 from datetime import datetime
-from imp import reload
+from importlib import reload
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp

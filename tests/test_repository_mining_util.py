@@ -2,7 +2,7 @@
 import pytest
 import logging
 
-from imp import reload
+from importlib import reload
 
 from ..call_graph_change_analyser.models import FileData, FileImport
 from ..call_graph_change_analyser.repository_mining_util import parse_xml_diffs, get_file_imports

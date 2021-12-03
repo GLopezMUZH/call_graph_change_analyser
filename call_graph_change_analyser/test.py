@@ -4,7 +4,7 @@ import pytest
 import time
 import logging
 from bs4 import BeautifulSoup
-from imp import reload
+from importlib import reload
 from datetime import datetime
 
 from pydriller import *

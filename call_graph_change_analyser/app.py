@@ -107,6 +107,11 @@ def execute_project_conf_JKQtPlotter():
     logging.debug(proj_paths)                              
     return proj_config,proj_paths
 
+#%%
+def init_db():
+    # INITIALIZE DATABASE ------------------------------
+    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
+    create_db_tables(proj_paths, drop=True)
 
 
 #%%
@@ -115,11 +120,6 @@ if __name__ == '__main__':
 
 
 
-#%%
-def init_db()
-    # INITIALIZE DATABASE ------------------------------
-    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
-    create_db_tables(proj_paths, drop=True)
 
 
 # %%

@@ -44,14 +44,14 @@ def save_source_code(file_path, source_text):
     try:
         f = open(file_path, 'w', encoding='utf-8')
     except:
-        logging.error("could not open/write file: ", file_path)
+        logging.error("could not open/write file: {0}".format(file_path))
 
     try:
         f.writelines(source_text)
     except UnicodeEncodeError:
         # some pydriller.commit.mod_file.source_text has encoding differences
         print("ERROR writelines", type(source_text))
-        logging.warning("ERROR writelines", type(source_text))
+        logging.warning("ERROR writelines {0}".format(type(source_text)))
         f.write(source_text.encode('utf-8-sig'))
     f.close()
     save_source_code_xml(file_path)
@@ -194,7 +194,7 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
         f_name = diff_xml_file.dstFile.get_text()
         # TODO check how path is written
         f_name = f_name.replace(path_to_cache_current, '')
-        logging.debug("Dest file name: {0}".function(f_name))
+        logging.debug("Dest file name: {0}".format(f_name))
 
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')

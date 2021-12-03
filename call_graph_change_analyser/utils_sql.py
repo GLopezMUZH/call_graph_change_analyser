@@ -349,8 +349,7 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
         err_message = template.format(type(er).__name__, er.args)
         print("IntegrityError. UNIQUE failed for [{0},{1}] ".format(
             commit_hash, mod_file_data.get_file_path()))
-        logging.error("[{0},{1}] ".format(
-            commit_hash, mod_file_data.get_file_path()))
+        logging.error("[{0},{1}] ".format(commit_hash, mod_file_data.get_file_path()))
         logging.error(err_message)
 
 
@@ -532,18 +531,16 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
         execute_sql = True
     elif call_commit.get_action_class() is ActionClass.MOVE:
         logging.debug(
-            "TODO, check if calling function is the same, else set end and insert", call_commit.get_action_class())
+            "TODO, check if calling function is the same, else set end and insert: {0}".function(call_commit.get_action_class()))
     else:
-        logging.error("not valid Commit ActionClass",
-                      call_commit.get_action_class())
+        logging.error("not valid Commit ActionClass: {0}".function(call_commit.get_action_class()))
 
     if execute_sql:
         print(sql_string)
         cur.execute(sql_string)
         con_analytics_db.commit()
     else:
-        logging.warning("Nothing to insert call_commit",
-                        call_commit.get_action_class())
+        logging.warning("Nothing to insert call_commit: {0}".function(call_commit.get_action_class()))
 
 
 """

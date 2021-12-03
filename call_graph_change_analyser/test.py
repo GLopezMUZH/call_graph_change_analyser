@@ -26,7 +26,7 @@ def execute_project_conf_example_project():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - ' + str(datetime.now()))
+    logging.info('Started App - {0}'.format(str(datetime.now())))
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)
@@ -299,7 +299,7 @@ def test_parse_model_file():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s %(levelname)-8s %(message)s')
-    logging.info('Started App - ' + str(datetime.now()))
+    logging.info('Started App - {0}'.format(str(datetime.now())))
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)
@@ -423,14 +423,21 @@ def create_local_commit() -> Commit:
 
     print("PyDriller Commit--- ")
     print(py_comm.author)
-    print(py_comm.hash)
+    print(py_comm.author.name)
+    print(str(py_comm.committer_date))
+    #print(py_comm.in_main_branch)
+    print(py_comm.merge)
+    #print(py_comm.files)
+    #print(len(py_comm.modified_files))
+    #print(py_comm.deletions)
+    #print(py_comm.insertions)
+    #print(commit.lines)
 
     return py_comm
 
 
 # %%
 def test_process_file_commit():
-
     proj_config, proj_paths = execute_project_conf_example_project()
 
     print(proj_config)
@@ -449,12 +456,19 @@ def test_process_file_commit():
         'source_code_before': sp
     }
 
-    mod_file = ModifiedFile('UavcanNode.cpp',
+    mfs = []
+    mod_file1 = ModifiedFile('UavcanNode.cpp',
                             "UavcanNode.cpp",
                             ModificationType.MODIFY, diff_and_sc)
+    mod_file2 = ModifiedFile('UavcanNode2.cpp',
+                            "UavcanNode2.cpp",
+                            ModificationType.MODIFY, diff_and_sc)
+    mfs.append(mod_file1)
+    mfs.append(mod_file2)
 
     local_commit = create_local_commit()
-    process_file_commit(proj_config, proj_paths, local_commit, mod_file)
+    print(local_commit)
+    process_file_commit(proj_config, proj_paths, local_commit, mod_file1)
 
 
 test_process_file_commit()

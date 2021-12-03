@@ -23,7 +23,7 @@ def execute_project_conf_example_project():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - ' + str(datetime.now()))
+    logging.info('Started App - {0}'.format(str(datetime.now())))
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)

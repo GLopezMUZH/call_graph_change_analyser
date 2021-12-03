@@ -12,7 +12,7 @@ def replace_timezone(dt: datetime):
 
 
 def get_action_class(action_class_name: str):
-    logging.debug("get_action_class", action_class_name)
+    logging.debug("get_action_class {0}".function(action_class_name))
     if action_class_name == 'com.github.gumtreediff.actions.model.Addition' \
             or action_class_name == 'com.github.gumtreediff.actions.model.TreeAddition':
         return ActionClass.ADD    

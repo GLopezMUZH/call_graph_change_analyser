@@ -14,12 +14,11 @@ from call_graph_analysis import get_call_graph, print_graph_stats
 
 # %%
 def main():
-    print('Started App ------------ ', datetime.now())
+    print('Started App ------------ {0}'.format(datetime.now()))
     proj_config, proj_paths = execute_project_conf_example_project()
-    logging.info('Started App ---------- ', datetime.now())
+    logging.info('Started App ---------- {0}'.format(datetime.now()))
 
     args = sys.argv[1:]
-    print(args[0])
 
     if len(args) == 1 and args[0] == '-init_db_yes':
         logging.info('Initialize the db.')    
@@ -27,7 +26,7 @@ def main():
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
-    logging.info('Finished App ---------- ', datetime.now())
+    logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------', datetime.now())
 
 
@@ -38,7 +37,7 @@ def execute_project_conf_example_project():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - ' + str(datetime.now()))
+    logging.info('Started App - {0}'.format(str(datetime.now())))
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)

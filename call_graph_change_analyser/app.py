@@ -25,9 +25,9 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 
 # %%
 def main():
-    print('Started App ------------ ', datetime.now())
+    print('Started App ------------ {0}'.format(datetime.now()))
     proj_config, proj_paths = execute_project_conf_JKQtPlotter()
-    logging.info('Started App ---------- ', datetime.now())
+    logging.info('Started App ---------- {0}'.format(datetime.now()))
 
     args = sys.argv[1:]
 
@@ -37,8 +37,8 @@ def main():
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
-    logging.info('Finished App ---------- ', datetime.now())
-    print('Finished App -------------', datetime.now())
+    logging.info('Finished App ---------- {0}'.format(datetime.now()))
+    print('Finished App -------------{0}'.format(datetime.now()))
 
 
 
@@ -49,7 +49,7 @@ def execute_project_conf_PX4():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - ', datetime.now())
+    logging.info('Started App - {0}'.format(datetime.now()))
 
     # source trail db 9.10.2021
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
@@ -87,7 +87,7 @@ def execute_project_conf_JKQtPlotter():
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.debug('Started App - ', str(datetime.now()))
+    logging.debug('Started App - {0}'.format(str(datetime.now())))
 
     from_tag = 'v2019.11.0'
     to_tag = 'v2019.11.1'

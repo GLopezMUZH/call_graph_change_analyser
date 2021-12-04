@@ -279,7 +279,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
 
     # Save file imports
     fis = get_file_imports(mod_file.source_code, mod_file_data)
-    logging.debug("File imports len: {0}", len(fis))
+    logging.debug("File imports len: {0}".format(len(fis)))
 
     # Execute the jar for finding the relevant source differences (function/method call changes)
     if mod_file.change_type != ModificationType.ADD:

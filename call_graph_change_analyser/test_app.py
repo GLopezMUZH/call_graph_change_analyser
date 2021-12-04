@@ -64,6 +64,7 @@ def init_db():
     # INITIALIZE DATABASE ------------------------------
     proj_config, proj_paths = execute_project_conf_example_project()
     create_db_tables(proj_paths, drop=True)
+    print("finish init_db")
 
 
 #%%
@@ -77,8 +78,7 @@ init_db()
 # %%
 import utils_sql
 reload(utils_sql)
-from utils_sql import update_file_imports, insert_or_update_file_import
-from utils_sql import create_db_tables, create_commit_based_tables, insert_or_update_call_commit, insert_function_commit
+from utils_sql import *
 
 import models
 reload(models)
@@ -86,7 +86,7 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 
 import repository_mining_util
 reload(repository_mining_util)
-from repository_mining_util import process_file_commit
+from repository_mining_util import *
 
 
 

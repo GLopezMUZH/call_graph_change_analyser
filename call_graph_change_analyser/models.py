@@ -1,4 +1,5 @@
 # %%
+import os
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List
@@ -59,25 +60,18 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_cache_dir: str,
-                 path_to_proj_data_dir: str, path_to_git_folder: str) -> None:
-        proj_folder = proj_name + '\\'
+    def __init__(self, proj_name: str, path_to_cache_dir: str, path_to_proj_data_dir: str) -> None:
         # temporary source and diff folders
         self.path_to_cache_dir = path_to_cache_dir
-        self.path_to_cache_current = path_to_cache_dir + \
-            str(proj_folder) + 'current\\'
-        self.path_to_cache_previous = path_to_cache_dir + proj_folder + 'previous\\'
-        self.path_to_cache_sourcediff = path_to_cache_dir + proj_folder + 'sourcediff\\'
+        self.path_to_cache_current = os.path.join(path_to_cache_dir, proj_name, 'current')
+        self.path_to_cache_previous = os.path.join(path_to_cache_dir, proj_name, 'previous')
+        self.path_to_cache_sourcediff = os.path.join(path_to_cache_dir, proj_name, 'sourcediff')
         # project data directory
-        self.path_to_proj_data_dir = path_to_proj_data_dir + proj_folder
+        self.path_to_proj_data_dir = os.path.join(path_to_proj_data_dir, proj_name)
         # analytics database
-        self.path_to_project_db = path_to_proj_data_dir + \
-            proj_folder + proj_name + '_analytics.db'
+        self.path_to_project_db = os.path.join(path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
         # initial graph db
-        self.path_to_srctrail_db = path_to_proj_data_dir + \
-            proj_folder + 'callgraphdb\\' + proj_name + '.srctrldb'
-        # git source folder
-        self.path_to_git_folder = path_to_git_folder
+        self.path_to_srctrail_db = os.path.join(path_to_proj_data_dir, proj_name, 'callgraphdb', proj_name + '.srctrldb')
 
     def get_path_to_cache_current(self):
         return self.path_to_cache_current
@@ -105,13 +99,8 @@ class FileData():
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
         # calculate dir path and file name
-        for x in file_path.split('\\'):
-            if(x.__contains__('.cpp')):
-                file_name = x
-        file_dir_path = file_path[0:len(file_path)-len(file_name)]
-
-        self.file_dir_path = file_dir_path
-        self.file_name = file_name
+        self.file_dir_path = os.path.dirname(file_path)
+        self.file_name = os.path.basename(file_path)
 
     def get_file_name(self):
         return self.file_name
@@ -323,7 +312,7 @@ class FunctionToFile:
 
 class FileImport():
     def __init__(self, src_file_data: FileData,
-                 import_file_long_name: str,
+                 import_file_path: str,
                  import_file_name: str,
                  import_file_dir_path: str,
                  commit_hash_start=None, commit_start_datetime=None,
@@ -331,7 +320,7 @@ class FileImport():
         self.file_name = src_file_data.file_name
         self.file_dir_path = src_file_data.file_dir_path
         self.file_path = src_file_data.file_path
-        self.import_file_long_name = import_file_long_name
+        self.import_file_path = import_file_path
         self.import_file_name = import_file_name
         self.import_file_dir_path = import_file_dir_path
         self.commit_hash_start = commit_hash_start
@@ -348,8 +337,8 @@ class FileImport():
     def get_file_path(self) -> str:
         return self.file_path
 
-    def get_import_file_long_name(self)-> str:
-        return self.import_file_long_name
+    def get_import_file_path(self)-> str:
+        return self.import_file_path
     
     def get_import_file_name(self) -> str:
         return self.import_file_name

@@ -4,7 +4,7 @@ import models
 import logging
 from datetime import datetime
 from importlib import reload
-import sys
+import sys, os
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
@@ -43,9 +43,9 @@ def main():
 
 
 def execute_project_conf_PX4():
-    path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
+    path_to_cache_dir = os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/.cache/')
     proj_name = 'PX4-Autopilot'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+    log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
@@ -63,7 +63,7 @@ def execute_project_conf_PX4():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date,
@@ -73,16 +73,15 @@ def execute_project_conf_PX4():
                                 )
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
-                              path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir=os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/projects/'))
                               
     return proj_config,proj_paths
 
 
 def execute_project_conf_JKQtPlotter():
-    path_to_cache_dir = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\'
+    path_to_cache_dir = os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/.cache/')
     proj_name = 'JKQtPlotter'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+    log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
     print(log_filepath)
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
@@ -95,13 +94,12 @@ def execute_project_conf_JKQtPlotter():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='C:\\Users\\lopm\\Documents\\mt\\sandbox\\projects\\',
-                              path_to_git_folder='C:\\Users\\lopm\\Documents\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir=os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/projects/'))
 
     logging.debug(proj_config)
     logging.debug(proj_paths)                              
@@ -124,7 +122,6 @@ if __name__ == '__main__':
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)
-#clone_git_source(path_to_git_folder, path_to_git)
 
 # %%
 # only the graph part

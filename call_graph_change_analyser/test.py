@@ -1,5 +1,6 @@
 # %%
 #import pydriller
+import os
 import pytest
 import time
 import logging
@@ -11,7 +12,7 @@ from pydriller import *
 from pydriller.domain.commit import ModifiedFile
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
-from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file, process_file_commit
+from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file, process_file_commit, get_import_file_data
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 
 from utils_sql import *
@@ -36,17 +37,16 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
-                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir=os.path.normpath('../tests/projects_data/'))
                               
-    return proj_config,proj_paths
+    return proj_config, proj_paths
 
 
 # %%
@@ -309,14 +309,13 @@ def test_parse_model_file():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
-                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir=os.path.normpath('../tests/projects_data/'))
 
     print(proj_config)
     print(proj_paths)
@@ -472,7 +471,30 @@ def test_process_file_commit():
 
 
 test_process_file_commit()
+
+
 # %%
+def test_is_valid_file_type():
+    is_valid_file_type = get_file_type_validation_function('cpp')
+    print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.h'))
+    print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.cpp'))
+    print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.what'))
+
+# %%
+def test_get_import_file_data():
+    mod_file_dir_path='lib/jkqtplotter/'
+    cls=['#include <QSvgGenerator>',
+        '#include <QDebug>',
+        '#include "jkqtplotter/jkqtpbaseplotter.h"',
+        '#include "jkqtplotter/gui/jkqtpgraphsmodel.h"',
+        '#include "qftools.h"',
+        '#include "jkqtplotter/graphs/jkqtpimpulses.h"        ']
+    for code_line in cls:
+        print(get_import_file_data(mod_file_dir_path, code_line))
+
+
+test_get_import_file_data()
+
 
 # %%
 import utils_sql
@@ -485,13 +507,4 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 
 import repository_mining_util
 reload(repository_mining_util)
-from repository_mining_util import process_file_commit
-
-# %%
-from repository_mining_util import get_file_type_validation_function
-is_valid_file_type = get_file_type_validation_function('cpp')
-print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.h'))
-print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.cpp'))
-print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.what'))
-
-# %%
+from repository_mining_util import *

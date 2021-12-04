@@ -34,8 +34,8 @@ reload(models)
 
 
 def save_source_code(file_path, source_text):
-    if not os.path.exists(str(file_path.parent)):
-        os.makedirs(str(file_path.parent))
+    if not os.path.exists(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
 
     if isinstance(source_text, bytes):
         logging.debug("save_source_code was bytes")
@@ -78,13 +78,6 @@ def save_source_code_diff_file(arg_prev, arg_curr, arg_target_file):
     )
 
 
-def clone_git_source(path_to_git_folder, path_to_git):
-    if not os.path.exists(str(path_to_git_folder)):
-        os.makedirs(str(path_to_git_folder))
-
-    # git.Git(path_to_git_folder).clone(path_to_git)   # ("git://gitorious.org/git-python/mainline.git")
-
-
 def is_java_file(mod_file: str):
     return mod_file[-5:] == '.java'
 
@@ -121,35 +114,46 @@ def save_method_call_change_info(file_path_sourcediff):
 def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
     r = []
-    for line in source_code.splitlines():
+    for code_line in source_code.splitlines():
         count += 1
         if count < 500:
-            if line.startswith("#include "):
-                f_name = ''
-                f_long_name = ''
-                f_path = line[9:len(line)].replace('"', '')
-                f_path = f_path.replace('<', '')
-                f_path = f_path.replace('>', '')
-                f_long_name = f_path
-                for x in str(f_path).split('/'):
-                    if(x.__contains__('.h') or x.__contains__('.hpp')):
-                        f_name = x
-                f_path = f_path.replace(f_name, '')
-                # includes libraries eg. <cmath> <QApplication>
-                if f_name == '' and line.__contains__('<'):
-                    f_name = f_path
-                import_default_dir_path = mod_file_data.file_dir_path if (line.__contains__(
-                    '"') and not line.__contains__('/')) else f_path
-                # TODO GGG replace  backslash from unix path ???
+            if code_line.startswith("#include "):
+                f_name, f_path, f_dir_path = get_import_file_data(mod_file_data.get_file_dir_path() , code_line)
+
                 fi = FileImport(src_file_data=mod_file_data,
-                                import_file_long_name=f_long_name,
+                                import_file_path=f_path,
                                 import_file_name=f_name,
-                                import_file_dir_path=import_default_dir_path)
+                                import_file_dir_path=f_dir_path)
                 r.append(fi)
         else:
             break
 
     return r
+
+def get_import_file_data(mod_file_dir_path, code_line: str):
+    f_name = ''
+    f_dir_path = ''
+    f_path = code_line[9:len(code_line.rstrip())].replace('"', '')
+    f_path = f_path.replace('<', '')
+    f_path = f_path.replace('>', '')
+    f_name = os.path.basename(f_path)
+
+    """
+                for x in str(f_path).split('/'):
+                    if(x.__contains__('.h') or x.__contains__('.hpp')):
+                        f_name = x
+                f_path = f_path.replace(f_name, '')
+                """
+                # includes libraries eg. <cmath> <QApplication>
+    if code_line.__contains__('<'):
+        f_name = f_path
+
+    if (code_line.__contains__('"') and not code_line.__contains__('/')):
+        f_dir_path = mod_file_dir_path
+        f_name = f_path
+    else:
+        f_dir_path = os.path.dirname(f_path)
+    return f_name, f_path, f_dir_path
 
 
 # from subprocess import *
@@ -244,23 +248,24 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     logging.debug(mod_file_data)
 
     # Save new source code
-    file_path_current = Path(
-        proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
+    #file_path_current = Path(proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
+    file_path_current = os.path.join(proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
     save_source_code(file_path_current, mod_file.source_code)
 
     # Save old source code
     if mod_file.change_type != ModificationType.ADD:
-        file_path_previous = Path(
-            proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
+        #file_path_previous = Path(proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
+        file_path_previous = os.path.join(proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
         save_source_code(file_path_previous,
                          mod_file.source_code_before)
 
     # Create sourcediff directory
     if mod_file.change_type != ModificationType.ADD:
-        file_path_sourcediff = Path(
-            proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
-        if not os.path.exists(str(file_path_sourcediff.parent)):
-            os.makedirs(str(file_path_sourcediff.parent))
+        #file_path_sourcediff = Path(proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
+        file_path_sourcediff = os.path.join(proj_paths.get_path_to_cache_sourcediff(), str(mod_file._new_path))
+        #if not os.path.exists(str(file_path_sourcediff.parent)):
+        if not os.path.exists(os.path.dirname(file_path_sourcediff)):
+            os.makedirs(os.path.dirname(file_path_sourcediff))
 
     # Create sourcediff file: not currently because relevant differences files are created in jar
     """

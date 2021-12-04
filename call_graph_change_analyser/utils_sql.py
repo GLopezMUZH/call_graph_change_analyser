@@ -109,10 +109,10 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
                 (file_name text, file_dir_path text, file_path text, 
-                import_file_long_name text, import_file_name text, import_file_dir_path text, 
+                import_file_path text, import_file_name text, import_file_dir_path text, 
                 commit_hash_start text, commit_start_datetime text, 
                 commit_hash_end text, commit_end_datetime text, closed,
-                primary key (file_path, import_file_long_name))''')
+                primary key (file_path, import_file_path))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS git_commit
                 (commit_hash text, commit_commiter_datetime text, author text, 
@@ -360,7 +360,7 @@ def get_previous_file_import_long_names(path_to_project_db: str, mod_file_data: 
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
-        sql_string = """SELECT import_file_long_name 
+        sql_string = """SELECT import_file_path 
         FROM file_import 
         WHERE file_path = '{0}'
         AND closed = 0""".format(mod_file_data.get_file_path())
@@ -392,7 +392,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         previous_file_import_long_names = get_previous_file_import_long_names(
             path_to_project_db, mod_file_data)
         curr_file_imports_long_names = [
-            f.get_import_file_long_name() for f in fis]
+            f.get_import_file_path() for f in fis]
 
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
@@ -408,15 +408,15 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
             previous_file_import_long_names))
 
         # handle added file_imports
-        for fi in [fi for fi in fis if fi.get_import_file_long_name() in added_functions]:
+        for fi in [fi for fi in fis if fi.get_import_file_path() in added_functions]:
             sql_string = """INSERT INTO file_import 
                         (file_name, file_dir_path, file_path, 
-                        import_file_name, import_file_long_name, import_file_dir_path, 
+                        import_file_name, import_file_path, import_file_dir_path, 
                         commit_hash_start, commit_start_datetime)
                     VALUES 
                         ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}');""".format(
                 fi.get_file_name(),  fi.get_file_dir_path(), fi.get_file_path(),
-                fi.get_import_file_name(), fi.get_import_file_long_name(), fi.get_import_file_dir_path(),
+                fi.get_import_file_name(), fi.get_import_file_path(), fi.get_import_file_dir_path(),
                 commit_hash, commit_datetime)
             cur.execute(sql_string)
 
@@ -426,21 +426,21 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         commit_hash_end='{0}', commit_end_datetime='{1}'
                         WHERE 
                         file_path='{2}'
-                        AND import_file_long_name='{3}';""".format(
+                        AND import_file_path='{3}';""".format(
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), ln)
             cur.execute(sql_string)
 
         # handle unchanged file_imports
-        for fi in [f for f in fis if f.get_import_file_long_name() in unchanged_functions]:
+        for fi in [f for f in fis if f.get_import_file_path() in unchanged_functions]:
             print(fi)
             sql_string = """UPDATE file_import SET 
                         commit_hash_start='{0}', commit_start_datetime='{1}'
                         WHERE 
                         file_path='{2}'
-                        AND import_file_long_name='{3}';""".format(
+                        AND import_file_path='{3}';""".format(
                 commit_hash, commit_datetime,
-                mod_file_data.get_file_path(), fi.get_import_file_long_name())
+                mod_file_data.get_file_path(), fi.get_import_file_path())
             cur.execute(sql_string)
 
         con_analytics_db.commit()

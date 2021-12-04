@@ -1,4 +1,5 @@
 # %%
+import os
 import pytest
 import logging
 from bs4 import BeautifulSoup
@@ -33,15 +34,14 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar='..\\resources\\astChangeAnalyzer_0_1_cpp.jar',
+                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir='..\\tests\\projects_data\\',  # TODO verify
-                              path_to_git_folder='..\\tests\\cache\\gitprojects\\' + proj_config.proj_name + '\\')
+                              path_to_proj_data_dir=os.path.normpath('../tests/projects_data/'))
 
     return proj_config, proj_paths
 

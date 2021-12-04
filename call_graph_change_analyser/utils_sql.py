@@ -109,10 +109,10 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
                 (file_name text, file_dir_path text, file_path text, 
-                import_file_name text, import_file_dir_path text, 
+                import_file_long_name text, import_file_name text, import_file_dir_path text, 
                 commit_hash_start text, commit_start_datetime text, 
-                commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, import_file_name, import_file_dir_path))''')
+                commit_hash_end text, commit_end_datetime text, closed,
+                primary key (file_path, import_file_long_name))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS git_commit
                 (commit_hash text, commit_commiter_datetime text, author text, 
@@ -349,66 +349,108 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
         err_message = template.format(type(er).__name__, er.args)
         print("IntegrityError. UNIQUE failed for [{0},{1}] ".format(
             commit_hash, mod_file_data.get_file_path()))
-        logging.error("[{0},{1}] ".format(commit_hash, mod_file_data.get_file_path()))
+        logging.error("[{0},{1}] ".format(
+            commit_hash, mod_file_data.get_file_path()))
         logging.error(err_message)
 
 
-def update_file_imports(fis: List[FileImport],
-                        path_to_project_db: str,
-                        commit_hash_start: str,
-                        commit_start_datetime: str,
-                        commit_hash_end: Optional[str] = None,
-                        commit_end_datetime: Optional[str] = None):
-    print("update_file_imports")
-    if len(fis) > 0:
+def get_previous_file_import_long_names(path_to_project_db: str, mod_file_data: FileData):
+    try:
+
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
-        for fi in fis:
+
+        sql_string = """SELECT import_file_long_name 
+        FROM file_import 
+        WHERE file_path = '{0}'
+        AND closed = 0""".format(mod_file_data.get_file_path())
+
+        print(sql_string)
+        cur.execute(sql_string)
+        result = cur.fetchall()
+        print(result)
+
+        con_analytics_db.commit()
+        cur.close()
+        return result
+
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        logging.error(err_message)
+        return None
+
+
+def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
+                        path_to_project_db: str,
+                        commit_hash: str,
+                        commit_datetime: str):
+    print("update_file_imports")
+    try:
+        previous_file_import_long_names = get_previous_file_import_long_names(
+            path_to_project_db, mod_file_data)
+        curr_file_imports_long_names = [
+            f.get_import_file_long_name() for f in fis]
+
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        # get existing in prev but not in curr
+        added_functions = list(
+            set(curr_file_imports_long_names) - set(previous_file_import_long_names))
+        # get existing in prev but not in curr
+        deleted_functions = list(
+            set(previous_file_import_long_names) - set(curr_file_imports_long_names))
+        # get intersection
+        unchanged_functions = list(set(curr_file_imports_long_names).intersection(
+            previous_file_import_long_names))
+
+        # handle added file_imports
+        for fi in [fi for fi in fis if fi.get_import_file_long_name() in added_functions]:
+            sql_string = """INSERT INTO file_import 
+                        (file_name, file_dir_path, file_path, 
+                        import_file_name, import_file_long_name, import_file_dir_path, 
+                        commit_hash_start, commit_start_datetime)
+                    VALUES 
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}');""".format(
+                fi.get_file_name(),  fi.get_file_dir_path(), fi.get_file_path(),
+                fi.get_import_file_name(), fi.get_import_file_long_name(), fi.get_import_file_dir_path(),
+                commit_hash, commit_datetime)
+            cur.execute(sql_string)
+
+        # handle deleted file_imports
+        for ln in deleted_functions:
+            sql_string = """UPDATE file_import SET 
+                        commit_hash_end='{0}', commit_end_datetime='{1}'
+                        WHERE 
+                        file_path='{2}'
+                        AND import_file_long_name='{3}';""".format(
+                commit_hash, commit_datetime,
+                mod_file_data.get_file_path(), ln)
+            cur.execute(sql_string)
+
+        # handle unchanged file_imports
+        for fi in [f for f in fis if f.get_import_file_long_name() in unchanged_functions]:
             print(fi)
-            insert_or_update_file_import(con_analytics_db=con_analytics_db,
-                                         cur=cur,
-                                         file_import=fi,
-                                         commit_hash_start=commit_hash_start,
-                                         commit_start_datetime=commit_start_datetime,
-                                         commit_hash_end=commit_hash_end,
-                                         commit_end_datetime=commit_end_datetime)
-    else:
-        logging.debug("no import_files")
+            sql_string = """UPDATE file_import SET 
+                        commit_hash_start='{0}', commit_start_datetime='{1}'
+                        WHERE 
+                        file_path='{2}'
+                        AND import_file_long_name='{3}';""".format(
+                commit_hash, commit_datetime,
+                mod_file_data.get_file_path(), fi.get_import_file_long_name())
+            cur.execute(sql_string)
 
+        con_analytics_db.commit()
 
-def insert_or_update_file_import(con_analytics_db: sqlite3.Connection,
-                                 cur: sqlite3.Cursor,
-                                 file_import: FileImport,
-                                 commit_hash_start: str,
-                                 commit_start_datetime: str,
-                                 commit_hash_end: Optional[str] = '',
-                                 commit_end_datetime: Optional[str] = '',
-                                 ):
-    print("insert_or_update_file_import")
-    print(file_import.get_file_name())
-    sql_string = """INSERT INTO file_import 
-                (file_name, file_dir_path, file_path, 
-                import_file_name, import_file_dir_path, commit_hash_start, 
-                commit_start_datetime, commit_hash_end, commit_end_datetime)
-            VALUES 
-                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}') 
-            ON CONFLICT (file_path, import_file_name, import_file_dir_path) 
-            DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
-                commit_start_datetime = excluded.commit_start_datetime,
-                commit_hash_end = excluded.commit_hash_end,
-                commit_end_datetime = excluded.commit_end_datetime;""".format(
-        file_import.get_file_name(),
-        file_import.get_file_dir_path(),
-        file_import.get_file_path(),
-        file_import.get_import_file_name(),
-        file_import.get_import_file_dir_path(),
-        commit_hash_start,
-        commit_start_datetime, commit_hash_end, commit_end_datetime)
-
-    print(sql_string)
-    logging.debug(sql_string)
-    cur.execute(sql_string)
-    con_analytics_db.commit()
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        logging.error(err_message)
 
 
 def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit):
@@ -437,8 +479,8 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
                         path_change)
                     VALUES 
                         ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}');""".format(
-                mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
-                ), mod_file_data.get_file_path(),
+                mod_file_data.get_file_name(),
+                mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
                 cm.name, cm.long_name, params, cm.nloc,
                 commit.hash, commit.committer_date,
                 mod_file.filename, mod_file.new_path, mod_file.old_path,
@@ -467,7 +509,7 @@ def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFi
 
         sql_string = """SELECT function_long_name 
         FROM function_to_file 
-        WHERE file_name = '{0}'
+        WHERE file_path = '{0}'
         AND closed = 0""".format(mod_file_data.get_file_path())
 
         print(sql_string)
@@ -488,7 +530,6 @@ def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFi
         return None
 
 
-
 def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit, previous_functions_in_file: List[str]):
     print("update_function_to_file")
     logging.debug('update_function_to_file')
@@ -500,12 +541,16 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, com
 
         curr_functions = [f.long_name for f in changed_methods]
         # get existing in prev but not in curr
-        added_functions = list(set(curr_functions) - set(previous_functions_in_file))
+        added_functions = list(set(curr_functions) -
+                               set(previous_functions_in_file))
         # get existing in prev but not in curr
-        deleted_functions = list(set(previous_functions_in_file) - set(curr_functions))
+        deleted_functions = list(
+            set(previous_functions_in_file) - set(curr_functions))
         # get intersection
-        unchanged_functions = list(set(curr_functions).intersection(previous_functions_in_file))
+        unchanged_functions = list(
+            set(curr_functions).intersection(previous_functions_in_file))
 
+        # TODO check that changed_methods also include deleted methods...
         for cm in changed_methods:
             print(cm.long_name)
             params = ','.join(cm.parameters)
@@ -520,7 +565,8 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, com
                             commit_hash_start, commit_start_datetime, closed)
                         VALUES 
                             ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
+                    ), mod_file_data.get_file_path(),
                     cm.name, cm.long_name, params,
                     commit.hash, commit.committer_date, 0)
                 execute = True
@@ -531,7 +577,8 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, com
                             commit_hash_end, commit_end_datetime, closed)
                         VALUES 
                             ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
+                    ), mod_file_data.get_file_path(),
                     cm.name, cm.long_name, params,
                     commit.hash, commit.committer_date, 1)
                 execute = True
@@ -545,12 +592,14 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, com
                         ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end) 
                         DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
                             commit_start_datetime = excluded.commit_start_datetime;""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
+                    ), mod_file_data.get_file_path(),
                     cm.name, cm.long_name, params,
                     commit.hash, commit.committer_date, 0)
                 execute = True
             else:
-                err_msg = "Function not in add, delete or unchanged lists!! {0} to {1}".format(cm.long_name, mod_file_data.get_file_path())
+                err_msg = "Function not in add, delete or unchanged lists!! {0} to {1}".format(
+                    cm.long_name, mod_file_data.get_file_path())
                 logging.error(err_msg)
                 print(err_msg)
 
@@ -600,7 +649,7 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
                                  commit_hash_end: Optional[str] = '',
                                  commit_end_datetime: Optional[str] = '',
                                  ):
-    print("insert_or_update_file_import")
+    print("insert_or_update_call_commit")
     logging.debug(call_commit.get_file_name())
     execute_sql = False
 
@@ -643,14 +692,16 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
         logging.debug(
             "TODO, check if calling function is the same, else set end and insert: {0}".function(call_commit.get_action_class()))
     else:
-        logging.error("not valid Commit ActionClass: {0}".function(call_commit.get_action_class()))
+        logging.error("not valid Commit ActionClass: {0}".function(
+            call_commit.get_action_class()))
 
     if execute_sql:
         print(sql_string)
         cur.execute(sql_string)
         con_analytics_db.commit()
     else:
-        logging.warning("Nothing to insert call_commit: {0}".function(call_commit.get_action_class()))
+        logging.warning("Nothing to insert call_commit: {0}".function(
+            call_commit.get_action_class()))
 
 
 """

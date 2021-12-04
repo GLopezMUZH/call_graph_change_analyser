@@ -14,7 +14,7 @@ from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileIm
 from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file, process_file_commit
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 
-from utils_sql import create_commit_based_tables, update_file_imports, create_db_tables
+from utils_sql import *
 from utils_py import replace_timezone
 
 
@@ -477,8 +477,7 @@ test_process_file_commit()
 # %%
 import utils_sql
 reload(utils_sql)
-from utils_sql import update_file_imports, insert_or_update_file_import
-from utils_sql import create_db_tables, create_commit_based_tables, insert_or_update_call_commit
+from utils_sql import *
 
 import models
 reload(models)

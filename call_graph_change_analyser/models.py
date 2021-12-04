@@ -323,6 +323,7 @@ class FunctionToFile:
 
 class FileImport():
     def __init__(self, src_file_data: FileData,
+                 import_file_long_name: str,
                  import_file_name: str,
                  import_file_dir_path: str,
                  commit_hash_start=None, commit_start_datetime=None,
@@ -330,6 +331,7 @@ class FileImport():
         self.file_name = src_file_data.file_name
         self.file_dir_path = src_file_data.file_dir_path
         self.file_path = src_file_data.file_path
+        self.import_file_long_name = import_file_long_name
         self.import_file_name = import_file_name
         self.import_file_dir_path = import_file_dir_path
         self.commit_hash_start = commit_hash_start
@@ -346,6 +348,9 @@ class FileImport():
     def get_file_path(self) -> str:
         return self.file_path
 
+    def get_import_file_long_name(self)-> str:
+        return self.import_file_long_name
+    
     def get_import_file_name(self) -> str:
         return self.import_file_name
 

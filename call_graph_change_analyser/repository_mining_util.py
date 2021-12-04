@@ -126,9 +126,11 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImpo
         if count < 500:
             if line.startswith("#include "):
                 f_name = ''
+                f_long_name = ''
                 f_path = line[9:len(line)].replace('"', '')
                 f_path = f_path.replace('<', '')
                 f_path = f_path.replace('>', '')
+                f_long_name = f_path
                 for x in str(f_path).split('/'):
                     if(x.__contains__('.h') or x.__contains__('.hpp')):
                         f_name = x
@@ -140,6 +142,7 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImpo
                     '"') and not line.__contains__('/')) else f_path
                 # TODO GGG replace  backslash from unix path ???
                 fi = FileImport(src_file_data=mod_file_data,
+                                import_file_long_name=f_long_name,
                                 import_file_name=f_name,
                                 import_file_dir_path=import_default_dir_path)
                 r.append(fi)
@@ -271,7 +274,7 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
 
     # Save file imports
     fis = get_file_imports(mod_file.source_code, mod_file_data)
-    logging.debug("File imports: ", fis)
+    logging.debug("File imports len: {0}", len(fis))
 
     # Execute the jar for finding the relevant source differences (function/method call changes)
     if mod_file.change_type != ModificationType.ADD:
@@ -342,10 +345,10 @@ def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: Modif
 
     # file_imports
     fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
-    update_file_imports(fis,
+    update_file_imports(mod_file_data, fis,
                         proj_paths.get_path_to_project_db(),
-                        commit_hash_start=commit.hash,
-                        commit_start_datetime=str(commit.committer_date))
+                        commit_hash=commit.hash,
+                        commit_datetime=str(commit.committer_date))
 
     # call_commits
     update_call_commits(ccis,

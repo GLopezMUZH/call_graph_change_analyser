@@ -11,7 +11,7 @@ from pydriller.domain.commit import ModifiedFile
 
 from models import ProjectPaths, ProjectConfig, CallCommitInfo,  FileData, FileImport
 
-from utils_sql import create_db_tables, insert_git_commit, update_file_imports, insert_file_commit
+from utils_sql import *
 from utils_py import replace_timezone
 
 
@@ -70,7 +70,7 @@ def test_insert_git_commit():
 test_insert_git_commit()
 
 # %%
-def test_update_file_imports():
+def test_update_file_imports_DEPRECATED():
     commit_hash_start = 'test_update_file_imports0000000000000000'
     commit_start_datetime = str(datetime(2021, 11, 19, 0, 1, 0, 79043))
     commit_hash_end = 'hash_end_0000000000000000000000000000000'
@@ -92,13 +92,9 @@ def test_update_file_imports():
 
     update_file_imports(fis,
                         proj_paths.get_path_to_project_db(),
-                        commit_hash_start=commit_hash_start,
-                        commit_start_datetime=commit_start_datetime,
-                        commit_hash_end=commit_hash_end,
-                        commit_end_datetime=commit_end_datetime)
+                        commit_hash=commit_hash_start,
+                        commit_datetime=commit_start_datetime)
 
-
-test_update_file_imports()
 
 # %%
 def test_insert_file_commit():

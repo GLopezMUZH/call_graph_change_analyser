@@ -96,6 +96,8 @@ def execute_project_conf_JKQtPlotter():
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
+                                repo_from_tag=from_tag,
+                                repo_to_tag=to_tag,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
@@ -105,7 +107,7 @@ def execute_project_conf_JKQtPlotter():
     logging.debug(proj_paths)                              
     return proj_config,proj_paths
 
-#%%
+
 def init_db():
     # INITIALIZE DATABASE ------------------------------
     proj_config, proj_paths = execute_project_conf_JKQtPlotter()
@@ -116,7 +118,8 @@ def init_db():
 if __name__ == '__main__':
     main()
 
-
+#%%
+init_db()
 
 
 

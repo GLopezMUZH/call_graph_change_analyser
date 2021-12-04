@@ -148,8 +148,8 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 (file_name text, file_dir_path text, file_path text, 
                 function_name text, function_long_name text, function_parameters text, 
                 commit_hash_start text, commit_start_datetime text, 
-                commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, function_long_name))''')
+                commit_hash_end text, commit_end_datetime text, closed,
+                primary key (file_path, function_long_name, commit_hash_start, commit_hash_end))''')
 
     con.commit()
     cur.close()
@@ -447,6 +447,116 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
             print(sql_string)
             logging.debug(sql_string)
             cur.execute(sql_string)
+
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        logging.error(err_message)
+
+
+def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFile):
+    mod_file_data = FileData(str(mod_file._new_path))
+    try:
+
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        sql_string = """SELECT function_long_name 
+        FROM function_to_file 
+        WHERE file_name = '{0}'
+        AND closed = 0""".format(mod_file_data.get_file_path())
+
+        print(sql_string)
+        cur.execute(sql_string)
+        result = cur.fetchall()
+        print(result)
+
+        con_analytics_db.commit()
+        cur.close()
+        return result
+
+    except Exception as er:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(er).__name__, er.args)
+        logging.error(err_message)
+        return None
+
+
+
+def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit, previous_functions_in_file: List[str]):
+    print("update_function_to_file")
+    logging.debug('update_function_to_file')
+    mod_file_data = FileData(str(mod_file._new_path))
+    try:
+        changed_methods = mod_file.changed_methods
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        curr_functions = [f.long_name for f in changed_methods]
+        # get existing in prev but not in curr
+        added_functions = list(set(curr_functions) - set(previous_functions_in_file))
+        # get existing in prev but not in curr
+        deleted_functions = list(set(previous_functions_in_file) - set(curr_functions))
+        # get intersection
+        unchanged_functions = list(set(curr_functions).intersection(previous_functions_in_file))
+
+        for cm in changed_methods:
+            print(cm.long_name)
+            params = ','.join(cm.parameters)
+            execute = False
+
+            path_change = 0 if mod_file.new_path == mod_file.old_path else 1
+
+            if cm.long_name in added_functions:
+                sql_string = """INSERT INTO function_to_file 
+                            (file_name, file_dir_path, file_path, 
+                            function_name, function_long_name, function_parameters,
+                            commit_hash_start, commit_start_datetime, closed)
+                        VALUES 
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    cm.name, cm.long_name, params,
+                    commit.hash, commit.committer_date, 0)
+                execute = True
+            elif cm.long_name in deleted_functions:
+                sql_string = """INSERT INTO function_to_file 
+                            (file_name, file_dir_path, file_path, 
+                            function_name, function_long_name, function_parameters,
+                            commit_hash_end, commit_end_datetime, closed)
+                        VALUES 
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    cm.name, cm.long_name, params,
+                    commit.hash, commit.committer_date, 1)
+                execute = True
+            elif cm.long_name in unchanged_functions:
+                sql_string = """INSERT INTO function_to_file 
+                            (file_name, file_dir_path, file_path, 
+                            function_name, function_long_name, function_parameters,
+                            commit_hash_start, commit_start_datetime, closed)
+                        VALUES 
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}')
+                        ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end) 
+                        DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
+                            commit_start_datetime = excluded.commit_start_datetime;""".format(
+                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
+                    cm.name, cm.long_name, params,
+                    commit.hash, commit.committer_date, 0)
+                execute = True
+            else:
+                err_msg = "Function not in add, delete or unchanged lists!! {0} to {1}".format(cm.long_name, mod_file_data.get_file_path())
+                logging.error(err_msg)
+                print(err_msg)
+
+            if execute:
+                print(sql_string)
+                cur.execute(sql_string)
 
         con_analytics_db.commit()
         cur.close()

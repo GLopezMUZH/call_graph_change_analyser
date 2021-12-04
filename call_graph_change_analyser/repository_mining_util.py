@@ -14,7 +14,7 @@ from models import *
 import models
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from utils_sql import update_file_imports, update_call_commits, insert_git_commit, insert_file_commit, insert_function_commit
+from utils_sql import *
 import utils_py
 
 # %%
@@ -225,44 +225,99 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
 
 
 # %%
-def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
-    logging.debug('Start load_source_repository_data')
-    logging.debug(proj_config.get_path_to_repo())
-    logging.debug(proj_config.get_commit_file_types())
+def parse_mod_file(mod_file, proj_paths: ProjectPaths,
+                   proj_config: ProjectConfig) -> Tuple[List[FileImport], List[CallCommitInfo]]:
+    # print('Extension: ', str(mod_file._new_path)[-3:])
+    logging.debug('---------------------------')
+    logging.debug(mod_file.change_type)
+    logging.debug(str(mod_file._new_path))
+    logging.debug(mod_file._old_path)
+    # logging.debug(mod_file._new_path)
+    # logging.debug(mod_file.diff)
+    ccis = []
+    fis = []
 
-    is_valid_file_type = get_file_type_validation_function(
-        proj_config.proj_lang)
+    mod_file_data = FileData(str(mod_file._new_path))
+    logging.debug(mod_file_data)
 
-    for commit in Repository('https://github.com/jkriege2/JKQtPlotter.git',
-                             single='fc321f027ba5741de1be56bdee4379155647385a',
-                             only_no_merge=True,
-                             only_in_branch='master').traverse_commits():
-        # git_commit
-        insert_git_commit(proj_paths.get_path_to_project_db(),
-                          commit_hash=commit.hash, commit_commiter_datetime=str(
-            commit.committer_date),
-            author=commit.author.name,
-            in_main_branch=True,  # commit.in_main_branch,
-            merge=commit.merge, nr_modified_files=len(
-                              commit.modified_files),
-            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+    # Save new source code
+    file_path_current = Path(
+        proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
+    save_source_code(file_path_current, mod_file.source_code)
 
-        for mod_file in commit.modified_files:
-            if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_commit(proj_config, proj_paths, commit, mod_file)
+    # Save old source code
+    if mod_file.change_type != ModificationType.ADD:
+        file_path_previous = Path(
+            proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
+        save_source_code(file_path_previous,
+                         mod_file.source_code_before)
+
+    # Create sourcediff directory
+    if mod_file.change_type != ModificationType.ADD:
+        file_path_sourcediff = Path(
+            proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
+        if not os.path.exists(str(file_path_sourcediff.parent)):
+            os.makedirs(str(file_path_sourcediff.parent))
+
+    # Create sourcediff file: not currently because relevant differences files are created in jar
     """
-    if proj_config.get_start_repo_date() is not None:
-        logging.debug(proj_config.get_start_repo_date())
-        logging.debug(proj_config.get_start_repo_date().tzinfo)
-        logging.debug(proj_config.get_end_repo_date())
-        traverse_on_dates(proj_config, proj_paths)
-    elif proj_config.get_repo_from_tag() is not None:
-        logging.debug(proj_config.get_repo_from_tag())
-        logging.debug(proj_config.get_repo_to_tag())
-        traverse_on_tags(proj_config, proj_paths)
+                if mod_file.change_type != ModificationType.ADD:
+                    save_source_code_diff_file(
+                        file_path_previous, file_path_current, file_path_sourcediff)
+                else:
+                    # adds new nodes, edges to the db
+                    save_new_file_data(file_path_current)
+                """
+
+    # Save file imports
+    fis = get_file_imports(mod_file.source_code, mod_file_data)
+    logging.debug("File imports: ", fis)
+
+    # Execute the jar for finding the relevant source differences (function/method call changes)
+    if mod_file.change_type != ModificationType.ADD:
+        args = [proj_config.get_path_to_src_diff_jar(
+        ), file_path_previous.__str__(), 'TRUE']
+        result = _jarWrapper(*args)
+
+        # convert to string -> xml
+        diff_xml_results = b''.join(result).decode('utf-8')
+        diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
+
+        ccis = parse_xml_call_diffs(
+            diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
+
     else:
-        traverse_all(proj_config, proj_paths)
-    """
+        print("")
+        logging.debug("ADD file")
+
+    # Delete temporary files after processing
+    if proj_config.get_delete_cache_files():
+        if os.path.isfile(file_path_current):
+            os.remove(file_path_current)
+        else:
+            print("Error: %s file not found" % file_path_current)
+            logging.error("Error: %s file not found" % file_path_current)
+
+        if mod_file.change_type != ModificationType.ADD:
+            if os.path.isfile(file_path_previous):
+                os.remove(file_path_previous)
+            else:
+                print("Error: %s file not found" % file_path_previous)
+                logging.error("Error: %s file not found" % file_path_previous)
+
+        """
+        if mod_file.change_type != ModificationType.ADD:
+            if os.path.isfile(file_path_sourcediff):
+                os.remove(file_path_sourcediff)
+            else:    ## Show an error ##
+                print("Error: %s file not found" % file_path_sourcediff)
+                logging.error("Error: %s file not found" % file_path_sourcediff)
+        """
+
+    logging.debug('---------------------------')
+    # print(mod_file.methods_before)
+    # break
+    return (fis, ccis)
 
 
 def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: ModifiedFile):
@@ -279,7 +334,11 @@ def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: Modif
     insert_function_commit(
         proj_paths.get_path_to_project_db(), mod_file, commit)
 
+    # get previous_function_to_file
+    previous_functions_in_file = get_previous_functions_in_file(proj_paths.get_path_to_project_db(), mod_file)
+
     # function_to_file
+    update_function_to_file(proj_paths.get_path_to_project_db(), mod_file, commit, previous_functions_in_file)
 
     # file_imports
     fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
@@ -397,97 +456,43 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             """
 
 
+
 # %%
-def parse_mod_file(mod_file, proj_paths: ProjectPaths,
-                   proj_config: ProjectConfig) -> Tuple[List[FileImport], List[CallCommitInfo]]:
-    # print('Extension: ', str(mod_file._new_path)[-3:])
-    logging.debug('---------------------------')
-    logging.debug(mod_file.change_type)
-    logging.debug(str(mod_file._new_path))
-    logging.debug(mod_file._old_path)
-    # logging.debug(mod_file._new_path)
-    # logging.debug(mod_file.diff)
-    ccis = []
-    fis = []
+def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    logging.debug('Start load_source_repository_data')
+    logging.debug(proj_config.get_path_to_repo())
+    logging.debug(proj_config.get_commit_file_types())
 
-    mod_file_data = FileData(str(mod_file._new_path))
-    logging.debug(mod_file_data)
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
 
-    # Save new source code
-    file_path_current = Path(
-        proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
-    save_source_code(file_path_current, mod_file.source_code)
+    for commit in Repository('https://github.com/jkriege2/JKQtPlotter.git',
+                             single='fc321f027ba5741de1be56bdee4379155647385a',
+                             only_no_merge=True,
+                             only_in_branch='master').traverse_commits():
+        # git_commit
+        insert_git_commit(proj_paths.get_path_to_project_db(),
+                          commit_hash=commit.hash, commit_commiter_datetime=str(
+            commit.committer_date),
+            author=commit.author.name,
+            in_main_branch=True,  # commit.in_main_branch,
+            merge=commit.merge, nr_modified_files=len(
+                              commit.modified_files),
+            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
-    # Save old source code
-    if mod_file.change_type != ModificationType.ADD:
-        file_path_previous = Path(
-            proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
-        save_source_code(file_path_previous,
-                         mod_file.source_code_before)
-
-    # Create sourcediff directory
-    if mod_file.change_type != ModificationType.ADD:
-        file_path_sourcediff = Path(
-            proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
-        if not os.path.exists(str(file_path_sourcediff.parent)):
-            os.makedirs(str(file_path_sourcediff.parent))
-
-    # Create sourcediff file: not currently because relevant differences files are created in jar
+        for mod_file in commit.modified_files:
+            if (is_valid_file_type(str(mod_file._new_path))):
+                process_file_commit(proj_config, proj_paths, commit, mod_file)
     """
-                if mod_file.change_type != ModificationType.ADD:
-                    save_source_code_diff_file(
-                        file_path_previous, file_path_current, file_path_sourcediff)
-                else:
-                    # adds new nodes, edges to the db
-                    save_new_file_data(file_path_current)
-                """
-
-    # Save file imports
-    fis = get_file_imports(mod_file.source_code, mod_file_data)
-    logging.debug("File imports: ", fis)
-
-    # Execute the jar for finding the relevant source differences (function/method call changes)
-    if mod_file.change_type != ModificationType.ADD:
-        args = [proj_config.get_path_to_src_diff_jar(
-        ), file_path_previous.__str__(), 'TRUE']
-        result = _jarWrapper(*args)
-
-        # convert to string -> xml
-        diff_xml_results = b''.join(result).decode('utf-8')
-        diff_data_xml = BeautifulSoup(diff_xml_results, "xml")
-
-        ccis = parse_xml_call_diffs(
-            diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
-
+    if proj_config.get_start_repo_date() is not None:
+        logging.debug(proj_config.get_start_repo_date())
+        logging.debug(proj_config.get_start_repo_date().tzinfo)
+        logging.debug(proj_config.get_end_repo_date())
+        traverse_on_dates(proj_config, proj_paths)
+    elif proj_config.get_repo_from_tag() is not None:
+        logging.debug(proj_config.get_repo_from_tag())
+        logging.debug(proj_config.get_repo_to_tag())
+        traverse_on_tags(proj_config, proj_paths)
     else:
-        print("")
-        logging.debug("ADD file")
-
-    # Delete temporary files after processing
-    if proj_config.get_delete_cache_files():
-        if os.path.isfile(file_path_current):
-            os.remove(file_path_current)
-        else:
-            print("Error: %s file not found" % file_path_current)
-            logging.error("Error: %s file not found" % file_path_current)
-
-        if mod_file.change_type != ModificationType.ADD:
-            if os.path.isfile(file_path_previous):
-                os.remove(file_path_previous)
-            else:
-                print("Error: %s file not found" % file_path_previous)
-                logging.error("Error: %s file not found" % file_path_previous)
-
-        """
-        if mod_file.change_type != ModificationType.ADD:
-            if os.path.isfile(file_path_sourcediff):
-                os.remove(file_path_sourcediff)
-            else:    ## Show an error ##
-                print("Error: %s file not found" % file_path_sourcediff)
-                logging.error("Error: %s file not found" % file_path_sourcediff)
-        """
-
-    logging.debug('---------------------------')
-    # print(mod_file.methods_before)
-    # break
-    return (fis, ccis)
+        traverse_all(proj_config, proj_paths)
+    """

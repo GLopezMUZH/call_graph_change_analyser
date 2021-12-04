@@ -234,36 +234,28 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
 # %%
 def parse_mod_file(mod_file, proj_paths: ProjectPaths,
                    proj_config: ProjectConfig) -> Tuple[List[FileImport], List[CallCommitInfo]]:
-    # print('Extension: ', str(mod_file._new_path)[-3:])
     logging.debug('---------------------------')
     logging.debug(mod_file.change_type)
     logging.debug(str(mod_file._new_path))
     logging.debug(mod_file._old_path)
-    # logging.debug(mod_file._new_path)
-    # logging.debug(mod_file.diff)
     ccis = []
     fis = []
 
     mod_file_data = FileData(str(mod_file._new_path))
-    logging.debug(mod_file_data)
 
     # Save new source code
-    #file_path_current = Path(proj_paths.get_path_to_cache_current() + str(mod_file._new_path))
     file_path_current = os.path.join(proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
     save_source_code(file_path_current, mod_file.source_code)
 
     # Save old source code
     if mod_file.change_type != ModificationType.ADD:
-        #file_path_previous = Path(proj_paths.get_path_to_cache_previous() + str(mod_file._new_path))
         file_path_previous = os.path.join(proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
         save_source_code(file_path_previous,
                          mod_file.source_code_before)
 
     # Create sourcediff directory
     if mod_file.change_type != ModificationType.ADD:
-        #file_path_sourcediff = Path(proj_paths.get_path_to_cache_sourcediff() + str(mod_file._new_path))
         file_path_sourcediff = os.path.join(proj_paths.get_path_to_cache_sourcediff(), str(mod_file._new_path))
-        #if not os.path.exists(str(file_path_sourcediff.parent)):
         if not os.path.exists(os.path.dirname(file_path_sourcediff)):
             os.makedirs(os.path.dirname(file_path_sourcediff))
 
@@ -323,8 +315,6 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
         """
 
     logging.debug('---------------------------')
-    # print(mod_file.methods_before)
-    # break
     return (fis, ccis)
 
 
@@ -433,19 +423,9 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
-                # Save method/function call change info
-                # ggg save_method_call_change_info(file_path_sourcediff)
+
 
                 # Save method function change in db
-                source_node = 'TBD'
-                target_node = 'TBD'
-                """
-                            save_source_change_row (
-                                commit.hash, str(commit.author_date), str(
-                                    mod_file._new_path),
-                                source_node, target_node, commit.author.name
-                            )
-                            """
                 """
                             print('Nloc:', mod_file.nloc)
                             print('---------------------------')

@@ -44,10 +44,6 @@ def create_graph_based_tables(path_to_project_db, drop=False):
 
     if drop:
         try:
-            cur.execute('''DROP TABLE source_changes''')
-        except Exception as error:
-            print("source_changes ", error)
-        try:
             cur.execute('''DROP TABLE node''')
         except Exception as error:
             print("node ", error)
@@ -59,9 +55,6 @@ def create_graph_based_tables(path_to_project_db, drop=False):
             cur.execute('''DROP TABLE edge_call''')
         except Exception as error:
             print("edge_call ", error)
-
-    cur.execute('''CREATE TABLE IF NOT EXISTS source_changes
-                (commit_hash text, commit_datetime text, source_file text, source_node text, target_node text, commit_author text)''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS node
                 (id number, type text, name text, file_path text, start_datetime text, end_datetime text)''')
@@ -153,23 +146,6 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     con.commit()
     cur.close()
-
-
-def save_source_change_row(
-    commit_hash: str, commit_datetime: str, source_file: str,
-    source_node: str, target_node: str, commit_author: str,
-    cur: sqlite3.Cursor, con: sqlite3.Connection
-):
-    sql_statement = """INSERT INTO source_changes VALUES("""
-    sql_statement = sql_statement + "'" + commit_hash + "', "
-    sql_statement = sql_statement + "'" + commit_datetime + "', "
-    sql_statement = sql_statement + "'" + source_file + "', "
-    sql_statement = sql_statement + "'" + source_node + "', "
-    sql_statement = sql_statement + "'" + target_node + "', "
-    sql_statement = sql_statement + "'" + commit_author + "'"
-    sql_statement = sql_statement + """)"""
-    cur.execute(sql_statement)
-    con.commit()
 
 
 def load_graph_data(

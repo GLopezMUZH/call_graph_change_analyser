@@ -225,9 +225,8 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
                                      action_class=ac)
                 r.append(cci)
                 # get_calls(at.get_text())
-    except Exception as exceptionMsg:
-        logging.error(exceptionMsg)
-        print(exceptionMsg)
+    except Exception as err:
+        logging.exception(err)
     return r
 
 

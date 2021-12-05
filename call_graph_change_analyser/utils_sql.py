@@ -318,11 +318,11 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
         cur.execute(sql_string)
         con_analytics_db.commit()
         cur.close()
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         print("IntegrityError. UNIQUE failed for [{0},{1}] ".format(
             commit_hash, mod_file_data.get_file_path()))
         logging.error("[{0},{1}] ".format(
@@ -350,11 +350,11 @@ def get_previous_file_import_long_names(path_to_project_db: str, mod_file_data: 
         cur.close()
         return result
 
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
         return None
 
@@ -421,11 +421,11 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
 
         con_analytics_db.commit()
 
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
 
 
@@ -468,11 +468,11 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
 
         con_analytics_db.commit()
         cur.close()
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
 
 
@@ -497,11 +497,11 @@ def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFi
         cur.close()
         return result
 
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
         return None
 
@@ -585,11 +585,11 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, com
 
         con_analytics_db.commit()
         cur.close()
-    except Exception as er:
+    except Exception as err:
         con_analytics_db.rollback()
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-        err_message = template.format(type(er).__name__, er.args)
+        err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
 
 

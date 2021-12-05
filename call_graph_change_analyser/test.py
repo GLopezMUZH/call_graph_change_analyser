@@ -293,7 +293,10 @@ test_metrics_cpp()
 # %%
 def test_parse_model_file():
 
-    proj_config, proj_paths = execute_project_conf_example_project():
+    proj_name = 'example_project'
+    path_to_proj_data_dir=os.path.normpath('../tests/project_results/')
+        
+    proj_config, proj_paths = execute_project_conf_example_project()
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), proj_name, 'app.log')
 

@@ -21,13 +21,8 @@ from utils_py import replace_timezone
 
 # %%
 def execute_project_conf_example_project():
-    path_to_cache_dir = '..\\tests\\cache\\'
     proj_name = 'example_project'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - {0}'.format(str(datetime.now())))
+    path_to_proj_data_dir=os.path.normpath('../tests/project_results/')
 
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
     st_date = replace_timezone(st_date)
@@ -43,9 +38,14 @@ def execute_project_conf_example_project():
                                 end_repo_date=end_date,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('../tests/projects_data/'))
-                              
+                              path_to_proj_data_dir=path_to_proj_data_dir)
+
+    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), proj_name, 'app.log')
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
+    logging.info('Started App - {0}'.format(str(datetime.now())))
+
     return proj_config, proj_paths
 
 
@@ -293,29 +293,13 @@ test_metrics_cpp()
 # %%
 def test_parse_model_file():
 
-    path_to_cache_dir = '..\\tests\\cache\\'
-    proj_name = 'example_project'
-    log_filepath = path_to_cache_dir+proj_name+'\\app.log'
+    proj_config, proj_paths = execute_project_conf_example_project():
+
+    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), proj_name, 'app.log')
 
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s %(levelname)-8s %(message)s')
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
     logging.info('Started App - {0}'.format(str(datetime.now())))
-
-    st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
-    st_date = replace_timezone(st_date)
-    end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
-    end_date = replace_timezone(end_date)
-
-    proj_config = ProjectConfig(proj_name=proj_name,
-                                proj_lang='cpp',
-                                commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
-                                path_to_repo='',
-                                start_repo_date=st_date,
-                                end_repo_date=end_date)
-    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('../tests/projects_data/'))
 
     print(proj_config)
     print(proj_paths)

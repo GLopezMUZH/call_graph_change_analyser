@@ -60,19 +60,25 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_cache_dir: str, path_to_proj_data_dir: str) -> None:
+    def __init__(self, proj_name: str, path_to_proj_data_dir: str) -> None:
         # temporary source and diff folders
-        self.path_to_cache_dir = path_to_cache_dir
-        self.path_to_cache_current = os.path.join(path_to_cache_dir, proj_name, 'current')
-        self.path_to_cache_previous = os.path.join(path_to_cache_dir, proj_name, 'previous')
-        self.path_to_cache_sourcediff = os.path.join(path_to_cache_dir, proj_name, 'sourcediff')
+        self.path_to_cache_dir = os.path.join(path_to_proj_data_dir, proj_name, '.cache')
+        self.path_to_cache_current = os.path.join(self.path_to_cache_dir, proj_name, 'current')
+        self.path_to_cache_previous = os.path.join(self.path_to_cache_dir, proj_name, 'previous')
+        self.path_to_cache_sourcediff = os.path.join(self.path_to_cache_dir, proj_name, 'sourcediff')
         # project data directory
         self.path_to_proj_data_dir = os.path.join(path_to_proj_data_dir, proj_name)
         # analytics database
         self.path_to_project_db = os.path.join(path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
         # initial graph db
         self.path_to_srctrail_db = os.path.join(path_to_proj_data_dir, proj_name, 'callgraphdb', proj_name + '.srctrldb')
+        # create folders if not exist
+        if not os.path.exists(self.path_to_cache_dir):
+            os.makedirs(self.path_to_cache_dir)
 
+    def get_path_to_cache_dir(self):
+        return self.path_to_cache_dir
+        
     def get_path_to_cache_current(self):
         return self.path_to_cache_current
 

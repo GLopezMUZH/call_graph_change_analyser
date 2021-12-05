@@ -76,13 +76,8 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str):
     #from_tag = 'v1.12.0'
     #to_tag = 'v1.12.3'
   
-    path_to_cache_dir = os.path.normpath('../project_results/.cache/')
     proj_name = 'PX4-Autopilot'
-    log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - {0}'.format(datetime.now()))
+    path_to_proj_data_dir=os.path.normpath('../project_results/')
 
     # source trail db 9.10.2021
     st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
@@ -102,24 +97,24 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str):
                                 repo_to_tag=to_tag
                                 )
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('../project_results/'))
-                              
+                              path_to_proj_data_dir=path_to_proj_data_dir)
+
+    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), proj_name, 'app.log')
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
+    logging.info('Started App - {0}'.format(datetime.now()))
+
+
     return proj_config,proj_paths
 
 
 def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
-    
-    path_to_cache_dir = os.path.normpath('../project_results/.cache/')
-    proj_name = 'JKQtPlotter'
-    log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
-    print(log_filepath)
 
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.debug('Started App - {0}'.format(str(datetime.now())))
+    proj_name = 'JKQtPlotter'
+    path_to_proj_data_dir=os.path.normpath('../project_results/')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
@@ -130,8 +125,14 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
                                 repo_to_tag=to_tag,
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('../project_results/'))
+                              path_to_proj_data_dir=path_to_proj_data_dir)
+
+    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
+    print(log_filepath)
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
+    logging.debug('Started App - {0}'.format(str(datetime.now())))
 
     logging.debug(proj_config)
     logging.debug(proj_paths)                              

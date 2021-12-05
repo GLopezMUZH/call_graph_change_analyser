@@ -130,3 +130,6 @@ dmypy.json
 
 # try stuff file
 #call_graph_change_analyser/test.py
+
+# project results
+/project_results

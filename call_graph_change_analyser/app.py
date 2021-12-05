@@ -26,14 +26,44 @@ from models import CallCommitInfo, ProjectPaths, FileData, FileImport
 # %%
 def main():
     print('Started App ------------ {0}'.format(datetime.now()))
-    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
-    logging.info('Started App ---------- {0}'.format(datetime.now()))
 
     args = sys.argv[1:]
 
-    if len(args) == 1 and args[0] == '-init_db_yes':
-        logging.info('Initialize the db.')    
-        init_db()
+    # argument format -P proj_name -from_tag tag -to_tag tag
+    if '-P' in args:
+        p_idx = args.index("-P")
+        p_name = args[p_idx+1]
+        print(p_name)
+    else:
+        err_msg = "ERROR. Project argument is required: -P [JKQtPlotter or PX4-Autopilot] "
+        raise Exception(err_msg)
+
+    if '-from_tag' in args:
+        tf_idx = args.index("-from_tag")
+        from_tag = args[tf_idx+1]
+        print(from_tag)
+    else: 
+        err_msg = "ERROR. Currently required -from_tag X -to_tag Y arguments"
+        raise Exception(err_msg)
+
+    if '-to_tag' in args:
+        tt_idx = args.index("-to_tag")
+        to_tag = args[tt_idx+1]
+        print(to_tag)
+    else: 
+        err_msg = "ERROR. Currently required -from_tag X -to_tag Y arguments"
+        raise Exception(err_msg)
+
+    if p_name == 'JKQtPlotter':
+        proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag, to_tag)
+    elif p_name == 'PX4-Autopilot':
+        proj_config, proj_paths = execute_project_conf_PX4(from_tag, to_tag)
+
+    # can only log after seting log file path
+    logging.info('Started App ---------- {0}'.format(datetime.now()))
+
+    if '-init_db_yes' in args:
+        init_db(proj_paths)
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
@@ -42,8 +72,11 @@ def main():
 
 
 
-def execute_project_conf_PX4():
-    path_to_cache_dir = os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/.cache/')
+def execute_project_conf_PX4(from_tag: str, to_tag: str):
+    #from_tag = 'v1.12.0'
+    #to_tag = 'v1.12.3'
+  
+    path_to_cache_dir = os.path.normpath('../project_results/.cache/')
     proj_name = 'PX4-Autopilot'
     log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
 
@@ -57,29 +90,29 @@ def execute_project_conf_PX4():
     end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
     end_date = replace_timezone(end_date)
 
-    from_tag = 'v1.12.0'
-    to_tag = 'v1.12.3'
-
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
-                                start_repo_date=st_date,
-                                end_repo_date=end_date,
+                                #start_repo_date=st_date,
+                                #end_repo_date=end_date,
                                 delete_cache_files=False,
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag
                                 )
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/projects/'))
+                              path_to_proj_data_dir=os.path.normpath('../project_results/'))
                               
     return proj_config,proj_paths
 
 
-def execute_project_conf_JKQtPlotter():
-    path_to_cache_dir = os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/.cache/')
+def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
+    #from_tag = 'v2019.11.0'
+    #to_tag = 'v2019.11.1'
+    
+    path_to_cache_dir = os.path.normpath('../project_results/.cache/')
     proj_name = 'JKQtPlotter'
     log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
     print(log_filepath)
@@ -87,9 +120,6 @@ def execute_project_conf_JKQtPlotter():
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
     logging.debug('Started App - {0}'.format(str(datetime.now())))
-
-    from_tag = 'v2019.11.0'
-    to_tag = 'v2019.11.1'
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
@@ -101,16 +131,15 @@ def execute_project_conf_JKQtPlotter():
                                 delete_cache_files=False)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/projects/'))
+                              path_to_proj_data_dir=os.path.normpath('../project_results/'))
 
     logging.debug(proj_config)
     logging.debug(proj_paths)                              
     return proj_config,proj_paths
 
 
-def init_db():
-    # INITIALIZE DATABASE ------------------------------
-    proj_config, proj_paths = execute_project_conf_JKQtPlotter()
+def init_db(proj_paths):
+    logging.info('Initialize the db.')    
     create_db_tables(proj_paths, drop=True)
 
 
@@ -119,9 +148,7 @@ if __name__ == '__main__':
     main()
 
 #%%
-init_db()
-
-
+#init_db()
 
 # %%
 #initate_analytics_db(proj_paths, drop=True, load_init_graph=True)
@@ -131,17 +158,3 @@ init_db()
 #G = get_call_graph(proj_paths)
 # print_graph_stats(G)
 
-
-# proj_name = 'PX4-Autopilot' # 'glucosio-android'
-# proj_lang = 'cpp' # 'cpp' 'python' 'java'
-#path_to_repo = 'https://github.com/PX4/PX4-Autopilot.git'
-# path_to_git = 'https://github.com/ishepard/pydriller.git' #'git@github.com:ishepard/pydriller.git/'
-
-# start_repo_date = datetime(2021, 10, 1, 0, 1, 0)  #(2018, 4, 1, 0, 1, 0)
-
-# 'https://github.com/ishepard/pydriller.git'
-# 'https://github.com/PX4/PX4-Autopilot.git'
-# 'https://github.com/Glucosio/glucosio-android.git'
-
-
-# %%

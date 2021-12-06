@@ -5,7 +5,6 @@ from subprocess import *
 from typing import Optional, Tuple, List
 import logging
 
-from pathlib import Path
 from importlib import reload
 from pydriller import *
 from bs4 import BeautifulSoup
@@ -277,7 +276,6 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
 
     # Save file imports
     fis = get_file_imports(mod_file.source_code, mod_file_data)
-    logging.debug("File imports len: {0}".format(len(fis)))
 
     # Execute the jar for finding the relevant source differences (function/method call changes)
     if mod_file.change_type != ModificationType.ADD:
@@ -291,10 +289,6 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
 
         ccis = parse_xml_call_diffs(
             diff_data_xml, proj_paths.get_path_to_cache_current(), mod_file_data)
-
-    else:
-        print("")
-        logging.debug("ADD file")
 
     # Delete temporary files after processing
     if proj_config.get_delete_cache_files():
@@ -327,14 +321,14 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
 def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
 
-    # file_commit
+    # insert file_commit
     insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
                        commit_hash=commit.hash, commit_commiter_datetime=commit.committer_date,
                        commit_file_name=mod_file.filename,
                        commit_new_path=mod_file.new_path, commit_old_path=mod_file.old_path,
                        change_type=mod_file.change_type)
 
-    # function_commit
+    # insert function_commit 's
     insert_function_commit(
         proj_paths.get_path_to_project_db(), mod_file, commit)
 
@@ -453,18 +447,9 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
 # %%
 def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
-    logging.debug('Start load_source_repository_data')
-    logging.debug(proj_config.get_path_to_repo())
-    logging.debug(proj_config.get_commit_file_types())
-
     if proj_config.get_start_repo_date() is not None:
-        logging.debug(proj_config.get_start_repo_date())
-        logging.debug(proj_config.get_start_repo_date().tzinfo)
-        logging.debug(proj_config.get_end_repo_date())
         traverse_on_dates(proj_config, proj_paths)
     elif proj_config.get_repo_from_tag() is not None:
-        logging.debug(proj_config.get_repo_from_tag())
-        logging.debug(proj_config.get_repo_to_tag())
         traverse_on_tags(proj_config, proj_paths)
     else:
         traverse_all(proj_config, proj_paths)

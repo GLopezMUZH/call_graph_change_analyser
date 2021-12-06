@@ -275,8 +275,6 @@ def insert_git_commit(path_to_project_db: str, commit_hash: Optional[str] = None
             commit_hash, commit_commiter_datetime, author, in_main_branch,
             merge, nr_modified_files, nr_deletions, nr_insertions, nr_lines)
 
-        print(sql_string)
-        logging.debug(sql_string)
         cur.execute(sql_string)
         con_analytics_db.commit()
         cur.close()
@@ -313,8 +311,6 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
             commit_hash, commit_commiter_datetime, commit_file_name,
             commit_new_path, commit_old_path, change_type, path_change)
 
-        print(sql_string)
-        logging.debug(sql_string)
         cur.execute(sql_string)
         con_analytics_db.commit()
         cur.close()
@@ -430,8 +426,6 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
 
 
 def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit):
-    print("insert_function_commit")
-    logging.debug('insert_function_commit')
     mod_file_data = FileData(str(mod_file._new_path))
     try:
         changed_methods = mod_file.changed_methods
@@ -462,8 +456,6 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
                 mod_file.filename, mod_file.new_path, mod_file.old_path,
                 path_change)
 
-            print(sql_string)
-            logging.debug(sql_string)
             cur.execute(sql_string)
 
         con_analytics_db.commit()
@@ -507,8 +499,6 @@ def get_previous_active_functions_in_file(path_to_project_db: str, mod_file: Mod
 
 def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                             commit: Commit, previous_active_functions_in_file: List[str]):
-    print("update_function_to_file")
-    logging.debug('update_function_to_file')
     mod_file_data = FileData(str(mod_file._new_path))
     try:
         con_analytics_db = sqlite3.connect(path_to_project_db)
@@ -606,8 +596,6 @@ def update_call_commits(ccis: List[CallCommitInfo],
                         commit_start_datetime: str,
                         commit_hash_end: Optional[str] = None,
                         commit_end_datetime: Optional[str] = None,):
-    print("update_call_commits")
-    logging.debug('update_call_commits')
     if len(ccis) > 0:
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
@@ -632,8 +620,6 @@ def insert_or_update_call_commit(con_analytics_db: sqlite3.Connection,
                                  commit_hash_end: Optional[str] = '',
                                  commit_end_datetime: Optional[str] = '',
                                  ):
-    print("insert_or_update_call_commit")
-    logging.debug(call_commit.get_file_name())
     execute_sql = False
 
     if call_commit.get_action_class() is ActionClass.DELETE:

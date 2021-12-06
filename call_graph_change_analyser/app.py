@@ -72,7 +72,7 @@ def main():
 
 
 
-def execute_project_conf_PX4(from_tag: str, to_tag: str):
+def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: bool = False):
     #from_tag = 'v1.12.0'
     #to_tag = 'v1.12.3'
   
@@ -92,7 +92,7 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str):
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                                 #start_repo_date=st_date,
                                 #end_repo_date=end_date,
-                                delete_cache_files=False,
+                                delete_cache_files=delete_cache_files,
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag
                                 )
@@ -109,7 +109,7 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str):
     return proj_config,proj_paths
 
 
-def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
+def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
@@ -123,7 +123,7 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
-                                delete_cache_files=False)
+                                delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir)
 

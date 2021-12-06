@@ -57,27 +57,20 @@ def execute_project_conf_example_project():
 
     return proj_config,proj_paths
 
-def init_db():
+def init_db(proj_paths: ProjectPaths):
     # INITIALIZE DATABASE ------------------------------
 #    proj_config, proj_paths = execute_project_conf_PX4()
-    proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
     print(proj_paths.get_path_to_project_db())
     create_db_tables(proj_paths, drop=True)
     print("finish init_db")
 
 
-def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
+def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
-    
-    path_to_cache_dir = os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/.cache/')
-    proj_name = 'JKQtPlotter'
-    log_filepath = os.path.join(path_to_cache_dir, proj_name, 'app.log')
-    print(log_filepath)
 
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.debug('Started App - {0}'.format(str(datetime.now())))
+    proj_name = 'JKQtPlotter'
+    path_to_proj_data_dir=os.path.normpath('../project_results/')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
@@ -86,10 +79,16 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str):
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
-                                delete_cache_files=False)
+                                delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_cache_dir=path_to_cache_dir,
-                              path_to_proj_data_dir=os.path.normpath('C:/Users/lopm/Documents/mt/sandbox/projects/'))
+                              path_to_proj_data_dir=path_to_proj_data_dir)
+
+    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
+    print(log_filepath)
+
+    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
+                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
+    logging.debug('Started App - {0}'.format(str(datetime.now())))
 
     logging.debug(proj_config)
     logging.debug(proj_paths)                              
@@ -101,7 +100,8 @@ if __name__ == '__main__':
     main()
 
 #%%
-init_db()
+proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
+init_db(proj_paths)
 
 
 # %%

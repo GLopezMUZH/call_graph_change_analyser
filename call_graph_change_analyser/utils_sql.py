@@ -476,7 +476,7 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
         logging.error(err_message)
 
 
-def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFile):
+def get_previous_active_functions_in_file(path_to_project_db: str, mod_file: ModifiedFile) -> List[str]:
     mod_file_data = FileData(str(mod_file._new_path))
     try:
 
@@ -488,7 +488,6 @@ def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFi
         WHERE file_path = '{0}'
         AND closed = 0""".format(mod_file_data.get_file_path())
 
-        print(sql_string)
         cur.execute(sql_string)
         result = cur.fetchall()
         print(result)
@@ -506,81 +505,89 @@ def get_previous_functions_in_file(path_to_project_db: str, mod_file: ModifiedFi
         return None
 
 
-def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit, previous_functions_in_file: List[str]):
+def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
+                            commit: Commit, previous_active_functions_in_file: List[str]):
     print("update_function_to_file")
     logging.debug('update_function_to_file')
     mod_file_data = FileData(str(mod_file._new_path))
     try:
-        changed_methods = mod_file.changed_methods
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
-        curr_functions = [f.long_name for f in changed_methods]
-        # get existing in prev but not in curr
-        added_functions = list(set(curr_functions) -
-                               set(previous_functions_in_file))
-        # get existing in prev but not in curr
-        deleted_functions = list(
-            set(previous_functions_in_file) - set(curr_functions))
-        # get intersection
-        unchanged_functions = list(
-            set(curr_functions).intersection(previous_functions_in_file))
+        commit_previous_functions = [
+            f.long_name for f in mod_file.methods_before]
+        commit_current_functions = [f.long_name for f in mod_file.methods]
+        commit_changed_functions = [
+            f.long_name for f in mod_file.changed_methods]
 
-        # TODO check that changed_methods also include deleted methods...
-        for cm in changed_methods:
+        # get added functions (existing in curr but not prev)
+        added_functions = list(
+            set(commit_current_functions) - set(commit_previous_functions))
+        # get deleted functions (existing in prev but not in curr)
+        deleted_functions = list(
+            set(commit_previous_functions) - set(commit_current_functions))
+        # get just changed functions
+        changed_functions = list(
+            set(commit_changed_functions) - set(added_functions) - set(deleted_functions))
+        # get not changed functions
+        unchanged_functions = list(
+            set(commit_previous_functions).intersection(commit_current_functions) - set(changed_functions))
+
+        # mod_file.methods include added, changed and unchanged
+        for cm in mod_file.methods:
             print(cm.long_name)
             params = ','.join(cm.parameters)
-            execute = False
-
-            path_change = 0 if mod_file.new_path == mod_file.old_path else 1
-
-            if cm.long_name in added_functions:
+            if (cm.long_name in added_functions) or (cm.long_name in changed_functions) or (cm.long_name in unchanged_functions):
                 sql_string = """INSERT INTO function_to_file 
                             (file_name, file_dir_path, file_path, 
                             function_name, function_long_name, function_parameters,
                             commit_hash_start, commit_start_datetime, closed)
                         VALUES 
-                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
-                    ), mod_file_data.get_file_path(),
-                    cm.name, cm.long_name, params,
-                    commit.hash, commit.committer_date, 0)
-                execute = True
-            elif cm.long_name in deleted_functions:
-                sql_string = """INSERT INTO function_to_file 
-                            (file_name, file_dir_path, file_path, 
-                            function_name, function_long_name, function_parameters,
-                            commit_hash_end, commit_end_datetime, closed)
-                        VALUES 
-                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}');""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
-                    ), mod_file_data.get_file_path(),
-                    cm.name, cm.long_name, params,
-                    commit.hash, commit.committer_date, 1)
-                execute = True
-            elif cm.long_name in unchanged_functions:
-                sql_string = """INSERT INTO function_to_file 
-                            (file_name, file_dir_path, file_path, 
-                            function_name, function_long_name, function_parameters,
-                            commit_hash_start, commit_start_datetime, closed)
-                        VALUES 
-                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}')
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}',{8})
                         ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end) 
                         DO UPDATE SET commit_hash_start = excluded.commit_hash_start, 
                             commit_start_datetime = excluded.commit_start_datetime;""".format(
-                    mod_file_data.get_file_name(), mod_file_data.get_file_dir_path(
-                    ), mod_file_data.get_file_path(),
+                    mod_file_data.get_file_name(),
+                    mod_file_data.get_file_dir_path(),
+                    mod_file_data.get_file_path(),
                     cm.name, cm.long_name, params,
                     commit.hash, commit.committer_date, 0)
-                execute = True
-            else:
-                err_msg = "Function not in add, delete or unchanged lists!! {0} to {1}".format(
-                    cm.long_name, mod_file_data.get_file_path())
-                logging.error(err_msg)
-                print(err_msg)
+                cur.execute(sql_string)
 
-            if execute:
-                print(sql_string)
+        for cm in mod_file.changed_methods:
+            if cm.long_name in deleted_functions:
+                print("Deleted function_to_file: {0}".format(cm.long_name))
+                logging.debug(
+                    "Deleted function_to_file: {0}".format(cm.long_name))
+                params = ','.join(cm.parameters)
+
+                if cm.long_name in previous_active_functions_in_file:
+                    sql_string = """UPDATE function_to_file SET 
+                                commit_hash_end='{0}', commit_end_datetime='{1}', closed = 1
+                                WHERE 
+                                file_path='{2}'
+                                AND function_long_name='{3}';""".format(
+                        commit.hash, commit.committer_date,
+                        mod_file_data.get_file_path(), cm.long_name)
+                else:
+                    # because we work from tag to tag it might be that the entry does not exist
+                    sql_string = """INSERT INTO function_to_file 
+                                (file_name, file_dir_path, file_path, 
+                                function_name, function_long_name, function_parameters,
+                                commit_hash_start, commit_start_datetime, 
+                                commit_hash_end, commit_end_datetime, closed)
+                            VALUES
+                                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}',{10})
+                            ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end) 
+                            DO UPDATE SET commit_hash_end = excluded.commit_hash_end, 
+                                commit_end_datetime = excluded.commit_end_datetime,
+                                closed = excluded.closed;""".format(
+                        mod_file_data.get_file_name(),
+                        mod_file_data.get_file_dir_path(),
+                        mod_file_data.get_file_path(),
+                        cm.name, cm.long_name, params,
+                        commit.hash, commit.committer_date,
+                        commit.hash, commit.committer_date, 1)
                 cur.execute(sql_string)
 
         con_analytics_db.commit()

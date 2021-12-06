@@ -118,7 +118,8 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImpo
         count += 1
         if count < 500:
             if code_line.startswith("#include "):
-                f_name, f_path, f_dir_path = get_import_file_data(mod_file_data.get_file_dir_path() , code_line)
+                f_name, f_path, f_dir_path = get_import_file_data(
+                    mod_file_data.get_file_dir_path(), code_line)
 
                 fi = FileImport(src_file_data=mod_file_data,
                                 import_file_path=f_path,
@@ -129,6 +130,7 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImpo
             break
 
     return r
+
 
 def get_import_file_data(mod_file_dir_path, code_line: str):
     f_name = ''
@@ -144,7 +146,7 @@ def get_import_file_data(mod_file_dir_path, code_line: str):
                         f_name = x
                 f_path = f_path.replace(f_name, '')
                 """
-                # includes libraries eg. <cmath> <QApplication>
+    # includes libraries eg. <cmath> <QApplication>
     if code_line.__contains__('<'):
         f_name = f_path
 
@@ -206,9 +208,11 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
         for an in diff_xml_file.find_all('action'):
             logging.debug('---action node----')
             action_node_type = an.actionNodeType.get_text()
-            logging.debug("Action node type: {0}".format(str(action_node_type)))
+            logging.debug("Action node type: {0}".format(
+                str(action_node_type)))
             ac = utils_py.get_action_class(an.actionClassName.get_text())
-            logging.debug("Action class: {0}, ac: {1} ".format(an.actionClassName.get_text(), str(ac)))
+            logging.debug("CHECK Action class: {0}, ac: {1} ".format(
+                an.actionClassName.get_text(), str(ac)))
             handled = an.handled.get_text()
             logging.debug("Handled: {0}".format(handled))
             parent_function_name = an.parentFunction.get_text()
@@ -243,18 +247,21 @@ def parse_mod_file(mod_file, proj_paths: ProjectPaths,
     mod_file_data = FileData(str(mod_file._new_path))
 
     # Save new source code
-    file_path_current = os.path.join(proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
+    file_path_current = os.path.join(
+        proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
     save_source_code(file_path_current, mod_file.source_code)
 
     # Save old source code
     if mod_file.change_type != ModificationType.ADD:
-        file_path_previous = os.path.join(proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
+        file_path_previous = os.path.join(
+            proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
         save_source_code(file_path_previous,
                          mod_file.source_code_before)
 
     # Create sourcediff directory
     if mod_file.change_type != ModificationType.ADD:
-        file_path_sourcediff = os.path.join(proj_paths.get_path_to_cache_sourcediff(), str(mod_file._new_path))
+        file_path_sourcediff = os.path.join(
+            proj_paths.get_path_to_cache_sourcediff(), str(mod_file._new_path))
         if not os.path.exists(os.path.dirname(file_path_sourcediff)):
             os.makedirs(os.path.dirname(file_path_sourcediff))
 
@@ -332,10 +339,12 @@ def process_file_commit(proj_config, proj_paths, commit: Commit, mod_file: Modif
         proj_paths.get_path_to_project_db(), mod_file, commit)
 
     # get previous_function_to_file
-    previous_functions_in_file = get_previous_functions_in_file(proj_paths.get_path_to_project_db(), mod_file)
+    previous_active_functions_in_file = get_previous_active_functions_in_file(
+        proj_paths.get_path_to_project_db(), mod_file)
 
     # function_to_file
-    update_function_to_file(proj_paths.get_path_to_project_db(), mod_file, commit, previous_functions_in_file)
+    update_function_to_file(proj_paths.get_path_to_project_db(
+    ), mod_file, commit, previous_active_functions_in_file)
 
     # file_imports
     fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
@@ -423,7 +432,6 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             if (is_valid_file_type(str(mod_file._new_path))):
                 process_file_commit(proj_config, proj_paths, commit, mod_file)
 
-
                 # Save method function change in db
                 """
                             print('Nloc:', mod_file.nloc)
@@ -441,7 +449,6 @@ def traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                                 print(m.fan_out)
                                 print(m.general_fan_out)
                             """
-
 
 
 # %%

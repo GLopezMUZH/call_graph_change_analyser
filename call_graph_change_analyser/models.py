@@ -16,7 +16,7 @@ class ProjectConfig:
     def __init__(
             self,  proj_name:
             str, proj_lang: str, commit_file_types: List[str], path_to_src_diff_jar: str,
-            path_to_repo: str,
+            path_to_repo: str, repo_type: str = 'Git',
             start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             delete_cache_files: Optional[bool] = True) -> None:
@@ -24,6 +24,7 @@ class ProjectConfig:
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
         self.path_to_repo = path_to_repo
+        self.repo_type = repo_type
         self.start_repo_date = start_repo_date
         self.end_repo_date = end_repo_date
         self.repo_from_tag = repo_from_tag

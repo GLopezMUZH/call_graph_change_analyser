@@ -90,6 +90,7 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: boo
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
+                                repo_type='Git',
                                 #start_repo_date=st_date,
                                 #end_repo_date=end_date,
                                 delete_cache_files=delete_cache_files,
@@ -121,6 +122,7 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_fi
                                 commit_file_types=['.cpp'],
                                 path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
+                                repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
                                 delete_cache_files=delete_cache_files)

@@ -8,7 +8,7 @@ from importlib import reload
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from gumtree_difffile_parser import get_method_call_change_info_cpp
-from repository_mining_util import load_source_repository_data
+from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from utils_py import replace_timezone
 from call_graph_analysis import get_call_graph, print_graph_stats

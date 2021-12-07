@@ -12,7 +12,7 @@ from pydriller import *
 from pydriller.domain.commit import ModifiedFile
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
-from repository_mining_util import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file, process_file_commit, get_import_file_data
+from repository_mining import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file_git, process_file_git_commit, get_import_file_data
 from gumtree_difffile_parser import get_method_call_change_info_cpp
 
 from utils_sql import *
@@ -325,7 +325,7 @@ def test_parse_model_file():
                             "UavcanNode.cpp",
                             ModificationType.MODIFY, diff_and_sc)
 
-    fis, ccis = parse_mod_file(mod_file, proj_paths, proj_config)
+    fis, ccis = parse_mod_file_git(mod_file, proj_paths, proj_config)
     for fi in fis:
         print(fi)
     for cc in ccis:
@@ -371,7 +371,7 @@ import hashlib
 def create_local_commit() -> Commit:
     repo = Repo('C:\\Users\\lopm\\Documents\\gitprojects\\call_graph_change_analyser')
 
-    message = 'hash_test_process_file_commit message'
+    message = 'hash_test_process_file_git_commit message'
 
     tree = repo.index.write_tree()
     parents = [repo.head.commit]
@@ -424,7 +424,7 @@ def create_local_commit() -> Commit:
 
 
 # %%
-def test_process_file_commit():
+def test_process_file_git_commit():
     proj_config, proj_paths = execute_project_conf_example_project()
 
     print(proj_config)
@@ -455,10 +455,10 @@ def test_process_file_commit():
 
     local_commit = create_local_commit()
     print(local_commit)
-    process_file_commit(proj_config, proj_paths, local_commit, mod_file1)
+    process_file_git_commit(proj_config, proj_paths, local_commit, mod_file1)
 
 
-test_process_file_commit()
+test_process_file_git_commit()
 
 
 # %%

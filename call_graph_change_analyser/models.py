@@ -35,6 +35,9 @@ class ProjectConfig:
     def get_path_to_repo(self):
         return self.path_to_repo
 
+    def get_repo_type(self):
+        return self.repo_type
+
     def get_commit_file_types(self):
         return self.commit_file_types
 

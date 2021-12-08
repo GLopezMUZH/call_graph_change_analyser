@@ -361,6 +361,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         commit_datetime: str):
     print("update_file_imports")
     try:
+        # TODO change to parsing previous file.... 
         previous_file_import_long_names = get_previous_file_import_long_names(
             path_to_project_db, mod_file_data)
         curr_file_imports_long_names = [

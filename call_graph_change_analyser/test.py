@@ -13,7 +13,6 @@ from pydriller.domain.commit import ModifiedFile
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
 from repository_mining import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file_git, process_file_git_commit, get_import_file_data
-from gumtree_difffile_parser import get_method_call_change_info_cpp
 
 from utils_sql import *
 from utils_py import replace_timezone
@@ -49,10 +48,6 @@ def execute_project_conf_example_project():
 
     return proj_config, proj_paths
 
-
-# %%
-mcci = get_method_call_change_info_cpp(
-    'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot_textdiff\\sourcediff\\src\\drivers\\camera_trigger\\camera_trigger.cpp')
 
 # %%
 print(str(mcci))

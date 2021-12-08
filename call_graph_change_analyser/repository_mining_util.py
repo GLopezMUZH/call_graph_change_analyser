@@ -9,7 +9,6 @@ from importlib import reload
 from pydriller import *
 
 from models import *
-from gumtree_difffile_parser import get_method_call_change_info_cpp
 from utils_sql import *
 import utils_py
 
@@ -94,17 +93,6 @@ def get_file_type_validation_function(proj_lang):
         return is_cpp_file
     if proj_lang == 'python':
         return is_python_file
-
-
-def save_method_call_change_info(file_path_sourcediff):
-    mcci = None
-    if is_java_file(file_path_sourcediff):
-        None
-    elif is_cpp_file(file_path_sourcediff):
-        mcci = get_method_call_change_info_cpp(file_path_sourcediff)
-    elif is_python_file(file_path_sourcediff):
-        None
-    return mcci
 
 
 def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImport]:

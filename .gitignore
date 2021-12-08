@@ -133,3 +133,6 @@ dmypy.json
 
 # project results
 /project_results
+
+# local backup files
+*.old

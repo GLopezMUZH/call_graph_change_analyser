@@ -49,10 +49,6 @@ def execute_project_conf_example_project():
     return proj_config, proj_paths
 
 
-# %%
-print(str(mcci))
-print(mcci.__str__)
-print("Src node: %s, bla", mcci.source_node, "sjdhf")
 
 # %%
 raw = """animal
@@ -320,9 +316,7 @@ def test_parse_model_file():
                             "UavcanNode.cpp",
                             ModificationType.MODIFY, diff_and_sc)
 
-    fis, ccis = parse_mod_file_git(mod_file, proj_paths, proj_config)
-    for fi in fis:
-        print(fi)
+    ccis = parse_mod_file_git(mod_file, proj_paths, proj_config)
     for cc in ccis:
         print(cc)
 

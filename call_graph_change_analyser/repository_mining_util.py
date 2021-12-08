@@ -123,13 +123,7 @@ def get_import_file_data(mod_file_dir_path, code_line: str):
     f_path = f_path.replace('<', '')
     f_path = f_path.replace('>', '')
     f_name = os.path.basename(f_path)
-
-    """
-                for x in str(f_path).split('/'):
-                    if(x.__contains__('.h') or x.__contains__('.hpp')):
-                        f_name = x
-                f_path = f_path.replace(f_name, '')
-                """
+    
     # includes libraries eg. <cmath> <QApplication>
     if code_line.__contains__('<'):
         f_name = f_path

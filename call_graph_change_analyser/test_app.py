@@ -10,6 +10,8 @@ from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from utils_py import replace_timezone
+from project_configs import execute_project_conf_JKQtPlotter
+
 from call_graph_analysis import get_call_graph, print_graph_stats
 
 # %%
@@ -63,38 +65,6 @@ def init_db(proj_paths: ProjectPaths):
     print(proj_paths.get_path_to_project_db())
     create_db_tables(proj_paths, drop=True)
     print("finish init_db")
-
-
-def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_files: bool = False):
-    #from_tag = 'v2019.11.0'
-    #to_tag = 'v2019.11.1'
-
-    proj_name = 'JKQtPlotter'
-    path_to_proj_data_dir=os.path.normpath('../project_results/')
-
-    proj_config = ProjectConfig(proj_name=proj_name,
-                                proj_lang='cpp',
-                                commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
-                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
-                                repo_type='Git',
-                                repo_from_tag=from_tag,
-                                repo_to_tag=to_tag,
-                                delete_cache_files=delete_cache_files)
-    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
-
-    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
-    print(log_filepath)
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.debug('Started App - {0}'.format(str(datetime.now())))
-
-    logging.debug(proj_config)
-    logging.debug(proj_paths)                              
-    return proj_config,proj_paths
-
 
 #%%
 if __name__ == '__main__':

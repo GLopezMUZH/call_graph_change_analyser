@@ -32,14 +32,17 @@ class ProjectConfig:
         self.path_to_src_diff_jar = path_to_src_diff_jar
         self.delete_cache_files = delete_cache_files
 
+    def get_proj_lang(self):
+        return self.proj_lang
+        
+    def get_commit_file_types(self):
+        return self.commit_file_types
+
     def get_path_to_repo(self):
         return self.path_to_repo
 
     def get_repo_type(self):
         return self.repo_type
-
-    def get_commit_file_types(self):
-        return self.commit_file_types
 
     def get_start_repo_date(self):
         return self.start_repo_date

@@ -12,7 +12,7 @@ from pydriller import *
 from pydriller.domain.commit import ModifiedFile
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig, FileData, FileImport
-from repository_mining import load_source_repository_data, get_file_imports, parse_xml_call_diffs, parse_mod_file_git, process_file_git_commit, get_import_file_data
+from repository_mining import *
 
 from utils_sql import *
 from utils_py import replace_timezone
@@ -31,7 +31,6 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='',
                                 repo_type='Git',
                                 start_repo_date=st_date,
@@ -458,19 +457,58 @@ def test_is_valid_file_type():
     print(is_valid_file_type('lib\jkqtplotter\jkqtpcoordinateaxes.what'))
 
 # %%
-def test_get_import_file_data():
+from repository_mining_util import get_import_file_data_cpp
+def test_get_import_file_data_cpp():
     mod_file_dir_path='lib/jkqtplotter/'
     cls=['#include <QSvgGenerator>',
         '#include <QDebug>',
         '#include "jkqtplotter/jkqtpbaseplotter.h"',
-        '#include "jkqtplotter/gui/jkqtpgraphsmodel.h"',
+        '     #include "jkqtplotter/gui/jkqtpgraphsmodel.h"',
         '#include "qftools.h"',
         '#include "jkqtplotter/graphs/jkqtpimpulses.h"        ']
     for code_line in cls:
-        print(get_import_file_data(mod_file_dir_path, code_line))
+        print(get_import_file_data_cpp(mod_file_dir_path, code_line))
 
 
-test_get_import_file_data()
+test_get_import_file_data_cpp()
+
+
+# %%
+from repository_mining_util import get_import_file_data_java
+def test_get_import_file_data_java():
+    mod_file_dir_path='lib/jkqtplotter/'
+    cls=['package org.glucosio.android.activity;',
+'',
+'import android.content.Context;',
+'import android.os.Bundle;',
+'import android.support.annotation.NonNull;',
+'import android.support.v7.app.AppCompatActivity;',
+'import android.support.v7.widget.Toolbar;',
+'import android.text.Editable;',
+'import android.view.KeyEvent;',
+'import android.view.Menu;',
+'import android.view.MenuItem;',
+'import android.view.inputmethod.EditorInfo;',
+'import android.view.inputmethod.InputMethodManager;',
+'import android.widget.TextView;',
+'',
+'import org.glucosio.android.GlucosioApplication;',
+'import org.glucosio.android.R;',
+'import org.glucosio.android.presenter.A1CCalculatorPresenter;',
+'',
+'import java.text.NumberFormat;',
+'',
+'import butterknife.BindView;',
+'import butterknife.ButterKnife;',
+'import butterknife.OnEditorAction;',
+'import butterknife.OnTextChanged;',
+'import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;      '
+]
+    for code_line in cls:
+        print(get_import_file_data_java(mod_file_dir_path, code_line))
+
+
+test_get_import_file_data_java()
 
 
 # %%

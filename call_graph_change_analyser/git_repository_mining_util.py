@@ -79,7 +79,7 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                 process_file_git_commit(proj_config, proj_paths, commit, mod_file)
 
 
-def process_file_git_commit(proj_config, proj_paths, commit: Commit, mod_file: ModifiedFile):
+def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
 
     # insert file_commit
@@ -94,10 +94,21 @@ def process_file_git_commit(proj_config, proj_paths, commit: Commit, mod_file: M
         proj_paths.get_path_to_project_db(), mod_file, commit)
 
     # update file imports
-    fis = get_file_imports(mod_file.source_code, mod_file_data)
+    fis = get_file_imports(proj_config.get_proj_lang(), mod_file.source_code, mod_file_data)
     update_file_imports(mod_file_data, fis,
                     proj_paths.get_path_to_project_db(),
                     commit_hash=commit.hash,
                     commit_datetime=str(commit.committer_date))
     
-    
+    # function_to_file and call_commits
+    #update_function_information(proj_paths, mod_file, commit, proj_config)
+
+
+def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectPaths,  mod_file: ModifiedFile, commit: Commit):
+    if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
+        #args = [path_to_java_jar, path_to_code]
+        #result = jarWrapper(*args)
+        #diff_xml_results = b''.join(result).decode('utf-8')
+        print("TODO")
+    else:
+        print("No current parser for the project language.")

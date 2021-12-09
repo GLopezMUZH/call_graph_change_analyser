@@ -34,7 +34,6 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='',
                                 repo_type='Git',
                                 start_repo_date=st_date,

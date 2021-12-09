@@ -95,14 +95,43 @@ def get_file_type_validation_function(proj_lang):
         return is_python_file
 
 
-def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImport]:
+def get_file_imports(proj_lang:str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
+    fis = []
+    if proj_lang == 'cpp':
+        fis = get_file_imports_cpp(source_code, mod_file_data)
+    if proj_lang == 'java':
+        fis = get_file_imports_java(source_code, mod_file_data)
+    
+    return fis
+
+def get_file_imports_cpp(source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
     r = []
     for code_line in source_code.splitlines():
         count += 1
         if count < 500:
-            if code_line.startswith("#include "):
-                f_name, f_path, f_dir_path = get_import_file_data(
+            if (code_line.lstrip()).startswith("#include "):
+                f_name, f_path, f_dir_path = get_import_file_data_cpp(
+                    mod_file_data.get_file_dir_path(), code_line)
+
+                fi = FileImport(src_file_data=mod_file_data,
+                                import_file_path=f_path,
+                                import_file_name=f_name,
+                                import_file_dir_path=f_dir_path)
+                r.append(fi)
+        else:
+            break
+
+    return r
+
+def get_file_imports_java(source_code: str, mod_file_data: FileData) -> List[FileImport]:
+    count = 0
+    r = []
+    for code_line in source_code.splitlines():
+        count += 1
+        if count < 500:
+            if (code_line.lstrip()).startswith("import "):
+                f_name, f_path, f_dir_path = get_import_file_data_java(
                     mod_file_data.get_file_dir_path(), code_line)
 
                 fi = FileImport(src_file_data=mod_file_data,
@@ -116,13 +145,38 @@ def get_file_imports(source_code: str, mod_file_data: FileData) -> List[FileImpo
     return r
 
 
-def get_import_file_data(mod_file_dir_path, code_line: str):
+def get_import_file_data_cpp(mod_file_dir_path, code_line: str):
+    """
+    e.g. #include <QDebug> or #include "jkqtplotter/jkqtpbaseplotter.h"
+    """
     f_name = ''
     f_dir_path = ''
     f_path = code_line[9:len(code_line.rstrip())].replace('"', '')
     f_path = f_path.replace('<', '')
     f_path = f_path.replace('>', '')
     f_name = os.path.basename(f_path)
+    
+    # includes libraries eg. <cmath> <QApplication>
+    if code_line.__contains__('<'):
+        f_name = f_path
+
+    if (code_line.__contains__('"') and not code_line.__contains__('/')):
+        f_dir_path = mod_file_dir_path
+        f_name = f_path
+    else:
+        f_dir_path = os.path.dirname(f_path)
+    return f_name, f_path, f_dir_path
+
+
+def get_import_file_data_java(mod_file_dir_path, code_line: str):
+    """
+    e.g. import android.content.Context;
+    """
+    f_name = ''
+    f_dir_path = ''
+    f_path = code_line[7:len(code_line.rstrip())].replace(';', '')
+    chunks = f_path.split(".")
+    f_name = chunks[len(chunks)-1]
     
     # includes libraries eg. <cmath> <QApplication>
     if code_line.__contains__('<'):

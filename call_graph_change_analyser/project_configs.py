@@ -5,6 +5,7 @@ from datetime import datetime
 from utils_py import replace_timezone
 from models import ProjectPaths, ProjectConfig
 
+
 def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: bool = False):
     #from_tag = 'v1.12.0'
     #to_tag = 'v1.12.3'
@@ -21,7 +22,6 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: boo
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
                                 repo_type='Git',
                                 #start_repo_date=st_date,
@@ -53,7 +53,6 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_fi
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
@@ -84,7 +83,6 @@ def execute_project_conf_Glucosio(from_tag: str, to_tag: str, delete_cache_files
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
                                 commit_file_types=['.java'],
-                                path_to_src_diff_jar=os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar'),
                                 path_to_repo='https://github.com/Glucosio/glucosio-android.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,

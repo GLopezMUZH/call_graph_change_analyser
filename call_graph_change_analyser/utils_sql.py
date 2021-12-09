@@ -123,7 +123,8 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_commit
                 (file_name text, file_dir_path text, file_path text, 
-                function_name text, function_long_name text, function_parameters text, function_nloc integer,
+                function_unqualified_name text, function_name text, function_long_name text, 
+                function_parameters text, function_nloc integer,
                 commit_hash text, commit_commiter_datetime text, 
                 commit_file_name text, commit_new_path text, commit_old_path text,
                 path_change integer,
@@ -440,11 +441,13 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
 
             params = ','.join(cm.parameters)
 
+            f_unqualified_name = (cm.name).split('::')[len((cm.name).split('::'))-1]
+
             path_change = 0 if mod_file.new_path == mod_file.old_path else 1
 
             sql_string = """INSERT INTO function_commit 
                         (file_name, file_dir_path, file_path, 
-                        function_name, function_long_name, function_parameters, function_nloc,
+                        function_unqualified_name, function_name, function_long_name, function_parameters, function_nloc,
                         commit_hash, commit_commiter_datetime, 
                         commit_file_name, commit_new_path, commit_old_path,
                         path_change)
@@ -452,7 +455,7 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
                         ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}');""".format(
                 mod_file_data.get_file_name(),
                 mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
-                cm.name, cm.long_name, params, cm.nloc,
+                f_unqualified_name, cm.name, cm.long_name, params, cm.nloc,
                 commit.hash, commit.committer_date,
                 mod_file.filename, mod_file.new_path, mod_file.old_path,
                 path_change)

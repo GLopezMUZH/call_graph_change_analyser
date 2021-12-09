@@ -7,7 +7,7 @@ import sys
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
-from project_configs import execute_project_conf_JKQtPlotter, execute_project_conf_PX4
+from project_configs import execute_project_conf_JKQtPlotter, execute_project_conf_PX4, execute_project_conf_Glucosio
 
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -47,6 +47,8 @@ def main():
         proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag, to_tag)
     elif p_name == 'PX4-Autopilot':
         proj_config, proj_paths = execute_project_conf_PX4(from_tag, to_tag)
+    elif p_name == 'glucosio':
+        proj_config, proj_paths = execute_project_conf_Glucosio(from_tag, to_tag)        
 
     # can only log after seting log file path
     logging.info('Started App ---------- {0}'.format(datetime.now()))

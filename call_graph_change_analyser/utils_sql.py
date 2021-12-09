@@ -452,7 +452,7 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
                         commit_file_name, commit_new_path, commit_old_path,
                         path_change)
                     VALUES 
-                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}');""".format(
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}');""".format(
                 mod_file_data.get_file_name(),
                 mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
                 f_unqualified_name, cm.name, cm.long_name, params, cm.nloc,

@@ -73,6 +73,32 @@ def save_source_code_diff_file(arg_prev, arg_curr, arg_target_file):
     )
 
 
+def save_compact_xml_parsed_code(path_to_cache_dir, relative_file_path: str, source_text: str):
+    local_file_path = os.path.join(path_to_cache_dir, relative_file_path)
+
+    if not os.path.exists(os.path.dirname(local_file_path)):
+        os.makedirs(os.path.dirname(local_file_path))
+
+    if isinstance(source_text, bytes):
+        logging.debug("save_source_code was bytes")
+        source_text = source_text.decode('utf-8')
+
+    try:
+        f = open(local_file_path, 'w', encoding='utf-8')
+    except:
+        logging.error("could not open/write file: {0}".format(local_file_path))
+
+    try:
+        f.writelines(source_text)
+    except UnicodeEncodeError:
+        # some pydriller.commit.mod_file.source_text has encoding differences
+        print("ERROR writelines", type(source_text))
+        logging.warning("ERROR writelines {0}".format(type(source_text)))
+        f.write(source_text.encode('utf-8-sig'))
+    f.close()
+
+
+
 def is_java_file(mod_file: str):
     return mod_file[-5:] == '.java'
 

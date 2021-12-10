@@ -1,9 +1,9 @@
 from pydriller import Repository, Commit, ModificationType
+from bs4 import BeautifulSoup
 
 from models import *
-from repository_mining_util import get_file_type_validation_function, get_file_imports
+from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code
 from utils_sql import *
-
 
 
 def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -26,7 +26,8 @@ def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(proj_config, proj_paths, commit, mod_file)
+                process_file_git_commit(
+                    proj_config, proj_paths, commit, mod_file)
 
 
 def git_traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -51,7 +52,8 @@ def git_traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(proj_config, proj_paths, commit, mod_file)
+                process_file_git_commit(
+                    proj_config, proj_paths, commit, mod_file)
 
 
 def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -76,11 +78,30 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
 
         for mod_file in commit.modified_files:
             if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(proj_config, proj_paths, commit, mod_file)
+                process_file_git_commit(
+                    proj_config, proj_paths, commit, mod_file)
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
+
+    # Create sourcediff directory
+    if proj_config.get_save_cache_files:
+        file_path_sourcediff = os.path.join(
+            proj_paths.get_path_to_cache_sourcediff(), str(mod_file._new_path))
+        if not os.path.exists(os.path.dirname(file_path_sourcediff)):
+            os.makedirs(os.path.dirname(file_path_sourcediff))
+
+    # Save new source code
+    file_path_current = os.path.join(
+        proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
+    save_source_code(file_path_current, mod_file.source_code)
+
+    if mod_file.change_type != ModificationType.ADD:
+        file_path_previous = os.path.join(
+            proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
+        save_source_code(file_path_previous,
+                         mod_file.source_code_before)
 
     # insert file_commit
     insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
@@ -94,21 +115,47 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
         proj_paths.get_path_to_project_db(), mod_file, commit)
 
     # update file imports
-    fis = get_file_imports(proj_config.get_proj_lang(), mod_file.source_code, mod_file_data)
+    fis = get_file_imports(proj_config.get_proj_lang(),
+                           mod_file.source_code, mod_file_data)
     update_file_imports(mod_file_data, fis,
-                    proj_paths.get_path_to_project_db(),
-                    commit_hash=commit.hash,
-                    commit_datetime=str(commit.committer_date))
-    
+                        proj_paths.get_path_to_project_db(),
+                        commit_hash=commit.hash,
+                        commit_datetime=str(commit.committer_date))
+
     # function_to_file and call_commits
-    #update_function_information(proj_paths, mod_file, commit, proj_config)
+    update_function_information(proj_config, proj_paths, mod_file, commit, file_path_current, file_path_previous)
 
 
-def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectPaths,  mod_file: ModifiedFile, commit: Commit):
+# TODO handle mod_file._old_path != mod_file._new_path
+def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectPaths,
+                                mod_file: ModifiedFile, commit: Commit, file_path_current: str, file_path_previous: Optional[str]=None):
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
-        #args = [path_to_java_jar, path_to_code]
-        #result = jarWrapper(*args)
-        #diff_xml_results = b''.join(result).decode('utf-8')
+        # Current source code
+        curr_src_args = [
+            proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
+        result = jarWrapper(*curr_src_args)
+        # convert to string -> xml
+        curr_src_str = b''.join(result).decode('utf-8')
+        curr_src_xml = BeautifulSoup(curr_src_str, "xml")
+
+        save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
+                                     relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
+
+    if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:        
+        # Previous source code
+        prev_src_args = [
+            proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]
+        result = jarWrapper(*prev_src_args)
+        # convert to string -> xml
+        prev_src_str = b''.join(result).decode('utf-8')
+        prev_src_xml = BeautifulSoup(prev_src_str, "xml")
+
+        save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_previous(),
+                                     relative_file_path=str(
+                                         mod_file._new_path),
+                                     source_text=prev_src_str)
+
+
         print("TODO")
     else:
         print("No current parser for the project language.")

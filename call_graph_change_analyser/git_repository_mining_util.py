@@ -82,7 +82,8 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                     proj_config, proj_paths, commit, mod_file)
 
 
-def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, commit: Commit, mod_file: ModifiedFile):
+def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
+                            commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
 
     # Create sourcediff directory
@@ -123,12 +124,14 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                         commit_datetime=str(commit.committer_date))
 
     # function_to_file and call_commits
-    update_function_information(proj_config, proj_paths, mod_file, commit, file_path_current, file_path_previous)
+    update_function_information(proj_config, proj_paths, mod_file, commit,
+                                file_path_current, file_path_previous)
 
 
 # TODO handle mod_file._old_path != mod_file._new_path
 def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectPaths,
-                                mod_file: ModifiedFile, commit: Commit, file_path_current: str, file_path_previous: Optional[str]=None):
+                                mod_file: ModifiedFile, commit: Commit, file_path_current: str,
+                                file_path_previous: Optional[str] = None):
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
         # Current source code
         curr_src_args = [
@@ -141,7 +144,7 @@ def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectP
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
 
-    if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:        
+    if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
         # Previous source code
         prev_src_args = [
             proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]
@@ -154,7 +157,6 @@ def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectP
                                      relative_file_path=str(
                                          mod_file._new_path),
                                      source_text=prev_src_str)
-
 
         print("TODO")
     else:

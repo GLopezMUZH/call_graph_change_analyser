@@ -132,11 +132,12 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
                 (file_name text, file_dir_path text, file_path text, 
-                calling_function text, called_function text, 
-                action_class text,
-                commit_hash_start text, commit_start_datetime text, 
-                commit_hash_end text, commit_end_datetime text,
-                primary key (file_path, calling_function, called_function))''')
+                calling_function_unqualified_name text, calling_function_name text, 
+                calling_function_long_name text, calling_function_parameters text,
+                called_function_unqualified_name text, called_function_name text, 
+                called_function_long_name text, called_function_parameters text, 
+                commit_hash text, commit_commiter_datetime text,
+                primary key (file_path, calling_function_long_name, called_function_long_name, commit_hash))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
                 (file_name text, file_dir_path text, file_path text, 

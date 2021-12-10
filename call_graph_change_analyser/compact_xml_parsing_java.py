@@ -4,11 +4,12 @@ from bs4 import BeautifulSoup
 
 
 #%%
+"""
 with open(file_path, 'r') as f:
     data = f.read()
 
 Bs_data = BeautifulSoup(data, "xml")
-
+"""
 #%%
 # get method names !!!! 07.12 20:56
 def get_function_name(function_tag):
@@ -18,6 +19,7 @@ def get_function_name(function_tag):
 
 # %%
 # WORKING get function names !!!! 07.12 20:56
+"""
 function_tags = Bs_data.findAll('MethodDeclaration')
 i = 1
 for function_tag in function_tags:
@@ -26,7 +28,7 @@ for function_tag in function_tags:
     i += 1
     function_name = get_function_name(function_tag)
     print(function_name)
-
+"""
 
 #%%
 def get_called_functions(function_tag):
@@ -41,6 +43,18 @@ def get_called_functions(function_tag):
     return sc
 
 #%%
+"""
 print(get_function_name(Bs_data.findAll('MethodDeclaration')[0]))
 print(get_called_functions(Bs_data.findAll('MethodDeclaration')[0]))
+"""
 # %%
+
+def save_function_information_java(Bs_tree):
+    function_tags = Bs_tree.findAll('MethodDeclaration')
+    i = 1
+    for function_tag in function_tags:
+        function_name = ''
+        print("----- function {0}".format(i))
+        i += 1
+        function_name = get_function_name(function_tag)
+        print("Num calls",len(function_name))

@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 
 from models import *
 from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code
+from compact_xml_parsing_java import save_function_information_java
 from utils_sql import *
 
 
@@ -143,6 +144,8 @@ def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectP
 
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
+
+        save_function_information_java(curr_src_xml)
 
     if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
         # Previous source code

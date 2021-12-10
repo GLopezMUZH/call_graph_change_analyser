@@ -44,11 +44,11 @@ def main():
         raise Exception(err_msg)
 
     if p_name == 'JKQtPlotter':
-        proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag, to_tag)
+        proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag=from_tag, to_tag=to_tag, save_cache_files=True)
     elif p_name == 'PX4-Autopilot':
         proj_config, proj_paths = execute_project_conf_PX4(from_tag, to_tag)
     elif p_name == 'glucosio':
-        proj_config, proj_paths = execute_project_conf_Glucosio(from_tag, to_tag)        
+        proj_config, proj_paths = execute_project_conf_Glucosio(from_tag=from_tag, to_tag=to_tag, save_cache_files=True)
 
     # can only log after seting log file path
     logging.info('Started App ---------- {0}'.format(datetime.now()))

@@ -6,7 +6,7 @@ from utils_py import replace_timezone
 from models import ProjectPaths, ProjectConfig
 
 
-def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: bool = False):
+def execute_project_conf_PX4(from_tag: str, to_tag: str, save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v1.12.0'
     #to_tag = 'v1.12.3'
   
@@ -26,6 +26,7 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: boo
                                 repo_type='Git',
                                 #start_repo_date=st_date,
                                 #end_repo_date=end_date,
+                                save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files,
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag
@@ -43,7 +44,7 @@ def execute_project_conf_PX4(from_tag: str, to_tag: str, delete_cache_files: boo
     return proj_config,proj_paths
 
 
-def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_files: bool = False):
+def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
@@ -57,6 +58,7 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_fi
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
+                                save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir)
@@ -73,7 +75,7 @@ def execute_project_conf_JKQtPlotter(from_tag: str, to_tag: str, delete_cache_fi
     return proj_config,proj_paths
 
 
-def execute_project_conf_Glucosio(from_tag: str, to_tag: str, delete_cache_files: bool = False):
+def execute_project_conf_Glucosio(from_tag: str, to_tag: str, save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
@@ -87,6 +89,7 @@ def execute_project_conf_Glucosio(from_tag: str, to_tag: str, delete_cache_files
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
+                                save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir)

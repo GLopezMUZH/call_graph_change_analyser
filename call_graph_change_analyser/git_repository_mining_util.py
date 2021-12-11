@@ -2,8 +2,8 @@ from pydriller import Repository, Commit, ModificationType
 from bs4 import BeautifulSoup
 
 from models import *
-from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code
-from compact_xml_parsing_java import save_function_information_java
+from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code, get_arr_functions_to_file_to_save
+from compact_xml_parsing_java import get_function_to_file_funciton_tags
 from utils_sql import *
 
 
@@ -112,10 +112,6 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                        commit_new_path=mod_file.new_path, commit_old_path=mod_file.old_path,
                        change_type=mod_file.change_type)
 
-    # insert function_commit 's
-    insert_function_commit(
-        proj_paths.get_path_to_project_db(), mod_file, commit)
-
     # update file imports
     fis = get_file_imports(proj_config.get_proj_lang(),
                            mod_file.source_code, mod_file_data)
@@ -124,17 +120,24 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                         commit_hash=commit.hash,
                         commit_datetime=str(commit.committer_date))
 
+    # update function_to_file
+    update_function_to_file(proj_paths.get_path_to_project_db(), mod_file, commit)
+
+    """
     # function_to_file and call_commits
-    update_function_information(proj_config, proj_paths, mod_file, commit,
+    update_function_calls(proj_config, proj_paths, mod_file, commit,
                                 file_path_current, file_path_previous)
+    """
 
 
 # TODO handle mod_file._old_path != mod_file._new_path
-def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectPaths,
+def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                                 mod_file: ModifiedFile, commit: Commit, file_path_current: str,
                                 file_path_previous: Optional[str] = None):
+    mod_file_data = FileData(str(mod_file._new_path))
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
         # Current source code
+        # get compact xml parsed source
         curr_src_args = [
             proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
         result = jarWrapper(*curr_src_args)
@@ -144,22 +147,45 @@ def update_function_information(proj_config: ProjectConfig, proj_paths: ProjectP
 
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
+        arr_curr_functions_to_file = get_function_to_file_funciton_tags(curr_src_xml)
 
-        save_function_information_java(curr_src_xml)
-
-    if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
         # Previous source code
-        prev_src_args = [
-            proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]
-        result = jarWrapper(*prev_src_args)
-        # convert to string -> xml
-        prev_src_str = b''.join(result).decode('utf-8')
-        prev_src_xml = BeautifulSoup(prev_src_str, "xml")
+        arr_prev_functions_to_file = []
+        if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
+            # get compact xml parsed source
+            prev_src_args = [
+                proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]
+            result = jarWrapper(*prev_src_args)
+            # convert to string -> xml
+            prev_src_str = b''.join(result).decode('utf-8')
+            prev_src_xml = BeautifulSoup(prev_src_str, "xml")
 
-        save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_previous(),
-                                     relative_file_path=str(
-                                         mod_file._new_path),
-                                     source_text=prev_src_str)
+            save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_previous(),
+                                        relative_file_path=str(
+                                            mod_file._new_path),
+                                        source_text=prev_src_str)
+            arr_prev_functions_to_file = get_function_to_file_funciton_tags(prev_src_xml)
+
+        """
+        file_name
+        file_dir_path
+        file_path
+        function_name
+        function_long_name
+        function_parameters
+        commit_hash_start
+        commit_start_datetime
+        commit_hash_end
+        commit_end_datetime
+        closed
+        """
+        cm_dates = CommitDates(commit.hash, commit.commiter_datetime)
+        arr_functions_to_file = get_arr_functions_to_file_to_save(cm_dates, arr_curr_functions_to_file, arr_prev_functions_to_file)
+
+        save_call_commit_rows()
+
+        save_funciton_call_rows()
+
 
         print("TODO")
     else:

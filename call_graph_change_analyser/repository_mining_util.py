@@ -289,3 +289,24 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
         logging.exception(err)
     return r
 
+
+def get_arr_functions_to_file_to_save(cm_dates: CommitDates, arr_curr_functions_to_file, arr_prev_functions_to_file):
+    """
+    Returns an array of rows that contain the functions to be insterted in the database, funcitons that are pressent .
+  
+    Extended description of function.
+  
+    Parameters:
+    cm_dates (CommitDates): Dates of the current commit. 
+    arr_curr_functions_to_file (arr[arr]): Array of form ([function_name,function_long_name,function_parameters],...[])
+    arr_prev_functions_to_file (arr[arr]): Array of form ([function_name,function_long_name,function_parameters],...[])
+  
+    Returns:
+    int: Description of return value
+  
+    """
+    print("TODO")
+
+def save_call_commit_rows():
+    print("TODO")
+

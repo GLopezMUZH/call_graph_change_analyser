@@ -397,6 +397,39 @@ class FileImport():
                .format(self.file_path, self.import_file_name, self.import_file_dir_path))
 
 
+class CommitDates():
+    def __init__(self, commit_hash, commiter_datetime):
+        self.commit_hash = commit_hash
+        self.commiter_datetime = commiter_datetime
+
+    def get_commit_hash(self) -> str:
+        return self.commit_hash
+
+    def get_commiter_datetime(self) -> str:
+        return self.commiter_datetime
+
+
+class CommitPairDates():
+    def __init__(self, commit_hash_start, commit_start_datetime,
+    commit_hash_end,commit_end_datetime):
+        self.commit_hash_start = commit_hash_start
+        self.commit_start_datetime = commit_start_datetime
+        self.commit_hash_end = commit_hash_end
+        self.commit_end_datetime = commit_end_datetime
+
+    def get_commit_hash_start(self) -> str:
+        return self.commit_hash_start
+
+    def get_commit_start_datetime(self) -> str:
+        return self.commit_start_datetime
+
+    def get_commit_hash_end(self) -> str:
+        return self.commit_hash_end
+
+    def get_commit_end_datetime(self) -> str:
+        return self.commit_end_datetime
+
+
 """
 class NodeType(Enum):
     NODE_SYMBOL = 1

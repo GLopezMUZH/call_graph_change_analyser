@@ -1,6 +1,7 @@
 #%%
 import os
 from bs4 import BeautifulSoup
+import pandas as pd
 
 
 #%%
@@ -11,24 +12,24 @@ with open(file_path, 'r') as f:
 Bs_data = BeautifulSoup(data, "xml")
 """
 #%%
+def param_placeholder(n, a='param,'):
+    return(((a*n))[:-1])
+
+
+#%%
 # get method names !!!! 07.12 20:56
-def get_function_name(function_tag):
+def get_function_names(function_tag):
+    """
+    function_name,
+    function_long_name,
+    function_parameters
+    """
     function_name = function_tag.findAll('SimpleName', recursive=False)[0]['label']
-    return function_name, len(function_tag.findAll('SingleVariableDeclaration', recursive=False))
+    #return function_name, len(function_tag.findAll('SingleVariableDeclaration', recursive=False))
+    nr_params_FormalParameters = len(function_tag.findAll('SingleVariableDeclaration', recursive=False))
+    nr_params = nr_params_FormalParameters  # missing 'indirect' params 
+    return [function_name, function_name, param_placeholder(nr_params)]
 
-
-# %%
-# WORKING get function names !!!! 07.12 20:56
-"""
-function_tags = Bs_data.findAll('MethodDeclaration')
-i = 1
-for function_tag in function_tags:
-    function_name = ''
-    print("----- function {0}".format(i))
-    i += 1
-    function_name = get_function_name(function_tag)
-    print(function_name)
-"""
 
 #%%
 def get_called_functions(function_tag):
@@ -42,19 +43,18 @@ def get_called_functions(function_tag):
     print("len sc ",len(sc))
     return sc
 
-#%%
-"""
-print(get_function_name(Bs_data.findAll('MethodDeclaration')[0]))
-print(get_called_functions(Bs_data.findAll('MethodDeclaration')[0]))
-"""
 # %%
-
-def save_function_information_java(Bs_tree):
+def get_function_to_file_funciton_tags(Bs_tree):
+    """
+    Returns an array of structure 
+        ([function_name,function_long_name,function_parameters],
+        ...[])
+    function_parameters can be None when empty in declaration
+    """
     function_tags = Bs_tree.findAll('MethodDeclaration')
-    i = 1
+    arr = []
     for function_tag in function_tags:
-        function_name = ''
-        print("----- function {0}".format(i))
-        i += 1
-        function_name = get_function_name(function_tag)
-        print("Num calls",len(function_name))
+        function_names = get_function_names(function_tag)
+        arr.append(function_names)
+    return arr
+    

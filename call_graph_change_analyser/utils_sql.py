@@ -426,7 +426,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         for ln in deleted_functions:
             sql_string = """UPDATE file_import SET
                         commit_hash_end='{0}', commit_end_datetime='{1}',
-                        commit_hash_oldest='{2}' commit_oldest_datetime='{3}'
+                        commit_hash_oldest='{2}', commit_oldest_datetime='{3}'
                         WHERE
                         file_path='{4}'
                         AND import_file_path='{5}';""".format(

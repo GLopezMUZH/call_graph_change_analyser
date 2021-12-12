@@ -128,15 +128,16 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 function_parameters text, function_nloc integer,
                 commit_hash text, commit_commiter_datetime text,
                 commit_file_name text, commit_new_path text, commit_old_path text,
-                path_change integer,
+                path_change integer, commit_type,
                 primary key (file_path, function_long_name, commit_hash))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
                 (file_name text, file_dir_path text, file_path text,
                 import_file_path text, import_file_name text, import_file_dir_path text,
                 commit_hash_start text, commit_start_datetime text,
+                commit_hash_oldest text, commit_oldest_datetime text,
                 commit_hash_end text, commit_end_datetime text, closed integer,
-                primary key (file_path, import_file_path))''')
+                primary key (file_path, import_file_path, commit_hash_start, commit_hash_oldest, commit_hash_end))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
                 (file_name text, file_dir_path text, file_path text,
@@ -152,8 +153,9 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 function_unqualified_name text, function_name text, 
                 function_long_name text, function_parameters text,
                 commit_hash_start text, commit_start_datetime text,
+                commit_hash_oldest text, commit_oldest_datetime text,
                 commit_hash_end text, commit_end_datetime text, closed integer,
-                primary key (file_path, function_long_name, commit_hash_start, commit_hash_end))''')
+                primary key (file_path, function_long_name, commit_hash_start, commit_hash_oldest, commit_hash_end))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_call
                 (file_name text, file_dir_path text, file_path text,
@@ -162,17 +164,19 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 called_function_unqualified_name text, called_function_name text,
                 called_function_long_name text, called_function_parameters text,
                 commit_hash_start text, commit_start_datetime text,
+                commit_hash_oldest text, commit_oldest_datetime text,
                 commit_hash_end text, commit_end_datetime text, closed integer,
-                primary key (file_path, calling_function_long_name, called_function_long_name, commit_hash_start))''')
+                primary key (file_path, calling_function_long_name, called_function_long_name, commit_hash_start, commit_hash_oldest, commit_hash_end))''')
 
     cur.execute('''CREATE TABLE IF NOT EXISTS raw_function_call
                 (file_name text, file_dir_path text, file_path text,
                 calling_function_unqualified_name text, calling_function_nr_parameters integer,
                 called_function_unqualified_name text, called_function_nr_parameters integer,
                 commit_hash_start text, commit_start_datetime text,
+                commit_hash_oldest text, commit_oldest_datetime text,
                 commit_hash_end text, commit_end_datetime text, closed integer,
                 primary key (file_path, calling_function_unqualified_name, calling_function_nr_parameters,
-                called_function_unqualified_name, commit_hash_start))''')
+                called_function_unqualified_name, commit_hash_start, commit_hash_oldest, commit_hash_end))''')
 
     con.commit()
     cur.close()
@@ -408,21 +412,25 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
             sql_string = """INSERT INTO file_import
                         (file_name, file_dir_path, file_path,
                         import_file_name, import_file_path, import_file_dir_path,
-                        commit_hash_start, commit_start_datetime)
+                        commit_hash_start, commit_start_datetime,
+                        commit_hash_oldest, commit_oldest_datetime, closed)
                     VALUES
-                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}');""".format(
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}',0);""".format(
                 fi.get_file_name(),  fi.get_file_dir_path(), fi.get_file_path(),
                 fi.get_import_file_name(), fi.get_import_file_path(), fi.get_import_file_dir_path(),
+                commit_hash, commit_datetime,
                 commit_hash, commit_datetime)
             cur.execute(sql_string)
 
         # handle deleted file_imports
         for ln in deleted_functions:
             sql_string = """UPDATE file_import SET
-                        commit_hash_end='{0}', commit_end_datetime='{1}'
+                        commit_hash_end='{0}', commit_end_datetime='{1}',
+                        commit_hash_oldest='{2}' commit_oldest_datetime='{3}'
                         WHERE
-                        file_path='{2}'
-                        AND import_file_path='{3}';""".format(
+                        file_path='{4}'
+                        AND import_file_path='{5}';""".format(
+                commit_hash, commit_datetime,
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), ln)
             cur.execute(sql_string)
@@ -430,7 +438,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         # handle unchanged file_imports
         for fi in [f for f in fis if f.get_import_file_path() in unchanged_functions]:
             sql_string = """UPDATE file_import SET
-                        commit_hash_start='{0}', commit_start_datetime='{1}'
+                        commit_hash_oldest='{0}', commit_oldest_datetime='{1}'
                         WHERE
                         file_path='{2}'
                         AND import_file_path='{3}';""".format(
@@ -451,16 +459,31 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
 def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, commit: Commit):
     mod_file_data = FileData(str(mod_file._new_path))
     try:
-        changed_methods = mod_file.changed_methods
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
-        for cm in changed_methods:
-            params = ','.join(cm.parameters)
+        commit_previous_functions = [
+            f.long_name for f in mod_file.methods_before]
+        commit_current_functions = [f.long_name for f in mod_file.methods]
 
+        # get added functions (existing in curr but not prev)
+        added_functions = list(
+            set(commit_current_functions) - set(commit_previous_functions))
+        # get deleted functions (existing in prev but not in curr)
+        deleted_functions = list(
+            set(commit_previous_functions) - set(commit_current_functions))
+
+        # added, deleted and modified methods appear in changed methods
+        for cm in mod_file.changed_methods:
+            if cm.long_name in added_functions:
+                ac = ActionClass.ADD
+            elif cm.long_name in deleted_functions:
+                ac = ActionClass.DELETE
+            else:
+                ac = ActionClass.MODIFIY
+            params = ','.join(cm.parameters)
             f_unqualified_name = (cm.name).split(
                 '::')[len((cm.name).split('::'))-1]
-
             path_change = 0 if mod_file.new_path == mod_file.old_path else 1
 
             sql_string = """INSERT INTO function_commit
@@ -468,15 +491,15 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
                         function_unqualified_name, function_name, function_long_name, function_parameters, function_nloc,
                         commit_hash, commit_commiter_datetime,
                         commit_file_name, commit_new_path, commit_old_path,
-                        path_change)
+                        path_change, commit_type)
                     VALUES
-                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}');""".format(
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}','{14}');""".format(
                 mod_file_data.get_file_name(),
                 mod_file_data.get_file_dir_path(), mod_file_data.get_file_path(),
                 f_unqualified_name, cm.name, cm.long_name, params, cm.nloc,
                 commit.hash, commit.committer_date,
                 mod_file.filename, mod_file.new_path, mod_file.old_path,
-                path_change)
+                path_change, ac)
 
             cur.execute(sql_string)
 
@@ -545,6 +568,15 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
         unchanged_functions = list(
             set(commit_previous_functions).intersection(commit_current_functions) - set(changed_functions))
 
+        logging.debug("added_functions")
+        logging.debug(added_functions)
+        logging.debug("deleted_functions")
+        logging.debug(deleted_functions)
+        logging.debug("changed_functions")
+        logging.debug(changed_functions)
+        logging.debug("unchanged_functions")
+        logging.debug(unchanged_functions)
+
         # mod_file.methods include added, changed and unchanged
         # on method added, the commit_hash_start will be set to the current
         # on methods previously exisitng, the commit_hash_start will be updated to the current because we work the repository in reverse order
@@ -554,26 +586,71 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
             f_unqualified_name = (cm.name).split(
                 '::')[len((cm.name).split('::'))-1]
 
-            # TODO maybe unnecesary if...
-            if (cm.long_name in added_functions) or (cm.long_name in changed_functions) or (cm.long_name in unchanged_functions):
+            # Added functions
+            if (cm.long_name in added_functions):
+                logging.debug("Added funciton {0}".format(cm.long_name))
                 sql_string = """INSERT INTO function_to_file
                             (file_name, file_dir_path, file_path,
                             function_unqualified_name, function_name, 
                             function_long_name, function_parameters,
-                            commit_hash_start, commit_start_datetime, closed)
+                            commit_hash_start, commit_start_datetime, 
+                            commit_hash_oldest, commit_oldest_datetime,
+                            closed)
                         VALUES
-                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}',{9})
-                        ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end)
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}',{11})
+                        ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_oldest, commit_hash_end)
                         DO UPDATE SET commit_hash_start = excluded.commit_hash_start,
-                            commit_start_datetime = excluded.commit_start_datetime;""".format(
+                            commit_start_datetime = excluded.commit_start_datetime,
+                            commit_hash_oldest=excluded.commit_hash_oldest, 
+                            commit_oldest_datetime=excluded.commit_oldest_datetime;""".format(
                     mod_file_data.get_file_name(),
                     mod_file_data.get_file_dir_path(),
                     mod_file_data.get_file_path(),
                     f_unqualified_name, cm.name,
                     cm.long_name, params,
-                    commit.hash, commit.committer_date, 0)
+                    commit.hash, commit.committer_date,
+                    commit.hash, commit.committer_date,
+                    0)
                 cur.execute(sql_string)
 
+            # Changed and unchanged functions
+            if (cm.long_name in changed_functions) or (cm.long_name in unchanged_functions):
+                logging.debug("Changed or unchanged funciton {0}".format(cm.long_name))
+                sql_string = """UPDATE function_to_file SET
+                                commit_hash_oldest='{0}', commit_oldest_datetime='{1}',
+                                closed = 1
+                                WHERE
+                                file_path='{2}'
+                                AND function_long_name='{3}' AND closed = 0;""".format(
+                        commit.hash, commit.committer_date,
+                        mod_file_data.get_file_path(), cm.long_name)
+
+                logging.debug(sql_string)
+                cur.execute(sql_string)
+                logging.debug("cur.rowcount {0}".format(cur.rowcount))
+
+                if(cur.rowcount <= 0):
+                    logging.debug("Changed or unchanged funciton {0} didnt exist in db, make insert. ".format(cm.long_name))
+                    sql_string = """INSERT INTO function_to_file
+                                (file_name, file_dir_path, file_path,
+                                function_unqualified_name, function_name, 
+                                function_long_name, function_parameters,
+                                commit_hash_oldest, commit_oldest_datetime, closed)
+                            VALUES
+                                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}',{9})
+                            ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_oldest, commit_hash_end)
+                            DO UPDATE SET commit_hash_oldest = excluded.commit_hash_oldest,
+                                commit_oldest_datetime = excluded.commit_oldest_datetime;""".format(
+                        mod_file_data.get_file_name(),
+                        mod_file_data.get_file_dir_path(),
+                        mod_file_data.get_file_path(),
+                        f_unqualified_name, cm.name,
+                        cm.long_name, params,
+                        commit.hash, commit.committer_date, 0)
+                    logging.debug(sql_string)
+                    cur.execute(sql_string)
+
+        # Deleted functions
         for cm in mod_file.changed_methods:
             if cm.long_name in deleted_functions:
                 logging.debug(
@@ -583,13 +660,17 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                 f_unqualified_name = (cm.name).split(
                     '::')[len((cm.name).split('::'))-1]
 
-                if cm.long_name in commit_previous_functions: #previous_active_functions_in_file:
+                # previous_active_functions_in_file:
+                if cm.long_name in commit_previous_functions:
                     # TODO check if 2 times processing
                     sql_string = """UPDATE function_to_file SET
-                                commit_hash_end='{0}', commit_end_datetime='{1}', closed = 1
+                                commit_hash_end='{0}', commit_end_datetime='{1}', 
+                                commit_hash_oldest='{2}', commit_oldest_datetime='{3}',
+                                closed = 1
                                 WHERE
-                                file_path='{2}'
-                                AND function_long_name='{3} AND closed = 0';""".format(
+                                file_path='{4}'
+                                AND function_long_name='{5}' AND closed = 0;""".format(
+                        commit.hash, commit.committer_date,
                         commit.hash, commit.committer_date,
                         mod_file_data.get_file_path(), cm.long_name)
                 else:
@@ -598,13 +679,15 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                                 (file_name, file_dir_path, file_path,
                                 function_unqualified_name, function_name, 
                                 function_long_name, function_parameters,
-                                commit_hash_start, commit_start_datetime,
+                                commit_hash_oldest, commit_oldest_datetime,
                                 commit_hash_end, commit_end_datetime, closed)
                             VALUES
-                                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}',{11})
-                            ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end)
+                                ('{0}','{1}','{2}','{3}','{4}','{5}',{6},'{7}','{8}','{9}','{10}',{11})
+                            ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_oldest, commit_hash_end)
                             DO UPDATE SET commit_hash_end = excluded.commit_hash_end,
                                 commit_end_datetime = excluded.commit_end_datetime,
+                                commit_hash_oldest=excluded.commit_hash_oldest, 
+                                commit_oldest_datetime=excluded.commit_oldest_datetime,
                                 closed = excluded.closed;""".format(
                         mod_file_data.get_file_name(),
                         mod_file_data.get_file_dir_path(),
@@ -613,6 +696,7 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         cm.long_name, params,
                         commit.hash, commit.committer_date,
                         commit.hash, commit.committer_date, 1)
+                logging.debug(sql_string)
                 cur.execute(sql_string)
 
         con_analytics_db.commit()
@@ -719,7 +803,7 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
 
     Parameters:
     rows (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
-    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+    commit_hash_start,  commit_start_datetime, commit_hash_oldest, commit_oldest_datetime, commit_hash_end, commit_end_datetime, closed],...[])
 
     """
     try:
@@ -727,23 +811,25 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
         cur = con_analytics_db.cursor()
 
         for fc in rows:
-            logging.debug("Updating {0},{1},{2},{3},{4}".format( mod_file_data.get_file_path(),fc[0],fc[1],fc[2],fc[4]))
+            logging.debug("Updating {0},{1},{2},{3},{4}".format(
+                mod_file_data.get_file_path(), fc[0], fc[1], fc[2], fc[4]))
             # update start_hash if raw_function_call already existing and start_hash is not earlier as current hash
             sql_string = """UPDATE raw_function_call SET
-                        commit_hash_start='{0}', commit_start_datetime='{1}'
+                        commit_hash_start='{0}', commit_start_datetime='{1}',
+                        commit_hash_oldest='{4}', commit_oldest_datetime='{3}'
                         WHERE
-                        file_path='{2}'
-                        AND calling_function_unqualified_name='{3}' 
-                        AND calling_function_nr_parameters = {4}
-                        AND called_function_unqualified_name = '{5}'
+                        file_path='{4}'
+                        AND calling_function_unqualified_name='{5}' 
+                        AND calling_function_nr_parameters = {6}
+                        AND called_function_unqualified_name = '{7}'
                         AND closed = 0
-                        AND DATE(commit_start_datetime) >= DATE('{6}');""".format(fc[3], fc[4],
-                                                   mod_file_data.get_file_path(),
-                                                   fc[0],
-                                                   fc[1],
-                                                   fc[2]
-                                                   ,fc[4]
-                                                   )
+                        AND DATE(commit_start_datetime) >= DATE('{8}');""".format(fc[3], fc[4],
+                                                                                  fc[5], fc[6],
+                                                                                  mod_file_data.get_file_path(),
+                                                                                  fc[0],
+                                                                                  fc[1],
+                                                                                  fc[2], fc[4]
+                                                                                  )
 
             logging.debug(sql_string)
             cur.execute(sql_string)
@@ -757,9 +843,11 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
                             (file_name, file_dir_path, file_path,
                             calling_function_unqualified_name, calling_function_nr_parameters,
                             called_function_unqualified_name,
-                            commit_hash_start, commit_start_datetime, closed)
+                            commit_hash_start, commit_start_datetime, 
+                            commit_hash_oldest, commit_oldest_datetime,
+                            closed)
                         VALUES
-                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}',{8});""".format(
+                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}','{8}','{9}',{10});""".format(
                     mod_file_data.get_file_name(),
                     mod_file_data.get_file_dir_path(),
                     mod_file_data.get_file_path(),
@@ -768,6 +856,8 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
                     fc[2],
                     fc[3],
                     fc[4],
+                    fc[5],
+                    fc[6],
                     0)
                 logging.debug(sql_string)
                 cur.execute(sql_string)
@@ -789,7 +879,7 @@ def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_
 
     Parameters:
     rows (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
-    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+    commit_hash_start,  commit_start_datetime, commit_hash_oldest, commit_oldest_datetime, commit_hash_end, commit_end_datetime, closed],...[])
 
     """
     con_analytics_db = sqlite3.connect(path_to_project_db)
@@ -804,10 +894,10 @@ def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_
                         AND calling_function_nr_parameters = {4}
                         AND called_function_unqualified_name = '{5}'
                         AND closed = 0;""".format(fc[6], fc[7],
-                                                   mod_file_data.get_file_path(),
-                                                   fc[0],
-                                                   fc[1],
-                                                   fc[2])
+                                                  mod_file_data.get_file_path(),
+                                                  fc[0],
+                                                  fc[1],
+                                                  fc[2])
             cur.execute(sql_string)
 
             # raw_function_call did not previously exist, then insert only with end hash values
@@ -818,11 +908,15 @@ def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_
                             (file_name, file_dir_path, file_path,
                             calling_function_unqualified_name, calling_function_nr_parameters,
                             called_function_unqualified_name,
+                            commit_hash_oldest, commit_oldest_datetime,
                             commit_hash_end, commit_end_datetime, closed)
                         VALUES
-                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}',{8})
-                        ON CONFLICT (file_path, calling_function_unqualified_name, calling_function_nr_parameters, called_function_unqualified_name)
-                        DO UPDATE SET commit_hash_end = excluded.commit_hash_end,
+                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}','{8}','{9}',{10})
+                        ON CONFLICT (file_path, calling_function_unqualified_name, calling_function_nr_parameters, called_function_unqualified_name,
+                            commit_hash_start, commit_hash_oldest, commit_hash_end)
+                        DO UPDATE SET commit_hash_oldest=excluded.commit_hash_oldest, 
+                            commit_oldest_datetime=excluded.commit_oldest_datetime,
+                            commit_hash_end = excluded.commit_hash_end,
                             commit_end_datetime = excluded.commit_end_datetime,
                             closed = excluded.closed;""".format(
                     mod_file_data.get_file_name(),

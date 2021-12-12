@@ -10,6 +10,7 @@ class ActionClass(Enum):
     DELETE = 2
     INSERT = 3
     MOVE = 4
+    MODIFIY = 5
 
 
 class ProjectConfig:

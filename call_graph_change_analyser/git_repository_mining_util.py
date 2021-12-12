@@ -85,6 +85,7 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
         proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
     save_source_code(file_path_current, mod_file.source_code)
 
+    file_path_previous = None
     if mod_file.change_type != ModificationType.ADD:
         file_path_previous = os.path.join(
             proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
@@ -106,6 +107,10 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                         commit_hash=commit.hash,
                         commit_datetime=str(commit.committer_date))
 
+    # function_commit
+    insert_function_commit(
+        proj_paths.get_path_to_project_db(), mod_file, commit)
+
     # update function_to_file
     update_function_to_file(
         proj_paths.get_path_to_project_db(), mod_file, commit)
@@ -115,12 +120,6 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                           file_path_current, file_path_previous)
 
 
-def get_unqualified_name(base_name: str):
-    if base_name.__contains__('::'):
-        return(base_name).split(
-            '::')[len((base_name).split('::'))-1]
-    return base_name
-
 # TODO list to array, maybe
 # TODO handle mod_file._old_path != mod_file._new_path
 def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
@@ -128,15 +127,6 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                           file_path_previous: Optional[str] = None):
 
     mod_file_data = FileData(str(mod_file._new_path))
-
-    current_functions_names = [
-        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods]
-    current_functions_name = [f.name for f in mod_file.methods]
-    current_functions_parameters = [f.parameters for f in mod_file.methods]
-    previous_functions_names = [
-        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods_before]
-    deleted_functions_names = list(
-        set(previous_functions_names) - set(current_functions_names))
 
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
         # Current source code
@@ -150,15 +140,11 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
 
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
+        
         """
-        calling_function_unqualified_name
-        calling_function_name
-        calling_function_long_name
-        calling_function_parameters
-        called_function_unqualified_name
-        called_function_name
-        called_function_long_name
-        called_function_parameters        
+        calling_function_unqualified_name,
+        calling_function_nr_parameters,
+        called_function_unqualified_name       
         """
         if proj_config.get_proj_lang() == 'java':
             curr_function_calls = get_function_calls_java(curr_src_xml)
@@ -192,9 +178,9 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
 
 
         cm_dates = CommitDates(commit.hash, commit.committer_date)
-        rows_curr, rows_deleted = set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates)
-        #logging.debug("Current: ")
-        #logging.debug(rows_curr)
+        rows_curr, rows_deleted = set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates, mod_file)
+        logging.debug("Current: ")
+        logging.debug(rows_curr)
         logging.debug("Deleted: ")
         logging.debug(rows_deleted)
         #arr_all_function_calls = complete_function_calls_data(arr_all_function_calls)
@@ -211,6 +197,8 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         called_function_nr_parameters
         commit_hash_start
         commit_start_datetime
+        commit_hash_oldest
+        commit_oldest_datetime
         commit_hash_end
         commit_end_datetime
         closed

@@ -98,7 +98,6 @@ def save_compact_xml_parsed_code(path_to_cache_dir, relative_file_path: str, sou
     f.close()
 
 
-
 def is_java_file(mod_file: str):
     return mod_file[-5:] == '.java'
 
@@ -121,14 +120,15 @@ def get_file_type_validation_function(proj_lang):
         return is_python_file
 
 
-def get_file_imports(proj_lang:str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
+def get_file_imports(proj_lang: str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
     fis = []
     if proj_lang == 'cpp':
         fis = get_file_imports_cpp(source_code, mod_file_data)
     if proj_lang == 'java':
         fis = get_file_imports_java(source_code, mod_file_data)
-    
+
     return fis
+
 
 def get_file_imports_cpp(source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
@@ -149,6 +149,7 @@ def get_file_imports_cpp(source_code: str, mod_file_data: FileData) -> List[File
             break
 
     return r
+
 
 def get_file_imports_java(source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
@@ -181,7 +182,7 @@ def get_import_file_data_cpp(mod_file_dir_path, code_line: str):
     f_path = f_path.replace('<', '')
     f_path = f_path.replace('>', '')
     f_name = os.path.basename(f_path)
-    
+
     # includes libraries eg. <cmath> <QApplication>
     if code_line.__contains__('<'):
         f_name = f_path
@@ -203,7 +204,7 @@ def get_import_file_data_java(mod_file_dir_path, code_line: str):
     f_path = code_line[7:len(code_line.rstrip())].replace(';', '')
     chunks = f_path.split(".")
     f_name = chunks[len(chunks)-1]
-    
+
     # includes libraries eg. <cmath> <QApplication>
     if code_line.__contains__('<'):
         f_name = f_path
@@ -295,35 +296,82 @@ def save_call_commit_rows():
     print("TODO")
 
 
-def set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates: CommitDates):
+def get_unqualified_name(base_name: str):
+    if base_name.__contains__('::'):
+        return(base_name).split(
+            '::')[len((base_name).split('::'))-1]
+    return base_name
+
+
+def set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates: CommitDates, mod_file: ModifiedFile):
     """
     Returns an array of rows that contain the function_call's to be insterted in the database, 
     including the hash_start and hash_end and dates.
-  
+
     Curr Commit can update start_hash from all present functions, if no older start_hash(date)  exists and no previous end_hash(date) exists.
     Curr Commit can update(with insert if necessary) the end_hash from functions known to be deleted with curr commit, if the function is not closed.
-    
+
     Parameters:
     curr_function_calls (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name],...[])
     prev_function_calls (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name],...[])
     cm_dates (CommitDates): Dates of the current commit.
     deleted_functions_names (list[tuple[str]]): Array of form ([f.long_name, f.unqualified_name]...[])
-  
+
     Returns:
     rows_curr (list[tuple[str...]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
-    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+    commit_hash_start,  commit_start_datetime, commit_hash_oldest, commit_oldest_datetime, commit_hash_end, commit_end_datetime, closed],...[])
     rows_deleted (list[tuple[str..]]): Same structure as rows_curr
-  
+
     """
-    #added_calls = list(set(curr_function_calls) - set(prev_function_calls))
+
+    commit_previous_functions = [
+        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods_before]
+    commit_current_functions = [
+        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods]
+    commit_changed_functions = [
+        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.changed_methods]
+
+    # Calling functions
+    # get added functions (existing in curr but not prev)
+    added_functions = list(
+        set(commit_current_functions) - set(commit_previous_functions))
+    # get deleted functions (existing in prev but not in curr)
+    deleted_functions = list(
+        set(commit_previous_functions) - set(commit_current_functions))
+    # get just changed functions
+    changed_functions = list(
+        set(commit_changed_functions) - set(added_functions) - set(deleted_functions))
+    # get not changed functions
+    unchanged_functions = list(
+        set(commit_previous_functions).intersection(commit_current_functions) - set(changed_functions))
+
+    logging.debug("PREV FUNCTION CALLS")
+    logging.debug(prev_function_calls)
+    logging.debug("CURR FUNCTION CALLS")
+    logging.debug(curr_function_calls)
+
+    # Called functions
+    added_calls = list(set(curr_function_calls) - set(prev_function_calls))
     deleted_calls = list(set(prev_function_calls) - set(curr_function_calls))
+    unchanged_calls = list(
+        set(prev_function_calls).intersection(curr_function_calls))
 
     rows_curr = []
-    for cf in curr_function_calls:
-        rows_curr.append(cf + tuple([cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), None, None, 0]))
-    
+
+    for cf in added_calls:
+        rows_curr.append(cf + tuple([cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(
+        ), cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), None, None, 0]))
+    for cf in unchanged_calls:
+        rows_curr.append(cf + tuple([None, None, cm_dates.get_commit_hash(),
+                         cm_dates.get_commiter_datetime(), None, None, 0]))
+
     rows_deleted = []
     for df in deleted_calls:
-        rows_deleted.append(df + tuple([None, None, cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), 1]))
+        rows_deleted.append(df + tuple([None, None, cm_dates.get_commit_hash(
+        ), cm_dates.get_commiter_datetime(), cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), 1]))
+
+    logging.debug(added_calls)
+    logging.debug(unchanged_calls)
+    logging.debug(deleted_calls)
 
     return rows_curr, rows_deleted

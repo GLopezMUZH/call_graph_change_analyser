@@ -83,7 +83,7 @@ def execute_project_conf_JKQtPlotter(from_tag: Optional[str], to_tag: Optional[s
 
 
 def execute_project_conf_Glucosio(from_tag: Optional[str], to_tag: Optional[str],
-                                  since_date: Optional[str], to_date: Optional[str],
+                                  since_date: Optional[str]=None, to_date: Optional[str]=None,
                                   save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'

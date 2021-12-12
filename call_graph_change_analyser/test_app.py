@@ -10,7 +10,7 @@ from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from utils_py import replace_timezone
-from project_configs import execute_project_conf_JKQtPlotter
+from project_configs import execute_project_conf_JKQtPlotter,execute_project_conf_Glucosio
 
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -18,10 +18,11 @@ from call_graph_analysis import get_call_graph, print_graph_stats
 def main():
     print('Started App ------------ {0}'.format(datetime.now()))
     #proj_config, proj_paths = execute_project_conf_example_project()
-    proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
+    #proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
+    proj_config, proj_paths = execute_project_conf_Glucosio(from_tag='1.2.1', to_tag='1.3.0', save_cache_files=True)
     logging.info('Started App ---------- {0}'.format(datetime.now()))
 
-    #args = sys.argv[1:]
+    init_db(proj_paths)
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
@@ -29,49 +30,14 @@ def main():
     print('Finished App ------------- {0}'.format(datetime.now()))
 
 
-def execute_project_conf_example_project():
-    proj_name = 'example_project'
-    path_to_proj_data_dir=os.path.normpath('../tests/project_results/')
-
-    st_date = datetime(2021, 10, 1, 0, 1, 0, 79043)
-    st_date = replace_timezone(st_date)
-    end_date = datetime(2021, 10, 2, 0, 1, 0, 79043)
-    end_date = replace_timezone(end_date)
-
-    proj_config = ProjectConfig(proj_name=proj_name,
-                                proj_lang='cpp',
-                                commit_file_types=['.cpp'],
-                                path_to_repo='',
-                                repo_type='Git',
-                                start_repo_date=st_date,
-                                end_repo_date=end_date,
-                                delete_cache_files=False)
-    proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
-
-    log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), proj_name, 'app.log')
-
-    logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
-                        format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
-    logging.info('Started App - {0}'.format(str(datetime.now())))
-
-
-    return proj_config,proj_paths
-
-def init_db(proj_paths: ProjectPaths):
-    # INITIALIZE DATABASE ------------------------------
-#    proj_config, proj_paths = execute_project_conf_PX4()
-    print(proj_paths.get_path_to_project_db())
+def init_db(proj_paths):
+    logging.info('Initialize the db.')    
     create_db_tables(proj_paths, drop=True)
-    print("finish init_db")
 
 #%%
 if __name__ == '__main__':
     main()
 
-#%%
-proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
-init_db(proj_paths)
 
 
 # %%

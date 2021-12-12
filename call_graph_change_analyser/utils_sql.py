@@ -15,7 +15,7 @@ def create_db_tables(proj_paths: ProjectPaths, drop=False):
     if not os.path.exists(str(proj_paths.get_path_to_proj_data_dir())):
         os.makedirs(str(proj_paths.get_path_to_proj_data_dir()))
     print("create_db_tables drop", drop)
-    create_graph_based_tables(proj_paths.path_to_project_db, drop)
+    #create_graph_based_tables(proj_paths.path_to_project_db, drop)
     create_commit_based_tables(proj_paths.path_to_project_db, drop)
 
 
@@ -76,10 +76,6 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     if drop:
         try:
-            cur.execute('''DROP TABLE file_import''')
-        except Exception as error:
-            print("file_import ", error)
-        try:
             cur.execute('''DROP TABLE git_commit''')
         except Exception as error:
             print("call_commit ", error)
@@ -92,6 +88,10 @@ def create_commit_based_tables(path_to_project_db, drop=False):
         except Exception as error:
             print("call_commit ", error)
         try:
+            cur.execute('''DROP TABLE file_import''')
+        except Exception as error:
+            print("file_import ", error)
+        try:
             cur.execute('''DROP TABLE call_commit''')
         except Exception as error:
             print("call_commit ", error)
@@ -99,13 +99,14 @@ def create_commit_based_tables(path_to_project_db, drop=False):
             cur.execute('''DROP TABLE function_to_file''')
         except Exception as error:
             print("function_to_file ", error)
-
-    cur.execute('''CREATE TABLE IF NOT EXISTS file_import
-                (file_name text, file_dir_path text, file_path text,
-                import_file_path text, import_file_name text, import_file_dir_path text,
-                commit_hash_start text, commit_start_datetime text,
-                commit_hash_end text, commit_end_datetime text, closed,
-                primary key (file_path, import_file_path))''')
+        try:
+            cur.execute('''DROP TABLE function_call''')
+        except Exception as error:
+            print("function_call ", error)
+        try:
+            cur.execute('''DROP TABLE raw_function_call''')
+        except Exception as error:
+            print("raw_function_call ", error)
 
     cur.execute('''CREATE TABLE IF NOT EXISTS git_commit
                 (commit_hash text, commit_commiter_datetime text, author text,
@@ -130,6 +131,13 @@ def create_commit_based_tables(path_to_project_db, drop=False):
                 path_change integer,
                 primary key (file_path, function_long_name, commit_hash))''')
 
+    cur.execute('''CREATE TABLE IF NOT EXISTS file_import
+                (file_name text, file_dir_path text, file_path text,
+                import_file_path text, import_file_name text, import_file_dir_path text,
+                commit_hash_start text, commit_start_datetime text,
+                commit_hash_end text, commit_end_datetime text, closed integer,
+                primary key (file_path, import_file_path))''')
+
     cur.execute('''CREATE TABLE IF NOT EXISTS call_commit
                 (file_name text, file_dir_path text, file_path text,
                 calling_function_unqualified_name text, calling_function_name text,
@@ -141,10 +149,30 @@ def create_commit_based_tables(path_to_project_db, drop=False):
 
     cur.execute('''CREATE TABLE IF NOT EXISTS function_to_file
                 (file_name text, file_dir_path text, file_path text,
-                function_name text, function_long_name text, function_parameters text,
+                function_unqualified_name text, function_name text, 
+                function_long_name text, function_parameters text,
                 commit_hash_start text, commit_start_datetime text,
-                commit_hash_end text, commit_end_datetime text, closed,
+                commit_hash_end text, commit_end_datetime text, closed integer,
                 primary key (file_path, function_long_name, commit_hash_start, commit_hash_end))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS function_call
+                (file_name text, file_dir_path text, file_path text,
+                calling_function_unqualified_name text, calling_function_name text,
+                calling_function_long_name text, calling_function_parameters text,
+                called_function_unqualified_name text, called_function_name text,
+                called_function_long_name text, called_function_parameters text,
+                commit_hash_start text, commit_start_datetime text,
+                commit_hash_end text, commit_end_datetime text, closed integer,
+                primary key (file_path, calling_function_long_name, called_function_long_name, commit_hash_start))''')
+
+    cur.execute('''CREATE TABLE IF NOT EXISTS raw_function_call
+                (file_name text, file_dir_path text, file_path text,
+                calling_function_unqualified_name text, calling_function_nr_parameters integer,
+                called_function_unqualified_name text, called_function_nr_parameters integer,
+                commit_hash_start text, commit_start_datetime text,
+                commit_hash_end text, commit_end_datetime text, closed integer,
+                primary key (file_path, calling_function_unqualified_name, calling_function_nr_parameters,
+                called_function_unqualified_name, commit_hash_start))''')
 
     con.commit()
     cur.close()
@@ -222,8 +250,6 @@ def load_initial_graph(
                          if_exists='replace', index=False)
     con_analytics_db.commit()
 
-    print(df_table_node.head(3))
-
 
 def load_function_to_file_DEPRECATED(
     con_graph_db: sqlite3.Connection,
@@ -264,7 +290,6 @@ def insert_git_commit(path_to_project_db: str, commit_hash: Optional[str] = None
                       nr_modified_files: Optional[int] = None, nr_deletions: Optional[int] = None,
                       nr_insertions: Optional[int] = None, nr_lines: Optional[int] = None):
     try:
-        print("insert_git_commit")
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
@@ -296,7 +321,6 @@ def insert_file_commit(path_to_project_db: str, mod_file_data: FileData,
                        commit_new_path: str, commit_old_path: str,
                        change_type: str):
     try:
-        print("insert_file_commit")
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
@@ -339,10 +363,8 @@ def get_previous_file_import_long_names(path_to_project_db: str, mod_file_data: 
         WHERE file_path = '{0}'
         AND closed = 0""".format(mod_file_data.get_file_path())
 
-        print(sql_string)
         cur.execute(sql_string)
         result = cur.fetchall()
-        print(result)
 
         con_analytics_db.commit()
         cur.close()
@@ -361,7 +383,6 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         path_to_project_db: str,
                         commit_hash: str,
                         commit_datetime: str):
-    print("update_file_imports")
     try:
         # TODO change to parsing previous file....
         previous_file_import_long_names = get_previous_file_import_long_names(
@@ -408,7 +429,6 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
 
         # handle unchanged file_imports
         for fi in [f for f in fis if f.get_import_file_path() in unchanged_functions]:
-            print(fi)
             sql_string = """UPDATE file_import SET
                         commit_hash_start='{0}', commit_start_datetime='{1}'
                         WHERE
@@ -436,10 +456,6 @@ def insert_function_commit(path_to_project_db: str, mod_file: ModifiedFile, comm
         cur = con_analytics_db.cursor()
 
         for cm in changed_methods:
-            print(cm)
-            print(cm.__hash__())
-            print(cm.parameters)
-
             params = ','.join(cm.parameters)
 
             f_unqualified_name = (cm.name).split(
@@ -488,7 +504,6 @@ def get_previous_active_functions_in_file(path_to_project_db: str, mod_file: Mod
 
         cur.execute(sql_string)
         result = cur.fetchall()
-        print(result)
 
         con_analytics_db.commit()
         cur.close()
@@ -506,7 +521,7 @@ def get_previous_active_functions_in_file(path_to_project_db: str, mod_file: Mod
 def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                             commit: Commit):
     mod_file_data = FileData(str(mod_file._new_path))
-    previous_active_functions_in_file: List[str]
+    previous_active_functions_in_file = []
     try:
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
@@ -534,50 +549,59 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
         # on method added, the commit_hash_start will be set to the current
         # on methods previously exisitng, the commit_hash_start will be updated to the current because we work the repository in reverse order
         for cm in mod_file.methods:
-            print(cm.long_name)
             params = ','.join(cm.parameters)
-            # TODO maybe unnecesary if... 
+
+            f_unqualified_name = (cm.name).split(
+                '::')[len((cm.name).split('::'))-1]
+
+            # TODO maybe unnecesary if...
             if (cm.long_name in added_functions) or (cm.long_name in changed_functions) or (cm.long_name in unchanged_functions):
                 sql_string = """INSERT INTO function_to_file
                             (file_name, file_dir_path, file_path,
-                            function_name, function_long_name, function_parameters,
+                            function_unqualified_name, function_name, 
+                            function_long_name, function_parameters,
                             commit_hash_start, commit_start_datetime, closed)
                         VALUES
-                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}',{8})
+                            ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}',{9})
                         ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end)
                         DO UPDATE SET commit_hash_start = excluded.commit_hash_start,
                             commit_start_datetime = excluded.commit_start_datetime;""".format(
                     mod_file_data.get_file_name(),
                     mod_file_data.get_file_dir_path(),
                     mod_file_data.get_file_path(),
-                    cm.name, cm.long_name, params,
+                    f_unqualified_name, cm.name,
+                    cm.long_name, params,
                     commit.hash, commit.committer_date, 0)
                 cur.execute(sql_string)
 
         for cm in mod_file.changed_methods:
             if cm.long_name in deleted_functions:
-                print("Deleted function_to_file: {0}".format(cm.long_name))
                 logging.debug(
                     "Deleted function_to_file: {0}".format(cm.long_name))
                 params = ','.join(cm.parameters)
 
-                if cm.long_name in previous_active_functions_in_file:
+                f_unqualified_name = (cm.name).split(
+                    '::')[len((cm.name).split('::'))-1]
+
+                if cm.long_name in commit_previous_functions: #previous_active_functions_in_file:
+                    # TODO check if 2 times processing
                     sql_string = """UPDATE function_to_file SET
                                 commit_hash_end='{0}', commit_end_datetime='{1}', closed = 1
                                 WHERE
                                 file_path='{2}'
-                                AND function_long_name='{3}';""".format(
+                                AND function_long_name='{3} AND closed = 0';""".format(
                         commit.hash, commit.committer_date,
                         mod_file_data.get_file_path(), cm.long_name)
                 else:
                     # because we work from tag to tag it might be that the entry does not exist
                     sql_string = """INSERT INTO function_to_file
                                 (file_name, file_dir_path, file_path,
-                                function_name, function_long_name, function_parameters,
+                                function_unqualified_name, function_name, 
+                                function_long_name, function_parameters,
                                 commit_hash_start, commit_start_datetime,
                                 commit_hash_end, commit_end_datetime, closed)
                             VALUES
-                                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}',{10})
+                                ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}',{11})
                             ON CONFLICT (file_path, function_long_name, commit_hash_start, commit_hash_end)
                             DO UPDATE SET commit_hash_end = excluded.commit_hash_end,
                                 commit_end_datetime = excluded.commit_end_datetime,
@@ -585,7 +609,8 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         mod_file_data.get_file_name(),
                         mod_file_data.get_file_dir_path(),
                         mod_file_data.get_file_path(),
-                        cm.name, cm.long_name, params,
+                        f_unqualified_name, cm.name,
+                        cm.long_name, params,
                         commit.hash, commit.committer_date,
                         commit.hash, commit.committer_date, 1)
                 cur.execute(sql_string)
@@ -598,8 +623,6 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
-
-
 
 
 def insert_or_update_call_commit_DEPRECATED(con_analytics_db: sqlite3.Connection,
@@ -655,7 +678,6 @@ def insert_or_update_call_commit_DEPRECATED(con_analytics_db: sqlite3.Connection
             call_commit.get_action_class()))
 
     if execute_sql:
-        print(sql_string)
         cur.execute(sql_string)
         con_analytics_db.commit()
     else:
@@ -672,8 +694,6 @@ def save_call_commit_rows(Bs_tree, proj_paths: ProjectPaths, commit: Commit):
 
     # pass column names in the columns parameter 
     df = pd.DataFrame(data, columns = ['year', 'make','model'])
-    df
-
 
     # save to database
     con_analytics_db = sqlite3.connect(path_to_project_db)
@@ -681,12 +701,158 @@ def save_call_commit_rows(Bs_tree, proj_paths: ProjectPaths, commit: Commit):
 
 """
 
+
 def save_call_commit_rows():
+    logging.info("TODO")
     print("TODO")
 
 
 def save_funciton_call_rows():
+    logging.info("TODO")
     print("TODO")
+
+
+def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_data: FileData):
+    """
+    If row already exists then only the hash_start and start_date will be updated, else if not exists insert. 
+    Closed is only set if row did not exist previously. 
+
+    Parameters:
+    rows (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
+    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+
+    """
+    try:
+        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        for fc in rows:
+            logging.debug("Updating {0},{1},{2},{3},{4}".format( mod_file_data.get_file_path(),fc[0],fc[1],fc[2],fc[4]))
+            # update start_hash if raw_function_call already existing and start_hash is not earlier as current hash
+            sql_string = """UPDATE raw_function_call SET
+                        commit_hash_start='{0}', commit_start_datetime='{1}'
+                        WHERE
+                        file_path='{2}'
+                        AND calling_function_unqualified_name='{3}' 
+                        AND calling_function_nr_parameters = {4}
+                        AND called_function_unqualified_name = '{5}'
+                        AND closed = 0
+                        AND DATE(commit_start_datetime) >= DATE('{6}');""".format(fc[3], fc[4],
+                                                   mod_file_data.get_file_path(),
+                                                   fc[0],
+                                                   fc[1],
+                                                   fc[2]
+                                                   ,fc[4]
+                                                   )
+
+            logging.debug(sql_string)
+            cur.execute(sql_string)
+            logging.debug("cur.arraysize {0}".format(cur.arraysize))
+            logging.debug("curr.rowcount {0}".format(cur.rowcount))
+
+            # raw_function_call did not previously exist, then insert only with start hash values
+            if(cur.rowcount <= 0):
+                logging.debug("No previous record, insert.")
+                sql_string = """INSERT INTO raw_function_call
+                            (file_name, file_dir_path, file_path,
+                            calling_function_unqualified_name, calling_function_nr_parameters,
+                            called_function_unqualified_name,
+                            commit_hash_start, commit_start_datetime, closed)
+                        VALUES
+                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}',{8});""".format(
+                    mod_file_data.get_file_name(),
+                    mod_file_data.get_file_dir_path(),
+                    mod_file_data.get_file_path(),
+                    fc[0],
+                    fc[1],
+                    fc[2],
+                    fc[3],
+                    fc[4],
+                    0)
+                logging.debug(sql_string)
+                cur.execute(sql_string)
+
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as err:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(err).__name__, err.args)
+        logging.error(err_message)
+
+
+def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_data: FileData):
+    """
+    Closed is only set if row did not exist previously. 
+    If row already exists then only the hash_start and start_date will be updated.
+
+    Parameters:
+    rows (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
+    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+
+    """
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    cur = con_analytics_db.cursor()
+    try:
+        for fc in rows:
+            sql_string = """UPDATE raw_function_call SET
+                        commit_hash_end='{0}', commit_end_datetime='{1}', closed = 1
+                        WHERE
+                        file_path='{2}'
+                        AND calling_function_unqualified_name='{3}' 
+                        AND calling_function_nr_parameters = {4}
+                        AND called_function_unqualified_name = '{5}'
+                        AND closed = 0;""".format(fc[6], fc[7],
+                                                   mod_file_data.get_file_path(),
+                                                   fc[0],
+                                                   fc[1],
+                                                   fc[2])
+            cur.execute(sql_string)
+
+            # raw_function_call did not previously exist, then insert only with end hash values
+            if(cur.arraysize <= 0):
+                logging.debug("Del func_call not previously existing: {0},{1},{2}".format(
+                    fc[0], fc[1], fc[2],))
+                sql_string = """INSERT INTO raw_function_call
+                            (file_name, file_dir_path, file_path,
+                            calling_function_unqualified_name, calling_function_nr_parameters,
+                            called_function_unqualified_name,
+                            commit_hash_end, commit_end_datetime, closed)
+                        VALUES
+                            ('{0}','{1}','{2}','{3}',{4},'{5}','{6}','{7}',{8})
+                        ON CONFLICT (file_path, calling_function_unqualified_name, calling_function_nr_parameters, called_function_unqualified_name)
+                        DO UPDATE SET commit_hash_end = excluded.commit_hash_end,
+                            commit_end_datetime = excluded.commit_end_datetime,
+                            closed = excluded.closed;""".format(
+                    mod_file_data.get_file_name(),
+                    mod_file_data.get_file_dir_path(),
+                    mod_file_data.get_file_path(),
+                    fc[0],
+                    fc[1],
+                    fc[2],
+                    fc[6],
+                    fc[7],
+                    1)
+                cur.execute(sql_string)
+
+        con_analytics_db.commit()
+        cur.close()
+    except Exception as err:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(err).__name__, err.args)
+        logging.error(err_message)
+
+
+def complete_function_calls_data(arr_function_calls):
+    """
+    if not existing completes the long_name, name and parameters of the given functions
+    """
+    logging.info("TODO")
+    print("TODO")
+
 
 """
 create table edge_node_info (edge_id, edge_type, source_node_id, source_node_type, source_node_name, target_node_id, target_node_type, target_node_name)

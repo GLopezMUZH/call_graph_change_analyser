@@ -14,7 +14,20 @@ from call_graph_analysis import get_call_graph, print_graph_stats
 
 # %%
 def main():
+    """
+    since_date format '12-11-2019'
+    """
     print('Started App ------------ {0}'.format(datetime.now()))
+
+    exists_from_tag = False
+    exists_to_tag = False
+    exists_since_date = False
+    exists_to_tag = False
+
+    from_tag = None
+    to_tag = None
+    since_date = None
+    to_date = None
 
     args = sys.argv[1:]
 
@@ -31,24 +44,37 @@ def main():
         tf_idx = args.index("-from_tag")
         from_tag = args[tf_idx+1]
         print(from_tag)
-    else: 
-        err_msg = "ERROR. Currently required -from_tag X -to_tag Y arguments"
-        raise Exception(err_msg)
+        exists_from_tag = True
 
     if '-to_tag' in args:
         tt_idx = args.index("-to_tag")
         to_tag = args[tt_idx+1]
         print(to_tag)
-    else: 
-        err_msg = "ERROR. Currently required -from_tag X -to_tag Y arguments"
+        exists_to_tag = True
+
+    if '-since_date' in args:
+        ds_idx = args.index("-since_date")
+        since_date = datetime.strptime(args[ds_idx+1], '%d-%m-%Y')
+        print(from_tag)
+        exists_since_date = True
+
+    if '-to_date' in args:
+        dt_idx = args.index("-to_date")
+        to_date = datetime.strptime(args[dt_idx+1], '%d-%m-%Y')
+        print(to_tag)
+        exists_to_date = True
+
+    # dates must be set
+    if not((exists_from_tag and exists_to_tag) or (exists_since_date and exists_to_date) or (exists_since_date)):
+        err_msg = "ERROR. Currently required either[-from_tag X -to_tag Y] or [-since_date dd-mm-yyyy -to_date dd-mm-yyyy] arguments"
         raise Exception(err_msg)
 
     if p_name == 'JKQtPlotter':
-        proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag=from_tag, to_tag=to_tag, save_cache_files=True)
+        proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag=from_tag, to_tag=to_tag, since_date=since_date, to_date=to_date, save_cache_files=True)
     elif p_name == 'PX4-Autopilot':
-        proj_config, proj_paths = execute_project_conf_PX4(from_tag, to_tag)
+        proj_config, proj_paths = execute_project_conf_PX4(from_tag=from_tag, to_tag=to_tag, since_date=since_date, to_date=to_date, save_cache_files=True)
     elif p_name == 'glucosio':
-        proj_config, proj_paths = execute_project_conf_Glucosio(from_tag=from_tag, to_tag=to_tag, save_cache_files=True)
+        proj_config, proj_paths = execute_project_conf_Glucosio(from_tag=from_tag, to_tag=to_tag, since_date=since_date, to_date=to_date, save_cache_files=True)
 
     # can only log after seting log file path
     logging.info('Started App ---------- {0}'.format(datetime.now()))

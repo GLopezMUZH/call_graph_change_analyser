@@ -290,23 +290,40 @@ def parse_xml_call_diffs(diff_xml_file, path_to_cache_current, mod_file_data: Fi
     return r
 
 
-def get_arr_functions_to_file_to_save(cm_dates: CommitDates, arr_curr_functions_to_file, arr_prev_functions_to_file):
+def save_call_commit_rows():
+    logging.info("TODO")
+    print("TODO")
+
+
+def set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates: CommitDates):
     """
-    Returns an array of rows that contain the functions to be insterted in the database, funcitons that are pressent .
+    Returns an array of rows that contain the function_call's to be insterted in the database, 
+    including the hash_start and hash_end and dates.
   
-    Extended description of function.
-  
+    Curr Commit can update start_hash from all present functions, if no older start_hash(date)  exists and no previous end_hash(date) exists.
+    Curr Commit can update(with insert if necessary) the end_hash from functions known to be deleted with curr commit, if the function is not closed.
+    
     Parameters:
-    cm_dates (CommitDates): Dates of the current commit. 
-    arr_curr_functions_to_file (arr[arr]): Array of form ([function_name,function_long_name,function_parameters],...[])
-    arr_prev_functions_to_file (arr[arr]): Array of form ([function_name,function_long_name,function_parameters],...[])
+    curr_function_calls (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name],...[])
+    prev_function_calls (list[tuple[str..]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name],...[])
+    cm_dates (CommitDates): Dates of the current commit.
+    deleted_functions_names (list[tuple[str]]): Array of form ([f.long_name, f.unqualified_name]...[])
   
     Returns:
-    int: Description of return value
+    rows_curr (list[tuple[str...]]): Array of form ([calling_function_unqualified_name,calling_function_nr_parameters,called_function_unqualified_name,
+    commit_hash_start,  commit_start_datetime, commit_hash_end, commit_end_datetime, closed],...[])
+    rows_deleted (list[tuple[str..]]): Same structure as rows_curr
   
     """
-    print("TODO")
+    #added_calls = list(set(curr_function_calls) - set(prev_function_calls))
+    deleted_calls = list(set(prev_function_calls) - set(curr_function_calls))
 
-def save_call_commit_rows():
-    print("TODO")
+    rows_curr = []
+    for cf in curr_function_calls:
+        rows_curr.append(cf + tuple([cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), None, None, 0]))
+    
+    rows_deleted = []
+    for df in deleted_calls:
+        rows_deleted.append(df + tuple([None, None, cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), 1]))
 
+    return rows_curr, rows_deleted

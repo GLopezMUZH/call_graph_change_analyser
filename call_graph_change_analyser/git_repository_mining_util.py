@@ -2,8 +2,8 @@ from pydriller import Repository, Commit, ModificationType
 from bs4 import BeautifulSoup
 
 from models import *
-from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code, get_arr_functions_to_file_to_save
-from compact_xml_parsing_java import get_function_to_file_funciton_tags
+from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code, set_hashes_to_function_calls
+from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
 
 
@@ -14,24 +14,10 @@ def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             path_to_repo=proj_config.get_path_to_repo(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
-
-        # git_commit
-        insert_git_commit(proj_paths.get_path_to_project_db(),
-                          commit_hash=commit.hash, commit_commiter_datetime=str(
-            commit.committer_date),
-            author=commit.author.name,
-            in_main_branch=True,  # commit.in_main_branch,
-            merge=commit.merge, nr_modified_files=len(
-                              commit.modified_files),
-            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
-
-        for mod_file in commit.modified_files:
-            if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(
-                    proj_config, proj_paths, commit, mod_file)
+        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
-def git_traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+def git_traverse_between_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
@@ -40,21 +26,18 @@ def git_traverse_on_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
-        # git_commit
-        insert_git_commit(proj_paths.get_path_to_project_db(),
-                          commit_hash=commit.hash, commit_commiter_datetime=str(
-            commit.committer_date),
-            author=commit.author.name,
-            in_main_branch=True,  # commit.in_main_branch,
-            merge=commit.merge, nr_modified_files=len(
-                              commit.modified_files),
-            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
-        for mod_file in commit.modified_files:
-            if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(
-                    proj_config, proj_paths, commit, mod_file)
+def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
+    for commit in Repository(
+            path_to_repo=proj_config.get_path_to_repo(),
+            since=proj_config.get_start_repo_date(),
+            only_modifications_with_file_types=proj_config.get_commit_file_types(),
+            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
 def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -66,21 +49,24 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
-        # git_commit
-        insert_git_commit(proj_paths.get_path_to_project_db(),
-                          commit_hash=commit.hash, commit_commiter_datetime=str(
-            commit.committer_date),
-            author=commit.author.name,
-            in_main_branch=True,  # commit.in_main_branch,
-            merge=commit.merge, nr_modified_files=len(
-                              commit.modified_files),
-            nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
-        for mod_file in commit.modified_files:
-            if (is_valid_file_type(str(mod_file._new_path))):
-                process_file_git_commit(
-                    proj_config, proj_paths, commit, mod_file)
+def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Commit):
+    # git_commit
+    insert_git_commit(proj_paths.get_path_to_project_db(),
+                      commit_hash=commit.hash, commit_commiter_datetime=str(
+        commit.committer_date),
+        author=commit.author.name,
+        in_main_branch=True,  # commit.in_main_branch,
+        merge=commit.merge, nr_modified_files=len(
+        commit.modified_files),
+        nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
+
+    for mod_file in commit.modified_files:
+        if (is_valid_file_type(str(mod_file._new_path))):
+            process_file_git_commit(proj_config, proj_paths,
+                                    commit, mod_file)
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
@@ -121,20 +107,37 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                         commit_datetime=str(commit.committer_date))
 
     # update function_to_file
-    update_function_to_file(proj_paths.get_path_to_project_db(), mod_file, commit)
+    update_function_to_file(
+        proj_paths.get_path_to_project_db(), mod_file, commit)
 
-    """
-    # function_to_file and call_commits
+    # update function_call
     update_function_calls(proj_config, proj_paths, mod_file, commit,
-                                file_path_current, file_path_previous)
-    """
+                          file_path_current, file_path_previous)
 
 
+def get_unqualified_name(base_name: str):
+    if base_name.__contains__('::'):
+        return(base_name).split(
+            '::')[len((base_name).split('::'))-1]
+    return base_name
+
+# TODO list to array, maybe
 # TODO handle mod_file._old_path != mod_file._new_path
 def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
-                                mod_file: ModifiedFile, commit: Commit, file_path_current: str,
-                                file_path_previous: Optional[str] = None):
+                          mod_file: ModifiedFile, commit: Commit, file_path_current: str,
+                          file_path_previous: Optional[str] = None):
+
     mod_file_data = FileData(str(mod_file._new_path))
+
+    current_functions_names = [
+        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods]
+    current_functions_name = [f.name for f in mod_file.methods]
+    current_functions_parameters = [f.parameters for f in mod_file.methods]
+    previous_functions_names = [
+        (f.long_name, get_unqualified_name(f.name)) for f in mod_file.methods_before]
+    deleted_functions_names = list(
+        set(previous_functions_names) - set(current_functions_names))
+
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
         # Current source code
         # get compact xml parsed source
@@ -147,10 +150,25 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
 
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
-        arr_curr_functions_to_file = get_function_to_file_funciton_tags(curr_src_xml)
+        """
+        calling_function_unqualified_name
+        calling_function_name
+        calling_function_long_name
+        calling_function_parameters
+        called_function_unqualified_name
+        called_function_name
+        called_function_long_name
+        called_function_parameters        
+        """
+        if proj_config.get_proj_lang() == 'java':
+            curr_function_calls = get_function_calls_java(curr_src_xml)
+        else:
+            curr_function_calls = []
+            logging.info("TODO")
+            print("TODO")
 
         # Previous source code
-        arr_prev_functions_to_file = []
+        prev_function_calls = []
         if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
             # get compact xml parsed source
             prev_src_args = [
@@ -161,32 +179,47 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
             prev_src_xml = BeautifulSoup(prev_src_str, "xml")
 
             save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_previous(),
-                                        relative_file_path=str(
-                                            mod_file._new_path),
-                                        source_text=prev_src_str)
-            arr_prev_functions_to_file = get_function_to_file_funciton_tags(prev_src_xml)
+                                         relative_file_path=str(
+                mod_file._new_path),
+                source_text=prev_src_str)
+
+            if proj_config.get_proj_lang() == 'java':
+                prev_function_calls = get_function_calls_java(prev_src_xml)
+            else:
+                curr_function_calls = []
+                print("TODO")
+                logging.info("TODO")
+
+
+        cm_dates = CommitDates(commit.hash, commit.committer_date)
+        rows_curr, rows_deleted = set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates)
+        #logging.debug("Current: ")
+        #logging.debug(rows_curr)
+        logging.debug("Deleted: ")
+        logging.debug(rows_deleted)
+        #arr_all_function_calls = complete_function_calls_data(arr_all_function_calls)
+
 
         """
+        FUNCTION_CALL
         file_name
         file_dir_path
         file_path
-        function_name
-        function_long_name
-        function_parameters
+        calling_function_unqualified_name
+        calling_function_nr_parameters
+        called_function_unqualified_name
+        called_function_nr_parameters
         commit_hash_start
         commit_start_datetime
         commit_hash_end
         commit_end_datetime
         closed
         """
-        cm_dates = CommitDates(commit.hash, commit.commiter_datetime)
-        arr_functions_to_file = get_arr_functions_to_file_to_save(cm_dates, arr_curr_functions_to_file, arr_prev_functions_to_file)
-
-        save_call_commit_rows()
-
-        save_funciton_call_rows()
+        save_raw_function_call_curr_rows(proj_paths.get_path_to_project_db(), rows_curr, mod_file_data)
+        save_raw_function_call_deleted_rows(proj_paths.get_path_to_project_db(), rows_deleted, mod_file_data)
 
 
-        print("TODO")
+        # save_call_commit_rows() # MIGHT NOT NEED THEM
+
     else:
         print("No current parser for the project language.")

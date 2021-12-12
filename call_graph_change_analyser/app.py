@@ -65,9 +65,11 @@ def main():
         exists_to_date = True
 
     # dates must be set
+    """
     if not((exists_from_tag and exists_to_tag) or (exists_since_date and exists_to_date) or (exists_since_date)):
         err_msg = "ERROR. Currently required either[-from_tag X -to_tag Y] or [-since_date dd-mm-yyyy -to_date dd-mm-yyyy] arguments"
         raise Exception(err_msg)
+    """
 
     if p_name == 'JKQtPlotter':
         proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag=from_tag, to_tag=to_tag, since_date=since_date, to_date=to_date, save_cache_files=True)

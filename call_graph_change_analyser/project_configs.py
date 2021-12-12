@@ -117,11 +117,11 @@ def execute_project_conf_Glucosio(from_tag: Optional[str], to_tag: Optional[str]
     return proj_config, proj_paths
 
 
-def execute_project_conf_OpenBot(from_tag: Optional[str], to_tag: Optional[str],
+def execute_project_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_tag: Optional[str]='v0.4.0',
                                   since_date: Optional[str]=None, to_date: Optional[str]=None,
                                   save_cache_files: bool = False, delete_cache_files: bool = False):
-    #from_tag = 'v2019.11.0'
-    #to_tag = 'v2019.11.1'
+    #from_tag = 'v0.1.0'
+    #to_tag = 'v0.1.0'
 
     proj_name = 'OpenBot'
     path_to_proj_data_dir = os.path.normpath('../project_results/')
@@ -152,8 +152,8 @@ def execute_project_conf_OpenBot(from_tag: Optional[str], to_tag: Optional[str],
     return proj_config, proj_paths
 
 
-def execute_project_conf_EConcierge(from_tag: Optional[str], to_tag: Optional[str],
-                                  since_date: Optional[str]=None, to_date: Optional[str]=None,
+def execute_project_conf_EConcierge(from_tag: Optional[str]=None, to_tag: Optional[str]=None,
+                                  since_date: Optional[str]='13-03-2014', to_date: Optional[str]='01-01-2021',
                                   save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
@@ -187,8 +187,8 @@ def execute_project_conf_EConcierge(from_tag: Optional[str], to_tag: Optional[st
     return proj_config, proj_paths
 
 
-def execute_project_conf_GRIP(from_tag: Optional[str], to_tag: Optional[str],
-                                  since_date: Optional[str]=None, to_date: Optional[str]=None,
+def execute_project_conf_GRIP(from_tag: Optional[str]=None, to_tag: Optional[str]=None,
+                                  since_date: Optional[str]='01-01-2016', to_date: Optional[str]='01-11-2021',
                                   save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'

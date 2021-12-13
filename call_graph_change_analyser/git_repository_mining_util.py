@@ -88,7 +88,7 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
     file_path_previous = None
     if mod_file.change_type != ModificationType.ADD:
         file_path_previous = os.path.join(
-            proj_paths.get_path_to_cache_previous(), str(mod_file._new_path))
+            proj_paths.get_path_to_cache_previous(), str(mod_file._old_path))
         save_source_code(file_path_previous,
                          mod_file.source_code_before)
 

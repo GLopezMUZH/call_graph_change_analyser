@@ -2,6 +2,7 @@
 import os
 from bs4 import BeautifulSoup
 import pandas as pd
+import logging
 
 
 #%%
@@ -37,22 +38,26 @@ def get_function_unqualified_name(function_tag):
 #%%
 def get_called_functions(function_tag):
     called_functions = []
-    for call_tag in function_tag.findAll('MethodInvocation'):
-        called_function_name = call_tag.findAll(
-            'SimpleName', recursive=False)[0]['label']
-        called_functions.append(called_function_name)
+    relevant_all_call_names = []
+    try:
+        for call_tag in function_tag.findAll('MethodInvocation'):
+            called_function_name = call_tag.findAll(
+                'SimpleName', recursive=False)[0]['label']
+            called_functions.append(called_function_name)
 
-    for call_tag in function_tag.findAll('MethodCallExpr'):
-        called_function_name = call_tag.findAll(
-            'SimpleName', recursive=False)[0]['label']
-        called_functions.append(called_function_name)
+        for call_tag in function_tag.findAll('MethodCallExpr'):
+            called_function_name = call_tag.findAll(
+                'SimpleName', recursive=False)[0]['label']
+            called_functions.append(called_function_name)
 
-    set_called_functions = set(called_functions)
-    irrelevant_call_names = [
-        'append', 'get', 'run', 'show', 'equals', 'getId',
-        'bytesToHexString', 'e', 'i', 'arraycopy','when','toString']
-    relevant_all_call_names = (
-        set(set_called_functions) - set(irrelevant_call_names))
+        set_called_functions = set(called_functions)
+        irrelevant_call_names = [
+            'append', 'get', 'run', 'show', 'equals', 'getId',
+            'bytesToHexString', 'e', 'i', 'arraycopy','when','toString']
+        relevant_all_call_names = (
+            set(set_called_functions) - set(irrelevant_call_names))
+    except Exception as err:
+        logging.exception(err)
     return relevant_all_call_names
 
 # %%

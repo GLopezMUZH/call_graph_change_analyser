@@ -14,9 +14,12 @@ class ActionClass(Enum):
 
 
 class ProjectConfig:
-    PATH_TO_SRC_DIFF_JAR_CPP = os.path.normpath('../resources/astChangeAnalyzer_0_1_cpp.jar')
-    PATH_TO_SRC_DIFF_JAR_JAVA = os.path.normpath('../resources/astChangeAnalyzer_0_1_java.jar')
-    PATH_TO_SRC_COMPACT_XML_PARSING = os.path.normpath('../resources/astChangeAnalyzer_0_1_parsexmlcompact.jar')
+    PATH_TO_SRC_DIFF_JAR_CPP = os.path.normpath(
+        '../resources/astChangeAnalyzer_0_1_cpp.jar')
+    PATH_TO_SRC_DIFF_JAR_JAVA = os.path.normpath(
+        '../resources/astChangeAnalyzer_0_1_java.jar')
+    PATH_TO_SRC_COMPACT_XML_PARSING = os.path.normpath(
+        '../resources/astChangeAnalyzer_0_1_parsexmlcompact.jar')
 
     def __init__(
             self,  proj_name:
@@ -41,13 +44,13 @@ class ProjectConfig:
         if proj_lang == 'java':
             self.path_to_src_diff_jar = ProjectConfig.PATH_TO_SRC_DIFF_JAR_CPP
         elif proj_lang == 'cpp':
-            self.path_to_src_diff_jar = ProjectConfig.PATH_TO_SRC_DIFF_JAR_CPP        
+            self.path_to_src_diff_jar = ProjectConfig.PATH_TO_SRC_DIFF_JAR_CPP
         else:
             raise Exception("No valid language.")
 
     def get_proj_lang(self):
         return self.proj_lang
-        
+
     def get_commit_file_types(self):
         return self.commit_file_types
 
@@ -83,25 +86,34 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_proj_data_dir: str) -> None:
+    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None) -> None:
         # temporary source and diff folders
-        self.path_to_cache_dir = os.path.join(path_to_proj_data_dir, proj_name, '.cache')
-        self.path_to_cache_current = os.path.join(self.path_to_cache_dir, proj_name, 'current')
-        self.path_to_cache_previous = os.path.join(self.path_to_cache_dir, proj_name, 'previous')
-        self.path_to_cache_sourcediff = os.path.join(self.path_to_cache_dir, proj_name, 'sourcediff')
+        self.path_to_cache_dir = os.path.join(
+            path_to_proj_data_dir, proj_name, '.cache')
+        self.path_to_cache_current = os.path.join(
+            self.path_to_cache_dir, proj_name, 'current')
+        self.path_to_cache_previous = os.path.join(
+            self.path_to_cache_dir, proj_name, 'previous')
+        self.path_to_cache_sourcediff = os.path.join(
+            self.path_to_cache_dir, proj_name, 'sourcediff')
         # project data directory
-        self.path_to_proj_data_dir = os.path.join(path_to_proj_data_dir, proj_name)
+        self.path_to_proj_data_dir = os.path.join(
+            path_to_proj_data_dir, proj_name)
+        # Java for finding path from package
+        self.path_to_src_files = path_to_src_files
         # analytics database
-        self.path_to_project_db = os.path.join(path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
+        self.path_to_project_db = os.path.join(
+            path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
         # initial graph db
-        self.path_to_srctrail_db = os.path.join(path_to_proj_data_dir, proj_name, 'callgraphdb', proj_name + '.srctrldb')
+        self.path_to_srctrail_db = os.path.join(
+            path_to_proj_data_dir, proj_name, 'callgraphdb', proj_name + '.srctrldb')
         # create folders if not exist
         if not os.path.exists(self.path_to_cache_dir):
             os.makedirs(self.path_to_cache_dir)
 
     def get_path_to_cache_dir(self):
         return self.path_to_cache_dir
-        
+
     def get_path_to_cache_current(self):
         return self.path_to_cache_current
 
@@ -113,6 +125,9 @@ class ProjectPaths:
 
     def get_path_to_proj_data_dir(self):
         return self.path_to_proj_data_dir
+
+    def get_path_to_src_files(self):
+        return self.path_to_src_files
 
     def get_path_to_project_db(self):
         return self.path_to_project_db
@@ -133,8 +148,10 @@ class FileData():
 
     def get_file_name(self):
         return self.file_name
+
     def get_file_dir_path(self):
         return self.file_dir_path
+
     def get_file_path(self):
         return self.file_path
 
@@ -344,6 +361,7 @@ class FileImport():
                  import_file_path: str,
                  import_file_name: str,
                  import_file_dir_path: str,
+                 import_file_pkg: str = None,
                  commit_hash_start=None, commit_start_datetime=None,
                  commit_hash_end=None, commit_end_datetime=None) -> None:
         self.file_name = src_file_data.file_name
@@ -352,6 +370,7 @@ class FileImport():
         self.import_file_path = import_file_path
         self.import_file_name = import_file_name
         self.import_file_dir_path = import_file_dir_path
+        self.import_file_pkg = import_file_pkg
         self.commit_hash_start = commit_hash_start
         self.commit_start_datetime = commit_start_datetime
         self.commit_hash_end = commit_hash_end
@@ -366,14 +385,17 @@ class FileImport():
     def get_file_path(self) -> str:
         return self.file_path
 
-    def get_import_file_path(self)-> str:
+    def get_import_file_path(self) -> str:
         return self.import_file_path
-    
+
     def get_import_file_name(self) -> str:
         return self.import_file_name
 
     def get_import_file_dir_path(self) -> str:
         return self.import_file_dir_path
+
+    def get_import_file_pkg(self) -> str:
+        return self.import_file_pkg
 
     def get_commit_hash_start(self) -> str:
         return self.commit_hash_start
@@ -394,8 +416,8 @@ class FileImport():
         self.commit_end_datetime = commit_end_datetime
 
     def __str__(self) -> str:
-        return("FileImport[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}]"
-               .format(self.file_path, self.import_file_name, self.import_file_dir_path))
+        return("FileImport[src_file_path: {0}, import_file_name: {1}, import_file_dir_path: {2}, import_file_pkg: {3}]"
+               .format(self.file_path, self.import_file_name, self.import_file_dir_path, self.import_file_pkg))
 
 
 class CommitDates():
@@ -412,7 +434,7 @@ class CommitDates():
 
 class CommitPairDates():
     def __init__(self, commit_hash_start, commit_start_datetime,
-    commit_hash_end,commit_end_datetime):
+                 commit_hash_end, commit_end_datetime):
         self.commit_hash_start = commit_hash_start
         self.commit_start_datetime = commit_start_datetime
         self.commit_hash_end = commit_hash_end

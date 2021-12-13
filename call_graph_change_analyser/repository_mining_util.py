@@ -120,12 +120,13 @@ def get_file_type_validation_function(proj_lang):
         return is_python_file
 
 
-def get_file_imports(proj_lang: str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
+def get_file_imports(proj_lang: str, path_to_src_files: str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
     fis = []
     if proj_lang == 'cpp':
         fis = get_file_imports_cpp(source_code, mod_file_data)
     if proj_lang == 'java':
-        fis = get_file_imports_java(source_code, mod_file_data)
+        fis = get_file_imports_java(
+            path_to_src_files, source_code, mod_file_data)
 
     return fis
 
@@ -137,13 +138,14 @@ def get_file_imports_cpp(source_code: str, mod_file_data: FileData) -> List[File
         count += 1
         if count < 500:
             if (code_line.lstrip()).startswith("#include "):
-                f_name, f_path, f_dir_path = get_import_file_data_cpp(
+                f_name, f_path, f_dir_path, f_file_pkg = get_import_file_data_cpp(
                     mod_file_data.get_file_dir_path(), code_line)
 
                 fi = FileImport(src_file_data=mod_file_data,
                                 import_file_path=f_path,
                                 import_file_name=f_name,
-                                import_file_dir_path=f_dir_path)
+                                import_file_dir_path=f_dir_path,
+                                import_file_pkg=f_file_pkg)
                 r.append(fi)
         else:
             break
@@ -151,20 +153,21 @@ def get_file_imports_cpp(source_code: str, mod_file_data: FileData) -> List[File
     return r
 
 
-def get_file_imports_java(source_code: str, mod_file_data: FileData) -> List[FileImport]:
+def get_file_imports_java(path_to_src_files, source_code: str, mod_file_data: FileData) -> List[FileImport]:
     count = 0
     r = []
     for code_line in source_code.splitlines():
         count += 1
         if count < 500:
             if (code_line.lstrip()).startswith("import "):
-                f_name, f_path, f_dir_path = get_import_file_data_java(
-                    mod_file_data.get_file_dir_path(), code_line)
+                f_name, f_path, f_dir_path, f_file_pkg = get_import_file_data_java(
+                    path_to_src_files, code_line)
 
                 fi = FileImport(src_file_data=mod_file_data,
                                 import_file_path=f_path,
                                 import_file_name=f_name,
-                                import_file_dir_path=f_dir_path)
+                                import_file_dir_path=f_dir_path,
+                                import_file_pkg=f_file_pkg)
                 r.append(fi)
         else:
             break
@@ -192,29 +195,42 @@ def get_import_file_data_cpp(mod_file_dir_path, code_line: str):
         f_name = f_path
     else:
         f_dir_path = os.path.dirname(f_path)
-    return f_name, f_path, f_dir_path
+    return f_name, f_path, f_dir_path, None
 
 
-def get_import_file_data_java(mod_file_dir_path, code_line: str):
+def get_import_file_data_java(path_to_src_files, code_line: str):
     """
-    e.g. import android.content.Context;
+    format import pkg1[.pkg2].(classname|*);
+
+    :param 
+
+    :return: f_name - the name of the classname
+    :return: f_path - the likely path if the import contained a classname
+    :return: f_dir_path - the path to the directory of the pkg
+    :return: f_pkg - the pkg 
+
     """
     f_name = ''
     f_dir_path = ''
-    f_path = code_line[7:len(code_line.rstrip())].replace(';', '')
-    chunks = f_path.split(".")
+    f_path = ''
+    f_pkg = ''
+    f_pkg = code_line[7:len(code_line.rstrip())].replace(';', '')
+    chunks = f_pkg.split(".")
     f_name = chunks[len(chunks)-1]
 
-    # includes libraries eg. <cmath> <QApplication>
-    if code_line.__contains__('<'):
-        f_name = f_path
+    # java specific
+    if not path_to_src_files == None:
+        f_dir_path = os.path.normpath(path_to_src_files)
+        chunks = f_pkg.split('.')
+        for x in chunks[:-1]:
+            f_dir_path = os.path.join(f_dir_path, x)
 
-    if (code_line.__contains__('"') and not code_line.__contains__('/')):
-        f_dir_path = mod_file_dir_path
-        f_name = f_path
-    else:
-        f_dir_path = os.path.dirname(f_path)
-    return f_name, f_path, f_dir_path
+        if not code_line.__contains__('*'):
+            f_path = os.path.join(f_dir_path, ''.join(
+                [chunks[-1].split('.')[-1], '.java']))
+        else:
+            f_path = f_dir_path
+    return f_name, f_path, f_dir_path, f_pkg
 
 
 def jarWrapper(*args):

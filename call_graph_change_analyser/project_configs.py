@@ -83,13 +83,14 @@ def execute_project_conf_JKQtPlotter(from_tag: Optional[str], to_tag: Optional[s
 
 
 def execute_project_conf_Glucosio(from_tag: Optional[str], to_tag: Optional[str],
-                                  since_date: Optional[str]=None, to_date: Optional[str]=None,
+                                  since_date: Optional[str] = None, to_date: Optional[str] = None,
                                   save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
     proj_name = 'glucosio-android'
     path_to_proj_data_dir = os.path.normpath('../project_results/')
+    path_to_src_files = os.path.normpath('app/src/main/java/')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
@@ -103,7 +104,8 @@ def execute_project_conf_Glucosio(from_tag: Optional[str], to_tag: Optional[str]
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
+                              path_to_proj_data_dir=path_to_proj_data_dir,
+                              path_to_src_files=path_to_src_files)
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
     print(log_filepath)
@@ -117,14 +119,15 @@ def execute_project_conf_Glucosio(from_tag: Optional[str], to_tag: Optional[str]
     return proj_config, proj_paths
 
 
-def execute_project_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_tag: Optional[str]='v0.4.0',
-                                  since_date: Optional[str]=None, to_date: Optional[str]=None,
-                                  save_cache_files: bool = False, delete_cache_files: bool = False):
+def execute_project_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_tag: Optional[str] = 'v0.4.0',
+                                 since_date: Optional[str] = None, to_date: Optional[str] = None,
+                                 save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v0.1.0'
     #to_tag = 'v0.1.0'
 
     proj_name = 'OpenBot'
     path_to_proj_data_dir = os.path.normpath('../project_results/')
+    path_to_src_files = os.path.normpath('android/app/src/main/java/org/')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
@@ -138,7 +141,8 @@ def execute_project_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_tag: Opt
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
+                              path_to_proj_data_dir=path_to_proj_data_dir,
+                              path_to_src_files=path_to_src_files)
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
     print(log_filepath)
@@ -152,14 +156,16 @@ def execute_project_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_tag: Opt
     return proj_config, proj_paths
 
 
-def execute_project_conf_EConcierge(from_tag: Optional[str]=None, to_tag: Optional[str]=None,
-                                  since_date: Optional[str]='13-03-2014', to_date: Optional[str]='01-01-2021',
-                                  save_cache_files: bool = False, delete_cache_files: bool = False):
+def execute_project_conf_EConcierge(from_tag: Optional[str] = None, to_tag: Optional[str] = None,
+                                    since_date: Optional[str] = '13-03-2014', to_date: Optional[str] = '01-01-2021',
+                                    save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
     proj_name = 'EConcierge'
     path_to_proj_data_dir = os.path.normpath('../project_results/')
+    path_to_src_files = os.path.normpath(
+        'framework/org.eclipse.concierge/src/')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
@@ -173,7 +179,8 @@ def execute_project_conf_EConcierge(from_tag: Optional[str]=None, to_tag: Option
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
+                              path_to_proj_data_dir=path_to_proj_data_dir,
+                              path_to_src_files=path_to_src_files)
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
     print(log_filepath)
@@ -187,14 +194,15 @@ def execute_project_conf_EConcierge(from_tag: Optional[str]=None, to_tag: Option
     return proj_config, proj_paths
 
 
-def execute_project_conf_GRIP(from_tag: Optional[str]=None, to_tag: Optional[str]=None,
-                                  since_date: Optional[str]='01-01-2016', to_date: Optional[str]='01-11-2021',
-                                  save_cache_files: bool = False, delete_cache_files: bool = False):
+def execute_project_conf_GRIP(from_tag: Optional[str] = None, to_tag: Optional[str] = None,
+                              since_date: Optional[str] = '01-01-2016', to_date: Optional[str] = '01-11-2021',
+                              save_cache_files: bool = False, delete_cache_files: bool = False):
     #from_tag = 'v2019.11.0'
     #to_tag = 'v2019.11.1'
 
     proj_name = 'GRIP'
     path_to_proj_data_dir = os.path.normpath('../project_results/')
+    path_to_src_files = os.path.normpath('core/src/main/java/edu/wpi/grip')
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
@@ -208,7 +216,8 @@ def execute_project_conf_GRIP(from_tag: Optional[str]=None, to_tag: Optional[str
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
-                              path_to_proj_data_dir=path_to_proj_data_dir)
+                              path_to_proj_data_dir=path_to_proj_data_dir,
+                              path_to_src_files=path_to_src_files)
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
     print(log_filepath)

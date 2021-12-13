@@ -134,6 +134,7 @@ def create_commit_based_tables(path_to_project_db, drop=False):
     cur.execute('''CREATE TABLE IF NOT EXISTS file_import
                 (file_name text, file_dir_path text, file_path text,
                 import_file_path text, import_file_name text, import_file_dir_path text,
+                import_file_pkg text,
                 commit_hash_start text, commit_start_datetime text,
                 commit_hash_oldest text, commit_oldest_datetime text,
                 commit_hash_end text, commit_end_datetime text, closed integer,
@@ -411,13 +412,15 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         for fi in [fi for fi in fis if fi.get_import_file_path() in added_functions]:
             sql_string = """INSERT INTO file_import
                         (file_name, file_dir_path, file_path,
-                        import_file_name, import_file_path, import_file_dir_path,
+                        import_file_name, import_file_path, 
+                        import_file_dir_path, import_file_pkg, 
                         commit_hash_start, commit_start_datetime,
                         commit_hash_oldest, commit_oldest_datetime, closed)
                     VALUES
-                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}',0);""".format(
+                        ('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}',0);""".format(
                 fi.get_file_name(),  fi.get_file_dir_path(), fi.get_file_path(),
-                fi.get_import_file_name(), fi.get_import_file_path(), fi.get_import_file_dir_path(),
+                fi.get_import_file_name(), fi.get_import_file_path(), 
+                fi.get_import_file_dir_path(), fi.get_import_file_pkg(),
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime)
             cur.execute(sql_string)

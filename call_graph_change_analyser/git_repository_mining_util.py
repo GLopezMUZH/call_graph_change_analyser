@@ -100,7 +100,7 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                        change_type=mod_file.change_type)
 
     # update file imports
-    fis = get_file_imports(proj_config.get_proj_lang(),
+    fis = get_file_imports(proj_config.get_proj_lang(), proj_paths.get_path_to_src_files(),
                            mod_file.source_code, mod_file_data)
     update_file_imports(mod_file_data, fis,
                         proj_paths.get_path_to_project_db(),
@@ -140,7 +140,7 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
 
         save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
                                      relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
-        
+
         """
         calling_function_unqualified_name,
         calling_function_nr_parameters,
@@ -176,15 +176,14 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                 print("TODO")
                 logging.info("TODO")
 
-
         cm_dates = CommitDates(commit.hash, commit.committer_date)
-        rows_curr, rows_deleted = set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_dates, mod_file)
+        rows_curr, rows_deleted = set_hashes_to_function_calls(
+            curr_function_calls, prev_function_calls, cm_dates, mod_file)
         logging.debug("Current: ")
         logging.debug(rows_curr)
         logging.debug("Deleted: ")
         logging.debug(rows_deleted)
         #arr_all_function_calls = complete_function_calls_data(arr_all_function_calls)
-
 
         """
         FUNCTION_CALL
@@ -203,9 +202,10 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         commit_end_datetime
         closed
         """
-        save_raw_function_call_curr_rows(proj_paths.get_path_to_project_db(), rows_curr, mod_file_data)
-        save_raw_function_call_deleted_rows(proj_paths.get_path_to_project_db(), rows_deleted, mod_file_data)
-
+        save_raw_function_call_curr_rows(
+            proj_paths.get_path_to_project_db(), rows_curr, mod_file_data)
+        save_raw_function_call_deleted_rows(
+            proj_paths.get_path_to_project_db(), rows_deleted, mod_file_data)
 
         # save_call_commit_rows() # MIGHT NOT NEED THEM
 

@@ -136,3 +136,6 @@ dmypy.json
 
 # local backup files
 *.old
+
+# project config files
+*.pconfig

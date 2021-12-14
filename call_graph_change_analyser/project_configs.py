@@ -59,8 +59,6 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 path_to_local_src_dir=get_label_content(line, len("path_to_local_src_dir:"))
             if (line.lstrip()).startswith("only_in_branch:"):
                 only_in_branch=get_label_content(line, len("only_in_branch:"))
-    
-    print(only_in_branch)
                 
     if proj_lang == 'cpp':
         commit_file_types=['.cpp']

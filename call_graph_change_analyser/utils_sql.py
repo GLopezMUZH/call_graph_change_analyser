@@ -628,7 +628,6 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         commit.hash, commit.committer_date,
                         mod_file_data.get_file_path(), cm.long_name)
 
-                logging.debug(sql_string)
                 cur.execute(sql_string)
                 logging.debug("cur.rowcount {0}".format(cur.rowcount))
 
@@ -650,7 +649,6 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         f_unqualified_name, cm.name,
                         cm.long_name, params,
                         commit.hash, commit.committer_date, 0)
-                    logging.debug(sql_string)
                     cur.execute(sql_string)
 
         # Deleted functions
@@ -699,7 +697,6 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         cm.long_name, params,
                         commit.hash, commit.committer_date,
                         commit.hash, commit.committer_date, 1)
-                logging.debug(sql_string)
                 cur.execute(sql_string)
 
         con_analytics_db.commit()
@@ -834,7 +831,6 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
                                                                                   fc[2], fc[4]
                                                                                   )
 
-            logging.debug(sql_string)
             cur.execute(sql_string)
             logging.debug("cur.arraysize {0}".format(cur.arraysize))
             logging.debug("curr.rowcount {0}".format(cur.rowcount))
@@ -862,7 +858,6 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
                     fc[5],
                     fc[6],
                     0)
-                logging.debug(sql_string)
                 cur.execute(sql_string)
 
         con_analytics_db.commit()

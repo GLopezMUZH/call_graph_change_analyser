@@ -193,8 +193,6 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         cm_dates = CommitDates(commit.hash, commit.committer_date)
         rows_curr, rows_deleted = set_hashes_to_function_calls(
             curr_function_calls, prev_function_calls, cm_dates, mod_file)
-        logging.debug("Current: ")
-        logging.debug(rows_curr)
         logging.debug("Deleted: ")
         logging.debug(rows_deleted)
         #arr_all_function_calls = complete_function_calls_data(arr_all_function_calls)

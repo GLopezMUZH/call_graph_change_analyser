@@ -571,14 +571,10 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
         unchanged_functions = list(
             set(commit_previous_functions).intersection(commit_current_functions) - set(changed_functions))
 
-        logging.debug("added_functions")
-        logging.debug(added_functions)
-        logging.debug("deleted_functions")
-        logging.debug(deleted_functions)
-        logging.debug("changed_functions")
-        logging.debug(changed_functions)
-        logging.debug("unchanged_functions")
-        logging.debug(unchanged_functions)
+        logging.debug("added_functions len {0}".format(len(added_functions)))
+        logging.debug("deleted_functions len {0}".format(len(deleted_functions)))
+        logging.debug("changed_functions len {0}".format(len(changed_functions)))
+        logging.debug("unchanged_functions len {0}".format(len(unchanged_functions)))
 
         # mod_file.methods include added, changed and unchanged
         # on method added, the commit_hash_start will be set to the current
@@ -591,7 +587,7 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
 
             # Added functions
             if (cm.long_name in added_functions):
-                logging.debug("Added funciton {0}".format(cm.long_name))
+                #logging.debug("Added funciton {0}".format(cm.long_name))
                 sql_string = """INSERT INTO function_to_file
                             (file_name, file_dir_path, file_path,
                             function_unqualified_name, function_name, 
@@ -618,7 +614,7 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
 
             # Changed and unchanged functions
             if (cm.long_name in changed_functions) or (cm.long_name in unchanged_functions):
-                logging.debug("Changed or unchanged funciton {0}".format(cm.long_name))
+                #logging.debug("Changed or unchanged funciton {0}".format(cm.long_name))
                 sql_string = """UPDATE function_to_file SET
                                 commit_hash_oldest='{0}', commit_oldest_datetime='{1}',
                                 closed = 1
@@ -629,10 +625,10 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         mod_file_data.get_file_path(), cm.long_name)
 
                 cur.execute(sql_string)
-                logging.debug("cur.rowcount {0}".format(cur.rowcount))
+                #logging.debug("cur.rowcount {0}".format(cur.rowcount))
 
                 if(cur.rowcount <= 0):
-                    logging.debug("Changed or unchanged funciton {0} didnt exist in db, make insert. ".format(cm.long_name))
+                    #logging.debug("Changed or unchanged funciton {0} didnt exist in db, make insert. ".format(cm.long_name))
                     sql_string = """INSERT INTO function_to_file
                                 (file_name, file_dir_path, file_path,
                                 function_unqualified_name, function_name, 
@@ -676,6 +672,7 @@ def update_function_to_file(path_to_project_db: str, mod_file: ModifiedFile,
                         mod_file_data.get_file_path(), cm.long_name)
                 else:
                     # because we work from tag to tag it might be that the entry does not exist
+                    logging.debug("Deleted funciton {0} didnt exist in db, make insert. ".format(cm.long_name))
                     sql_string = """INSERT INTO function_to_file
                                 (file_name, file_dir_path, file_path,
                                 function_unqualified_name, function_name, 
@@ -832,9 +829,7 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
                                                                                   )
 
             cur.execute(sql_string)
-            logging.debug("cur.arraysize {0}".format(cur.arraysize))
-            logging.debug("curr.rowcount {0}".format(cur.rowcount))
-
+            
             # raw_function_call did not previously exist, then insert only with start hash values
             if(cur.rowcount <= 0):
                 logging.debug("No previous record, insert.")

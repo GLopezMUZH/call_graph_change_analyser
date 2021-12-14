@@ -10,7 +10,7 @@ from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from utils_py import replace_timezone
-from project_configs import execute_project_conf_JKQtPlotter,execute_project_conf_Glucosio
+from project_configs import execute_project_default_conf_JKQtPlotter,execute_project_default_conf_Glucosio
 
 from call_graph_analysis import get_call_graph, print_graph_stats
 
@@ -19,7 +19,7 @@ def main():
     print('Started App ------------ {0}'.format(datetime.now()))
     #proj_config, proj_paths = execute_project_conf_example_project()
     #proj_config, proj_paths = execute_project_conf_JKQtPlotter(from_tag='v2019.11.0', to_tag='v2019.11.3')
-    proj_config, proj_paths = execute_project_conf_Glucosio(from_tag='1.2.1', to_tag='1.3.0', save_cache_files=True)
+    proj_config, proj_paths = execute_project_default_conf_Glucosio(from_tag='1.2.1', to_tag='1.3.0', save_cache_files=True)
     logging.info('Started App ---------- {0}'.format(datetime.now()))
 
     init_db(proj_paths)

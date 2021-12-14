@@ -198,6 +198,29 @@ for fi in fis:
     print(fi.get_import_file_name())
 
 
+#%%
+import os
+print(os.path.exists(os.path.join(os.path.normpath('../project_results/'),'JKQtPlotter','config.txt')))
+print(os.path.exists(os.path.join(os.path.normpath('../project_results/'),'glucosio-android','config.txt')))
+print(os.path.exists(os.path.join(os.path.normpath('../project_results/'),'call_graph_change_analyser','config.txt')))
+
+f_full_path = os.path.join(os.path.normpath('.'),'glucosio.pconfig')
+
+print(os.path.exists(f_full_path))
+#%%
+from project_configs import read_project_config
+
+proj_config, proj_paths = read_project_config(f_full_path)
+
+print(proj_config)
+print(proj_paths)
+
+
+
+
+
+
+
 # %%
 file_path = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot\\sourcediff\\src\\drivers\\uavcannode\\UavcanNode.cpp.txt'
 #file_path = 'C:\\Users\\lopm\\Documents\\mt\\sandbox\\.cache\\PX4-Autopilot\\sourcediff\\src\\modules\\mavlink\\mavlink_parameters.cpp.txt'

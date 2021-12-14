@@ -86,7 +86,7 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None) -> None:
+    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None, path_to_local_src_dir: str=None) -> None:
         # temporary source and diff folders
         self.path_to_cache_dir = os.path.join(
             path_to_proj_data_dir, proj_name, '.cache')
@@ -99,6 +99,8 @@ class ProjectPaths:
         # project data directory
         self.path_to_proj_data_dir = os.path.join(
             path_to_proj_data_dir, proj_name)
+        # local folder with current source
+        self.path_to_local_src_dir = path_to_local_src_dir
         # Java for finding path from package
         self.path_to_src_files = path_to_src_files
         # analytics database
@@ -125,6 +127,9 @@ class ProjectPaths:
 
     def get_path_to_proj_data_dir(self):
         return self.path_to_proj_data_dir
+
+    def get_path_to_local_src_dir(self):
+        return self.path_to_local_src_dir
 
     def get_path_to_src_files(self):
         return self.path_to_src_files

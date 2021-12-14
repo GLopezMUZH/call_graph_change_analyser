@@ -9,6 +9,7 @@ from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from project_configs import *
 
+from initial_indexing import execute_intitial_indexing
 from call_graph_analysis import get_call_graph, print_graph_stats
 
 
@@ -102,6 +103,9 @@ def main():
 
     if '-init_db_yes' in args:
         init_db(proj_paths)
+
+    if '-init_index_yes' in args:
+        execute_intitial_indexing(proj_paths)
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 

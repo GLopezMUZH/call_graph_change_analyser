@@ -32,6 +32,9 @@ def save_source_code(file_path, source_text):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
 
+    if source_text is None:
+        return
+
     if isinstance(source_text, bytes):
         logging.debug("save_source_code was bytes")
         source_text = source_text.decode('utf-8')
@@ -48,6 +51,9 @@ def save_source_code(file_path, source_text):
         print("ERROR writelines", type(source_text))
         logging.warning("ERROR writelines {0}".format(type(source_text)))
         f.write(source_text.encode('utf-8-sig'))
+    except Exception as err:
+        logging.error(file_path)
+        logging.exception(err)
     f.close()
     save_source_code_xml(file_path)
 
@@ -95,6 +101,9 @@ def save_compact_xml_parsed_code(path_to_cache_dir, relative_file_path: str, sou
         print("ERROR writelines", type(source_text))
         logging.warning("ERROR writelines {0}".format(type(source_text)))
         f.write(source_text.encode('utf-8-sig'))
+    except Exception as err:
+        logging.error(relative_file_path)
+        logging.exception(err)
     f.close()
 
 

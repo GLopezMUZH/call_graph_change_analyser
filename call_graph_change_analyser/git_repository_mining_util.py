@@ -86,16 +86,23 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
             os.makedirs(os.path.dirname(file_path_sourcediff))
 
     # Save new source code
-    file_path_current = os.path.join(
-        proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
-    save_source_code(file_path_current, mod_file.source_code)
+    file_path_current = None
+    if mod_file.change_type != ModificationType.DELETE and mod_file.change_type != ModificationType.RENAME:
+        file_path_current = os.path.join(
+            proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
+        save_source_code(file_path_current, mod_file.source_code)
 
     file_path_previous = None
-    if mod_file.change_type != ModificationType.ADD:
+    if mod_file.change_type != ModificationType.ADD and mod_file.change_type != ModificationType.RENAME:
         file_path_previous = os.path.join(
             proj_paths.get_path_to_cache_previous(), str(mod_file._old_path))
         save_source_code(file_path_previous,
                          mod_file.source_code_before)
+
+    if mod_file.change_type == ModificationType.RENAME:
+        print("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
+        logging.info("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
+        return
 
     # insert file_commit
     insert_file_commit(proj_paths.get_path_to_project_db(), mod_file_data=mod_file_data,
@@ -135,28 +142,30 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
 
     if proj_config.get_proj_lang() == 'java' or proj_config.get_proj_lang() == 'cpp':
         # Current source code
-        # get compact xml parsed source
-        curr_src_args = [
-            proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
-        result = jarWrapper(*curr_src_args)
-        # convert to string -> xml
-        curr_src_str = b''.join(result).decode('utf-8')
-        curr_src_xml = BeautifulSoup(curr_src_str, "xml")
+        curr_function_calls = []
+        if file_path_current is not None:
+            # get compact xml parsed source
+            curr_src_args = [
+                proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
+            result = jarWrapper(*curr_src_args)
+            # convert to string -> xml
+            curr_src_str = b''.join(result).decode('utf-8')
+            curr_src_xml = BeautifulSoup(curr_src_str, "xml")
 
-        save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
-                                     relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
+            save_compact_xml_parsed_code(path_to_cache_dir=proj_paths.get_path_to_cache_current(),
+                                         relative_file_path=str(mod_file._new_path), source_text=curr_src_str)
 
-        """
-        calling_function_unqualified_name,
-        calling_function_nr_parameters,
-        called_function_unqualified_name       
-        """
-        if proj_config.get_proj_lang() == 'java':
-            curr_function_calls = get_function_calls_java(curr_src_xml)
-        else:
-            curr_function_calls = []
-            logging.info("TODO")
-            print("TODO")
+            """
+            calling_function_unqualified_name,
+            calling_function_nr_parameters,
+            called_function_unqualified_name       
+            """
+            if proj_config.get_proj_lang() == 'java':
+                curr_function_calls = get_function_calls_java(curr_src_xml)
+            else:
+                curr_function_calls = []
+                logging.info("TODO")
+                print("TODO")
 
         # Previous source code
         prev_function_calls = []

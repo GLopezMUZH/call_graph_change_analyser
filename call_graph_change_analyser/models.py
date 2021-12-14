@@ -29,7 +29,7 @@ class ProjectConfig:
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
             delete_cache_files: Optional[bool] = True,
-            only_in_branch: str='master') -> None:
+            only_in_branch: Optional[str]=None) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
@@ -41,7 +41,7 @@ class ProjectConfig:
         self.repo_to_tag = repo_to_tag
         self.save_cache_files = save_cache_files
         self.delete_cache_files = delete_cache_files
-        self.only_in_branch = only_in_branch
+        self.only_in_branch = only_in_branch if only_in_branch is not None else 'master'
         self.path_to_src_compact_xml_parsing = ProjectConfig.PATH_TO_SRC_COMPACT_XML_PARSING
         if proj_lang == 'java':
             self.path_to_src_diff_jar = ProjectConfig.PATH_TO_SRC_DIFF_JAR_CPP

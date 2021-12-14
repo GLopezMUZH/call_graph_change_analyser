@@ -8,6 +8,7 @@ from utils_sql import *
 
 
 def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    print(proj_config.get_only_in_branch())
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(

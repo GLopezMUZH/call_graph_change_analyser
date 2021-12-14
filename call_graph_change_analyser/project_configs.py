@@ -23,7 +23,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     repo_type = None
     commit_file_types = None
     path_to_local_src_dir = None
-    only_in_branch = 'master'
+    only_in_branch = None
 
     def get_label_content(line, label_size):
         return line[label_size:len(line.rstrip())].replace("'", '')
@@ -58,8 +58,9 @@ def execute_project_conf_from_file(path_to_config_file:str):
             if (line.lstrip()).startswith("path_to_local_src_dir:"):
                 path_to_local_src_dir=get_label_content(line, len("path_to_local_src_dir:"))
             if (line.lstrip()).startswith("only_in_branch:"):
-                path_to_local_src_dir=get_label_content(line, len("only_in_branch:"))
-                
+                only_in_branch=get_label_content(line, len("only_in_branch:"))
+    
+    print(only_in_branch)
                 
     if proj_lang == 'cpp':
         commit_file_types=['.cpp']

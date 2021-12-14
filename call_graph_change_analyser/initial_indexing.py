@@ -46,3 +46,12 @@ def create_file_pkg_table(proj_paths: ProjectPaths):
         print("file_pkg ", error)
 
     df.to_sql('file_pkg', conn, if_exists='replace', index=False)
+    append_class_pkg(proj_paths)
+
+
+def append_class_pkg(proj_paths: ProjectPaths):
+    conn = sqlite3.connect(proj_paths.get_path_to_project_db())
+    sql_statement = """SELECT * FROM file_pkg"""
+    df = pd.read_sql_query(sql_statement, conn)
+    df['class_pkg'] = df.apply(lambda row: ''.join([row.file_pkg, '.', row.file_name.replace('.java','')]), axis=1)
+    df.to_sql('file_pkg', conn, if_exists='replace', index=False)

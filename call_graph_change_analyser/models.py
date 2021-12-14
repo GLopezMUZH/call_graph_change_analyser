@@ -28,7 +28,8 @@ class ProjectConfig:
             start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
-            delete_cache_files: Optional[bool] = True) -> None:
+            delete_cache_files: Optional[bool] = True,
+            only_in_branch: str='master') -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
@@ -40,6 +41,7 @@ class ProjectConfig:
         self.repo_to_tag = repo_to_tag
         self.save_cache_files = save_cache_files
         self.delete_cache_files = delete_cache_files
+        self.only_in_branch = only_in_branch
         self.path_to_src_compact_xml_parsing = ProjectConfig.PATH_TO_SRC_COMPACT_XML_PARSING
         if proj_lang == 'java':
             self.path_to_src_diff_jar = ProjectConfig.PATH_TO_SRC_DIFF_JAR_CPP
@@ -80,6 +82,9 @@ class ProjectConfig:
 
     def get_delete_cache_files(self) -> bool:
         return self.delete_cache_files
+
+    def get_only_in_branch(self):
+        return self.only_in_branch
 
     def __str__(self) -> str:
         return("ProjectConfig. Name: {0}, delete_cache_files: {1}".format(self.proj_name, self.delete_cache_files))

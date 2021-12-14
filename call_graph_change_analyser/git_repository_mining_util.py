@@ -13,7 +13,8 @@ def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     for commit in Repository(
             path_to_repo=proj_config.get_path_to_repo(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+            order='reverse', only_no_merge=True,
+            only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
         process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
@@ -25,7 +26,8 @@ def git_traverse_between_dates(proj_config: ProjectConfig, proj_paths: ProjectPa
             since=proj_config.get_start_repo_date(),
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+            order='reverse', only_no_merge=True,
+            only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
         process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
@@ -36,7 +38,8 @@ def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths)
             path_to_repo=proj_config.get_path_to_repo(),
             since=proj_config.get_start_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+            order='reverse', only_no_merge=True,
+            only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
         process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
@@ -48,7 +51,8 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             from_tag=proj_config.get_repo_from_tag(),
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
-            order='reverse', only_no_merge=True, only_in_branch='master').traverse_commits():
+            order='reverse', only_no_merge=True,
+            only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
         process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 

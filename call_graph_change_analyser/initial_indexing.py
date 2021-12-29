@@ -2,8 +2,25 @@ import os
 import pandas as pd
 from itertools import islice
 import sqlite3
+from git import Repo
+import logging
+from stopwatch import Stopwatch
 
 from models import ProjectPaths
+
+
+def download_initial_cache_source(repo_url, path_to_cache_src_dir):
+    if not os.path.exists(os.path.dirname(path_to_cache_src_dir)):
+        os.makedirs(os.path.dirname(path_to_cache_src_dir))
+
+    logging.info("Start git clone")
+    #stopwatch = Stopwatch()
+    #stopwatch.start()
+    Repo.clone_from(repo_url, path_to_cache_src_dir)
+    #stopwatch.stop()
+    #print(stopwatch.elapsed) 
+    #print(stopwatch.report())
+    logging.info("End git clone")
 
 
 def execute_intitial_indexing(proj_paths: ProjectPaths):

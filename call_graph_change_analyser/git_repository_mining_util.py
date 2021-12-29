@@ -94,14 +94,14 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                                             commit, mod_file)
 
     # process call graph sourceTrail
-    dir_deleted_file = process_file_git_commit_all_source_parsing(
+    dir_deleted_file = process_file_git_commit_cg_parsing(
         proj_paths, mod_file)
     
     return dir_deleted_file
     
 
 
-def process_file_git_commit_all_source_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):
+def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):
     # Save new source code
     # ADDed file
     # MODIFYed file

@@ -131,8 +131,9 @@ dmypy.json
 # try stuff file
 #call_graph_change_analyser/test.py
 
-# project results
+# project data
 /project_results
+/project_config
 
 # local backup files
 *.old

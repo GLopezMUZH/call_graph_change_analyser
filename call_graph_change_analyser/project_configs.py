@@ -19,7 +19,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     path_to_proj_data_dir = None
     path_to_src_files = None
     proj_lang = None
-    path_to_repo = None
+    repo_url = None
     repo_type = None
     commit_file_types = None
     path_to_local_src_dir = None
@@ -51,8 +51,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 path_to_src_files=os.path.normpath(get_label_content(line, len("path_to_src_files:")))
             if (line.lstrip()).startswith("proj_lang:"):
                 proj_lang=get_label_content(line, len("proj_lang:"))
-            if (line.lstrip()).startswith("path_to_repo:"):
-                path_to_repo=get_label_content(line, len("path_to_repo:"))
+            if (line.lstrip()).startswith("repo_url:"):
+                repo_url=get_label_content(line, len("repo_url:"))
             if (line.lstrip()).startswith("repo_type:"):
                 repo_type=get_label_content(line, len("repo_type:"))
             if (line.lstrip()).startswith("path_to_local_src_dir:"):
@@ -68,7 +68,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang=proj_lang,
                                 commit_file_types=commit_file_types,
-                                path_to_repo=path_to_repo,
+                                repo_url=repo_url,
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
@@ -112,7 +112,7 @@ def execute_project_default_conf_PX4(from_tag: Optional[str], to_tag: Optional[s
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_repo='https://github.com/PX4/PX4-Autopilot.git',
+                                repo_url='https://github.com/PX4/PX4-Autopilot.git',
                                 repo_type='Git',
                                 start_repo_date=since_date,
                                 end_repo_date=to_date,
@@ -146,7 +146,7 @@ def execute_project_default_conf_JKQtPlotter(from_tag: Optional[str], to_tag: Op
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_repo='https://github.com/jkriege2/JKQtPlotter.git',
+                                repo_url='https://github.com/jkriege2/JKQtPlotter.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
@@ -182,7 +182,7 @@ def execute_project_default_conf_Glucosio(from_tag: Optional[str], to_tag: Optio
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
                                 commit_file_types=['.java'],
-                                path_to_repo='https://github.com/Glucosio/glucosio-android.git',
+                                repo_url='https://github.com/Glucosio/glucosio-android.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
@@ -219,7 +219,7 @@ def execute_project_default_conf_OpenBot(from_tag: Optional[str] = 'v0.1.0', to_
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
                                 commit_file_types=['.java'],
-                                path_to_repo='https://github.com/isl-org/OpenBot.git',
+                                repo_url='https://github.com/isl-org/OpenBot.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
@@ -257,7 +257,7 @@ def execute_project_default_conf_EConcierge(from_tag: Optional[str] = None, to_t
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
                                 commit_file_types=['.java'],
-                                path_to_repo='https://github.com/eclipse/concierge.git',
+                                repo_url='https://github.com/eclipse/concierge.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
@@ -294,7 +294,7 @@ def execute_project_default_conf_GRIP(from_tag: Optional[str] = None, to_tag: Op
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='java',
                                 commit_file_types=['.java'],
-                                path_to_repo='https://github.com/WPIRoboticsProjects/GRIP.git',
+                                repo_url='https://github.com/WPIRoboticsProjects/GRIP.git',
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,

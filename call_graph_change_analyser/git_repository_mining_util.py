@@ -5,6 +5,7 @@ from models import *
 from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code, set_hashes_to_function_calls
 from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
+from call_graph_parsing_util import parse_source_for_call_graph
 
 
 def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -12,7 +13,7 @@ def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            path_to_repo=proj_config.get_path_to_repo(),
+            repo_url=proj_config.get_repo_url(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
@@ -23,7 +24,7 @@ def git_traverse_between_dates(proj_config: ProjectConfig, proj_paths: ProjectPa
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            path_to_repo=proj_config.get_path_to_repo(),
+            repo_url=proj_config.get_repo_url(),
             since=proj_config.get_start_repo_date(),
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
@@ -36,7 +37,7 @@ def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths)
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            path_to_repo=proj_config.get_path_to_repo(),
+            repo_url=proj_config.get_repo_url(),
             since=proj_config.get_start_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
@@ -48,7 +49,7 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            path_to_repo=proj_config.get_path_to_repo(),
+            repo_url=proj_config.get_repo_url(),
             from_tag=proj_config.get_repo_from_tag(),
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
@@ -75,6 +76,54 @@ def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Comm
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
+                            commit: Commit, mod_file: ModifiedFile):
+
+    process_file_git_commit_ASTdiff_parsing(proj_config, proj_paths,
+                            commit, mod_file)
+
+    process_file_git_commit_all_source_parsing(proj_config, proj_paths,
+                            commit, mod_file)
+
+
+def process_file_git_commit_all_source_parsing(proj_config: ProjectConfig, proj_paths: ProjectPaths,
+                            commit: Commit, mod_file: ModifiedFile):
+    print('TODO')
+
+    # Save new source code
+    # ADDed file
+    # MODIFYed file
+    # DELETEd file
+    # RENAMEd file
+
+    # COPY file
+    # UNKNOWN file
+    file_path_current = None
+    if mod_file.change_type != ModificationType.DELETE and mod_file.change_type != ModificationType.RENAME:
+        file_path_current = os.path.join(
+            proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
+        save_source_code(file_path_current, mod_file.source_code)
+
+    file_path_previous = None
+    if mod_file.change_type != ModificationType.ADD and mod_file.change_type != ModificationType.RENAME:
+        file_path_previous = os.path.join(
+            proj_paths.get_path_to_cache_previous(), str(mod_file._old_path))
+        save_source_code(file_path_previous,
+                         mod_file.source_code_before)
+
+    if mod_file.change_type == ModificationType.RENAME:
+        print("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
+        logging.info("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
+        return    
+
+    if  mod_file.change_type == ModificationType.COPY or mod_file.change_type == ModificationType.UNKNOWN:
+        print("ModType {3}. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path, mod_file.change_type.name))
+        logging.info("ModType{3}. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path, mod_file.change_type.name))
+        return    
+
+    parse_source_for_call_graph(proj_paths.get_path_to_cache_src_dir())
+
+
+def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                             commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
 
@@ -130,6 +179,7 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
     # update function_call
     update_function_calls(proj_config, proj_paths, mod_file, commit,
                           file_path_current, file_path_previous)
+
 
 
 # TODO list to array, maybe

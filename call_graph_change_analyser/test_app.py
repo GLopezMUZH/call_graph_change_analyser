@@ -66,7 +66,7 @@ from repository_mining_util import *
 
 # proj_name = 'PX4-Autopilot' # 'glucosio-android'
 # proj_lang = 'cpp' # 'cpp' 'python' 'java'
-#path_to_repo = 'https://github.com/PX4/PX4-Autopilot.git'
+#repo_url = 'https://github.com/PX4/PX4-Autopilot.git'
 # path_to_git = 'https://github.com/ishepard/pydriller.git' #'git@github.com:ishepard/pydriller.git/'
 
 # start_repo_date = datetime(2021, 10, 1, 0, 1, 0)  #(2018, 4, 1, 0, 1, 0)

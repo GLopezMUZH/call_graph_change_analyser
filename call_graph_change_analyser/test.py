@@ -31,7 +31,7 @@ def execute_project_conf_example_project():
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang='cpp',
                                 commit_file_types=['.cpp'],
-                                path_to_repo='',
+                                repo_url='',
                                 repo_type='Git',
                                 start_repo_date=st_date,
                                 end_repo_date=end_date,

@@ -24,7 +24,7 @@ class ProjectConfig:
     def __init__(
             self,  proj_name:
             str, proj_lang: str, commit_file_types: List[str],
-            path_to_repo: str, repo_type: str = 'Git',
+            repo_url: str, repo_type: str = 'Git',
             start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
@@ -33,7 +33,7 @@ class ProjectConfig:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
-        self.path_to_repo = path_to_repo
+        self.repo_url = repo_url
         self.repo_type = repo_type
         self.start_repo_date = start_repo_date
         self.end_repo_date = end_repo_date
@@ -56,8 +56,8 @@ class ProjectConfig:
     def get_commit_file_types(self):
         return self.commit_file_types
 
-    def get_path_to_repo(self):
-        return self.path_to_repo
+    def get_repo_url(self):
+        return self.repo_url
 
     def get_repo_type(self):
         return self.repo_type
@@ -106,6 +106,8 @@ class ProjectPaths:
             path_to_proj_data_dir, proj_name)
         # local folder with current source
         self.path_to_local_src_dir = path_to_local_src_dir
+        self.path_to_cache_src_dir = os.path.join(
+            self.path_to_cache_dir, proj_name, 'git')
         # Java for finding path from package
         self.path_to_src_files = path_to_src_files
         # analytics database
@@ -135,6 +137,9 @@ class ProjectPaths:
 
     def get_path_to_local_src_dir(self):
         return self.path_to_local_src_dir
+
+    def get_path_to_cache_src_dir(self):
+        return self.path_to_cache_src_dir
 
     def get_path_to_src_files(self):
         return self.path_to_src_files

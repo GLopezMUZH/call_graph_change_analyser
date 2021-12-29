@@ -50,6 +50,9 @@ class ProjectConfig:
         else:
             raise Exception("No valid language.")
 
+    def get_proj_name(self):
+        return self.proj_name
+        
     def get_proj_lang(self):
         return self.proj_lang
 

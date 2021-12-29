@@ -29,6 +29,9 @@ reload(models)
 
 
 def save_source_code(file_path, source_text):
+    """
+    Creates the dir and file if not existed.
+    """
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
 
@@ -56,6 +59,25 @@ def save_source_code(file_path, source_text):
         logging.exception(err)
     f.close()
     save_source_code_xml(file_path)
+
+
+def delete_source_code(file_path):
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+    else:    ## Show an error ##
+        logging.debug("Error: {0} file not found".format(file_path))
+
+
+def delete_empty_dir(dir_path):
+    #dir_path = os.path.dirname(file_path)
+    if os.path.isdir(dir_path):
+        if not os.listdir(dir_path):
+            logging.debug("Delete directory, it became empty")
+        else:    
+            logging.debug("Directory is not empty")
+    else:
+        logging.error("Directory doesn't exist {0}".format(dir_path))
+
 
 
 def save_source_code_xml(file_path):

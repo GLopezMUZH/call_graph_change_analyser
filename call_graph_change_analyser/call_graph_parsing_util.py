@@ -3,6 +3,7 @@ import subprocess
 from subprocess import *
 from git import Repo
 import os
+from shutil import copy as shutil_copy
 
 import time
 from stopwatch import Stopwatch, profile
@@ -30,10 +31,21 @@ def sctWrapper(cgdbpath, *args):
     return ret
 
 #%%
-def parse_source_for_call_graph(path_to_cache_src_dir):
-    curr_src_args_init = [
-    '--full', 'call_graph_change_analyser.srctrlprj' ]
-    curr_src_args = [
-        ' call_graph_change_analyser.srctrlprj' ]
+def parse_source_for_call_graph(path_to_cache_src_dir, proj_name, commit_hash):
+    proj_config_file_name = proj_name + '.srctrlprj'
+    proj_commit_config_file_name = proj_name + commit_hash + '.srctrlprj'
 
+    make_config_file_copy(path_to_cache_src_dir, proj_config_file_name, proj_commit_config_file_name)
+
+    curr_src_args = [proj_config_file_name]
     result = sctWrapper(path_to_cache_src_dir, *curr_src_args)
+
+
+def make_config_file_copy(path_to_cache_src_dir, proj_config_file_name, proj_commit_config_file_name):
+    source_file_path = os.path.join(path_to_cache_src_dir, proj_config_file_name)
+    #print(source_file_path)
+    #print(os.path.exists(source_file_path))
+    target_file_path =  os.path.join(path_to_cache_src_dir, proj_commit_config_file_name)
+    shutil_copy(source_file_path, target_file_path)
+    #print(target_file_path)
+    #print(os.path.exists(target_file_path))

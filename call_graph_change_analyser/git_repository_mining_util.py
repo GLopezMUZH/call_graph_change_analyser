@@ -2,7 +2,7 @@ from pydriller import Repository, Commit, ModificationType
 from bs4 import BeautifulSoup
 
 from models import *
-from repository_mining_util import get_file_type_validation_function, get_file_imports, jarWrapper, save_compact_xml_parsed_code, save_source_code, set_hashes_to_function_calls
+from repository_mining_util import *
 from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
 from call_graph_parsing_util import parse_source_for_call_graph
@@ -42,7 +42,7 @@ def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths)
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
-        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
+        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit, True)
 
 
 def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -58,7 +58,7 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
         process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
 
 
-def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Commit):
+def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Commit, parse_cg: bool = False):
     # git_commit
     insert_git_commit(proj_paths.get_path_to_project_db(),
                       commit_hash=commit.hash, commit_commiter_datetime=str(
@@ -69,26 +69,39 @@ def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Comm
         commit.modified_files),
         nr_deletions=commit.deletions, nr_insertions=commit.insertions, nr_lines=commit.lines)
 
+    dir_deleted_files = set([])
+
     for mod_file in commit.modified_files:
-        if (is_valid_file_type(str(mod_file._new_path))):
-            process_file_git_commit(proj_config, proj_paths,
+        if is_valid_file_type(str(mod_file._new_path)) or is_valid_file_type(str(mod_file._old_path)):
+            dir_deleted_file = process_file_git_commit(proj_config, proj_paths,
                                     commit, mod_file)
+            if dir_deleted_file != '':
+                dir_deleted_files.add(dir_deleted_file)
+
+    for d in dir_deleted_files:
+        delete_empty_dir(d)
+
+    if parse_cg:
+        parse_source_for_call_graph(
+            proj_config.get_proj_name(), proj_paths.get_path_to_cache_src_dir(), commit.hash)
+        
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                             commit: Commit, mod_file: ModifiedFile):
 
     process_file_git_commit_ASTdiff_parsing(proj_config, proj_paths,
-                            commit, mod_file)
+                                            commit, mod_file)
 
-    process_file_git_commit_all_source_parsing(proj_config, proj_paths,
-                            commit, mod_file)
+    # process call graph sourceTrail
+    dir_deleted_file = process_file_git_commit_all_source_parsing(
+        proj_paths, mod_file)
+    
+    return dir_deleted_file
+    
 
 
-def process_file_git_commit_all_source_parsing(proj_config: ProjectConfig, proj_paths: ProjectPaths,
-                            commit: Commit, mod_file: ModifiedFile):
-    print('TODO')
-
+def process_file_git_commit_all_source_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):
     # Save new source code
     # ADDed file
     # MODIFYed file
@@ -97,34 +110,48 @@ def process_file_git_commit_all_source_parsing(proj_config: ProjectConfig, proj_
 
     # COPY file
     # UNKNOWN file
-    file_path_current = None
-    if mod_file.change_type != ModificationType.DELETE and mod_file.change_type != ModificationType.RENAME:
-        file_path_current = os.path.join(
-            proj_paths.get_path_to_cache_current(), str(mod_file._new_path))
-        save_source_code(file_path_current, mod_file.source_code)
 
-    file_path_previous = None
-    if mod_file.change_type != ModificationType.ADD and mod_file.change_type != ModificationType.RENAME:
-        file_path_previous = os.path.join(
-            proj_paths.get_path_to_cache_previous(), str(mod_file._old_path))
-        save_source_code(file_path_previous,
-                         mod_file.source_code_before)
+    if mod_file.change_type == ModificationType.ADD or mod_file.change_type == ModificationType.MODIFY:
+        logging.info("ADDorMOD {3}. File {0} old path: {1}, new path: {2}.".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
+        file_path_added = os.path.join(
+            proj_paths.get_path_to_cache_src_dir(), str(mod_file._new_path))
+        save_source_code(file_path_added,
+                         mod_file.source_code)
+        return ''
 
+    if mod_file.change_type == ModificationType.DELETE:
+        logging.info("DELETE {3}. File {0} old path: {1}, new path: {2}.".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
+        file_path_deleted = os.path.join(
+            proj_paths.get_path_to_cache_src_dir(), str(mod_file._old_path))
+        delete_source_code(file_path_deleted, mod_file.source_code)
+        return os.path.dirname(file_path_deleted)
+
+    # CSHttpCameraFrameGrabber.java
+    # old path: core/src/main/java/edu/wpi/grip/core/sources/CSHttpCameraFrameGrabber.java,
+    # new path: core/src/main/java/edu/wpi/grip/core/sources/CSCameraFrameGrabber.java. TODO
     if mod_file.change_type == ModificationType.RENAME:
-        print("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
-        logging.info("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
-        return    
+        logging.info("RENAME. File {0} old path: {1}, new path: {2}.".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path))
+        file_path_added = os.path.join(
+            proj_paths.get_path_to_cache_src_dir(), str(mod_file._new_path))
+        file_path_deleted = os.path.join(
+            proj_paths.get_path_to_cache_src_dir(), str(mod_file._old_path))
+        save_source_code(file_path_added,
+                         mod_file.source_code)
+        return os.path.dirname(file_path_deleted)
 
-    if  mod_file.change_type == ModificationType.COPY or mod_file.change_type == ModificationType.UNKNOWN:
-        print("ModType {3}. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path, mod_file.change_type.name))
-        logging.info("ModType{3}. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path, mod_file.change_type.name))
-        return    
-
-    parse_source_for_call_graph(proj_paths.get_path_to_cache_src_dir())
+    if mod_file.change_type == ModificationType.COPY or mod_file.change_type == ModificationType.UNKNOWN:
+        print("ModType COPY1/UNKN6 {3}. File {0} old path: {1}, new path: {2}. TODO".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
+        logging.info("ModType COPY1/UNKN6 {3}. File {0} old path: {1}, new path: {2}. TODO".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
+        return ''
 
 
 def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_paths: ProjectPaths,
-                            commit: Commit, mod_file: ModifiedFile):
+                                            commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
 
     # Create sourcediff directory
@@ -149,8 +176,10 @@ def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_pat
                          mod_file.source_code_before)
 
     if mod_file.change_type == ModificationType.RENAME:
-        print("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
-        logging.info("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(mod_file.filename,mod_file._new_path,mod_file._old_path))
+        print("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path))
+        logging.info("RENAME. File {0} old path: {1}, new path: {2}. TODO".format(
+            mod_file.filename, mod_file._new_path, mod_file._old_path))
         return
 
     # insert file_commit
@@ -179,7 +208,6 @@ def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_pat
     # update function_call
     update_function_calls(proj_config, proj_paths, mod_file, commit,
                           file_path_current, file_path_previous)
-
 
 
 # TODO list to array, maybe

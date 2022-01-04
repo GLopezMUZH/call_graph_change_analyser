@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List
+from shutil import copy as shutil_copy
 
 
 class ActionClass(Enum):
@@ -29,7 +30,7 @@ class ProjectConfig:
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
             delete_cache_files: Optional[bool] = True,
-            only_in_branch: Optional[str]=None) -> None:
+            only_in_branch: Optional[str] = None) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
         self.commit_file_types = commit_file_types
@@ -52,7 +53,7 @@ class ProjectConfig:
 
     def get_proj_name(self):
         return self.proj_name
-        
+
     def get_proj_lang(self):
         return self.proj_lang
 
@@ -94,34 +95,81 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None, path_to_local_src_dir: str=None) -> None:
-        # temporary source and diff folders
-        self.path_to_cache_dir = os.path.join(
-            path_to_proj_data_dir, proj_name, '.cache')
-        self.path_to_cache_current = os.path.join(
-            self.path_to_cache_dir, proj_name, 'current')
-        self.path_to_cache_previous = os.path.join(
-            self.path_to_cache_dir, proj_name, 'previous')
-        self.path_to_cache_sourcediff = os.path.join(
-            self.path_to_cache_dir, proj_name, 'sourcediff')
+    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None, srctrl_orig_config_file_path: str = None) -> None:
         # project data directory
         self.path_to_proj_data_dir = os.path.join(
             path_to_proj_data_dir, proj_name)
-        # local folder with current source
-        self.path_to_local_src_dir = path_to_local_src_dir
-        self.path_to_cache_src_dir = os.path.join(
-            self.path_to_cache_dir, proj_name, 'git')
-        # Java for finding path from package
+
+        # for finding path from package
         self.path_to_src_files = path_to_src_files
+
+        # sourcetrail config file
+        self.srctrl_orig_config_file_path = os.path.normpath(
+            srctrl_orig_config_file_path)
+
         # analytics database
         self.path_to_project_db = os.path.join(
             path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
-        # initial graph db
+
+        # CACHE FILES 
+        # temporary files main folder
+        self.path_to_cache_dir = os.path.join(
+            path_to_proj_data_dir, proj_name, '.cache')
+
+        # ast parsing analytics
+        self.path_to_cache_current = os.path.join(
+            self.path_to_cache_dir, 'astparsing', 'current')
+        self.path_to_cache_previous = os.path.join(
+            self.path_to_cache_dir, 'astparsing', 'previous')
+        self.path_to_cache_sourcediff = os.path.join(
+            self.path_to_cache_dir, 'astparsing', 'sourcediff')
+
+        # cache source to track git changes
+        self.path_to_cache_src_dir = os.path.join(
+            self.path_to_cache_dir, 'git')
+        # local folder with current source (Java
+        # path_to_local_src_dir
+
+        # temporary sourcetrail db's
+        self.path_to_cache_cg_dbs = os.path.join(
+            self.path_to_cache_dir, 'callgraphdb')
+
+        # TODO delete
+        # graph db
         self.path_to_srctrail_db = os.path.join(
             path_to_proj_data_dir, proj_name, 'callgraphdb', proj_name + '.srctrldb')
+
         # create folders if not exist
         if not os.path.exists(self.path_to_cache_dir):
             os.makedirs(self.path_to_cache_dir)
+        if not os.path.exists(self.path_to_cache_current):
+            os.makedirs(self.path_to_cache_current)
+        if not os.path.exists(self.path_to_cache_previous):
+            os.makedirs(self.path_to_cache_previous)
+        if not os.path.exists(self.path_to_cache_sourcediff):
+            os.makedirs(self.path_to_cache_sourcediff)
+        if not os.path.exists(self.path_to_cache_src_dir):
+            os.makedirs(self.path_to_cache_src_dir)
+        if not os.path.exists(self.path_to_cache_cg_dbs):
+            os.makedirs(self.path_to_cache_cg_dbs)
+
+        # copy original srctrail config file to temporary folder
+        if os.path.isfile(self.srctrl_orig_config_file_path):
+            shutil_copy(self.srctrl_orig_config_file_path, self.path_to_cache_cg_dbs)
+        else:
+            print("Wrong configuration file path.")
+
+    def get_path_to_proj_data_dir(self):
+        return self.path_to_proj_data_dir
+
+    def get_path_to_src_files(self):
+        return self.path_to_src_files
+
+    def get_srctrl_orig_config_file_path(self):
+        return self.srctrl_orig_config_file_path
+
+    def get_path_to_project_db(self):
+        return self.path_to_project_db
 
     def get_path_to_cache_dir(self):
         return self.path_to_cache_dir
@@ -135,21 +183,13 @@ class ProjectPaths:
     def get_path_to_cache_sourcediff(self):
         return self.path_to_cache_sourcediff
 
-    def get_path_to_proj_data_dir(self):
-        return self.path_to_proj_data_dir
-
-    def get_path_to_local_src_dir(self):
-        return self.path_to_local_src_dir
-
     def get_path_to_cache_src_dir(self):
         return self.path_to_cache_src_dir
 
-    def get_path_to_src_files(self):
-        return self.path_to_src_files
+    def get_path_to_cache_cg_dbs(self):
+        return self.path_to_cache_cg_dbs
 
-    def get_path_to_project_db(self):
-        return self.path_to_project_db
-
+    # TODO delete
     def get_path_to_srctrail_db(self):
         return self.path_to_srctrail_db
 

@@ -2,25 +2,32 @@ import os
 import pandas as pd
 from itertools import islice
 import sqlite3
-from git import Repo
+import git
 import logging
 from stopwatch import Stopwatch
 
 from models import ProjectPaths
 
 
-def download_initial_cache_source(repo_url, path_to_cache_src_dir):
+def download_initial_cache_source(repo_url, path_to_cache_src_dir, only_in_branch):
     if not os.path.exists(os.path.dirname(path_to_cache_src_dir)):
         os.makedirs(os.path.dirname(path_to_cache_src_dir))
+        logging.info("Start git clone")
+    else:
+        if os.path.exists(os.path.join(path_to_cache_src_dir,'.git')):
+            logging.info("Reset cached source to current state")
+            g = git.Git(path_to_cache_src_dir)
+            g.checkout(only_in_branch)
+        else:
+            logging.error("path_to_cache_src_dir exist but not .git folder")
+            #stopwatch = Stopwatch()
+            #stopwatch.start()
+            git.Repo.clone_from(repo_url, path_to_cache_src_dir)
+            #stopwatch.stop()
+            #print(stopwatch.elapsed) 
+            #print(stopwatch.report())
+            logging.info("End git clone")
 
-    logging.info("Start git clone")
-    #stopwatch = Stopwatch()
-    #stopwatch.start()
-    Repo.clone_from(repo_url, path_to_cache_src_dir)
-    #stopwatch.stop()
-    #print(stopwatch.elapsed) 
-    #print(stopwatch.report())
-    logging.info("End git clone")
 
 
 def execute_intitial_indexing(proj_paths: ProjectPaths):
@@ -28,7 +35,7 @@ def execute_intitial_indexing(proj_paths: ProjectPaths):
 
 def create_file_pkg_table(proj_paths: ProjectPaths):
     f_list = []
-    local_src_dir = os.path.normpath(proj_paths.get_path_to_local_src_dir())
+    local_src_dir = os.path.normpath(proj_paths.get_path_to_cache_src_dir())
     for dirs, subdirs, files in os.walk(local_src_dir):
         for f in files:
             if '.java' in f:

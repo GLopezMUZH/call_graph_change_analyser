@@ -13,52 +13,56 @@ def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            repo_url=proj_config.get_repo_url(),
+            path_to_repo=proj_config.get_repo_url(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
-        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
+        process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
+                           is_valid_file_type=is_valid_file_type, commit=commit)
 
 
 def git_traverse_between_dates(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            repo_url=proj_config.get_repo_url(),
+            path_to_repo=proj_config.get_repo_url(),
             since=proj_config.get_start_repo_date(),
             to=proj_config.get_end_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
-        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
+        process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
+                           is_valid_file_type=is_valid_file_type, commit=commit)
 
 
 def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            repo_url=proj_config.get_repo_url(),
+            path_to_repo=proj_config.get_repo_url(),
             since=proj_config.get_start_repo_date(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
-        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit, True)
+        process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
+                           is_valid_file_type=is_valid_file_type, commit=commit, parse_cg=True)
 
 
 def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
-            repo_url=proj_config.get_repo_url(),
+            path_to_repo=proj_config.get_repo_url(),
             from_tag=proj_config.get_repo_from_tag(),
             to_tag=proj_config.get_repo_to_tag(),
             only_modifications_with_file_types=proj_config.get_commit_file_types(),
             order='reverse', only_no_merge=True,
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
-        process_git_commit(proj_config, proj_paths, is_valid_file_type, commit)
+        process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
+                           is_valid_file_type=is_valid_file_type, commit=commit)
 
 
-def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Commit, parse_cg: bool = False):
+def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_valid_file_type, commit: Commit, parse_cg: bool = False):
     # git_commit
     insert_git_commit(proj_paths.get_path_to_project_db(),
                       commit_hash=commit.hash, commit_commiter_datetime=str(
@@ -74,7 +78,7 @@ def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Comm
     for mod_file in commit.modified_files:
         if is_valid_file_type(str(mod_file._new_path)) or is_valid_file_type(str(mod_file._old_path)):
             dir_deleted_file = process_file_git_commit(proj_config, proj_paths,
-                                    commit, mod_file)
+                                                       commit, mod_file)
             if dir_deleted_file != '':
                 dir_deleted_files.add(dir_deleted_file)
 
@@ -82,23 +86,21 @@ def process_git_commit(proj_config, proj_paths, is_valid_file_type, commit: Comm
         delete_empty_dir(d)
 
     if parse_cg:
-        parse_source_for_call_graph(
-            proj_config.get_proj_name(), proj_paths.get_path_to_cache_src_dir(), commit.hash)
-        
+        parse_source_for_call_graph(proj_name=proj_config.get_proj_name(
+        ), path_to_cache_cg_dbs= proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash)
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                             commit: Commit, mod_file: ModifiedFile):
-
+    
     process_file_git_commit_ASTdiff_parsing(proj_config, proj_paths,
                                             commit, mod_file)
 
     # process call graph sourceTrail
     dir_deleted_file = process_file_git_commit_cg_parsing(
         proj_paths, mod_file)
-    
+
     return dir_deleted_file
-    
 
 
 def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):

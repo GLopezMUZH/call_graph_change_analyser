@@ -22,7 +22,6 @@ def execute_project_conf_from_file(path_to_config_file:str):
     repo_url = None
     repo_type = None
     commit_file_types = None
-    path_to_local_src_dir = None
     only_in_branch = None
 
     def get_label_content(line, label_size):
@@ -55,15 +54,19 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 repo_url=get_label_content(line, len("repo_url:"))
             if (line.lstrip()).startswith("repo_type:"):
                 repo_type=get_label_content(line, len("repo_type:"))
-            if (line.lstrip()).startswith("path_to_local_src_dir:"):
-                path_to_local_src_dir=get_label_content(line, len("path_to_local_src_dir:"))
             if (line.lstrip()).startswith("only_in_branch:"):
                 only_in_branch=get_label_content(line, len("only_in_branch:"))
+            if (line.lstrip()).startswith("srctrl_orig_config_file_path:"):
+                srctrl_orig_config_file_path=get_label_content(line, len("srctrl_orig_config_file_path:"))
+                
                 
     if proj_lang == 'cpp':
         commit_file_types=['.cpp']
     if proj_lang == 'java':
         commit_file_types=['.java']
+
+    start_repo_date = datetime.strptime(since_date, '%d-%m-%Y') if since_date else None
+    end_repo_date = datetime.strptime(to_date, '%d-%m-%Y') if to_date else None
 
     proj_config = ProjectConfig(proj_name=proj_name,
                                 proj_lang=proj_lang,
@@ -72,15 +75,17 @@ def execute_project_conf_from_file(path_to_config_file:str):
                                 repo_type='Git',
                                 repo_from_tag=from_tag,
                                 repo_to_tag=to_tag,
-                                start_repo_date=since_date,
-                                end_repo_date=to_date,
+                                start_repo_date=start_repo_date,
+                                end_repo_date=end_repo_date,
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files,
                                 only_in_branch=only_in_branch)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir,
                               path_to_src_files=path_to_src_files,
-                              path_to_local_src_dir=path_to_local_src_dir)
+                              srctrl_orig_config_file_path=srctrl_orig_config_file_path)
+
+
 
     log_filepath = os.path.join(proj_paths.get_path_to_cache_dir(), 'app.log')
     print(log_filepath)

@@ -105,7 +105,7 @@ def main():
         init_db(proj_paths)
 
     #if '-init_index_yes' in args:
-    download_initial_cache_source(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir())
+    download_initial_cache_source(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir(), proj_config.get_only_in_branch())
     execute_intitial_indexing(proj_paths)
 
     load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)

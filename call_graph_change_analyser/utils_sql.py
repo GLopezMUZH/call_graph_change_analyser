@@ -808,8 +808,8 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
         cur = con_analytics_db.cursor()
 
         for fc in rows:
-            logging.debug("Updating {0},{1},{2},{3},{4}".format(
-                mod_file_data.get_file_path(), fc[0], fc[1], fc[2], fc[4]))
+            #logging.debug("Updating {0},{1},{2},{3},{4}".format(
+            #    mod_file_data.get_file_path(), fc[0], fc[1], fc[2], fc[4]))
             # update start_hash if raw_function_call already existing and start_hash is not earlier as current hash
             sql_string = """UPDATE raw_function_call SET
                         commit_hash_start='{0}', commit_start_datetime='{1}',
@@ -832,7 +832,7 @@ def save_raw_function_call_curr_rows(path_to_project_db: str, rows, mod_file_dat
             
             # raw_function_call did not previously exist, then insert only with start hash values
             if(cur.rowcount <= 0):
-                logging.debug("No previous record, insert.")
+                #logging.debug("No previous record, insert.")
                 sql_string = """INSERT INTO raw_function_call
                             (file_name, file_dir_path, file_path,
                             calling_function_unqualified_name, calling_function_nr_parameters,

@@ -58,6 +58,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 only_in_branch=get_label_content(line, len("only_in_branch:"))
             if (line.lstrip()).startswith("srctrl_orig_config_file_path:"):
                 srctrl_orig_config_file_path=get_label_content(line, len("srctrl_orig_config_file_path:"))
+            if (line.lstrip()).startswith("cache_files_dir_path:"):
+                cache_files_dir_path=get_label_content(line, len("cache_files_dir_path:"))
                 
                 
     if proj_lang == 'cpp':

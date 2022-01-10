@@ -5,7 +5,7 @@ from models import *
 from repository_mining_util import *
 from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
-from call_graph_parsing_util import parse_source_for_call_graph
+from call_graph_parsing_util import save_cg_data, save_cg_diffs
 
 
 def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -86,13 +86,17 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
         delete_empty_dir(d)
 
     if parse_cg:
-        parse_source_for_call_graph(proj_name=proj_config.get_proj_name(
-        ), path_to_cache_cg_dbs= proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash)
+        save_cg_data(proj_name=proj_config.get_proj_name(),
+                                    path_to_cache_cg_dbs=proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash)
+
+        save_cg_diffs(proj_name=proj_config.get_proj_name(),
+                      path_to_cache_cg_dbs=proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash, commit_date=commit.committer_date,
+                      path_to_project_db=proj_paths.get_path_to_project_db())
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                             commit: Commit, mod_file: ModifiedFile):
-    
+
     process_file_git_commit_ASTdiff_parsing(proj_config, proj_paths,
                                             commit, mod_file)
 

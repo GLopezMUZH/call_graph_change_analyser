@@ -30,6 +30,7 @@ class ProjectConfig:
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
             delete_cache_files: Optional[bool] = True,
+            delete_cg_src_db: Optional [bool] = True,
             only_in_branch: Optional[str] = None) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
@@ -42,6 +43,7 @@ class ProjectConfig:
         self.repo_to_tag = repo_to_tag
         self.save_cache_files = save_cache_files
         self.delete_cache_files = delete_cache_files
+        self.delete_cg_src_db = delete_cg_src_db
         self.only_in_branch = only_in_branch if only_in_branch is not None else 'master'
         self.path_to_src_compact_xml_parsing = ProjectConfig.PATH_TO_SRC_COMPACT_XML_PARSING
         if proj_lang == 'java':
@@ -86,6 +88,9 @@ class ProjectConfig:
 
     def get_delete_cache_files(self) -> bool:
         return self.delete_cache_files
+
+    def get_delete_cg_src_db(self) -> bool:
+        return self.delete_cg_src_db
 
     def get_only_in_branch(self):
         return self.only_in_branch

@@ -14,10 +14,10 @@ from datetime import datetime
 
 
 def sctWrapper(cgdbpath, *args):
-    print("Exists dir: ", os.path.exists(cgdbpath))
+    #print("Exists dir: ", os.path.exists(cgdbpath))
     file_path = os.path.join(cgdbpath, args[len(args)-1])
-    print("File path: ", file_path)
-    print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
+    #print("File path: ", file_path)
+    #print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
 
     process = Popen(['sourcetrail', 'index']+list(args),
                     stdout=PIPE, stderr=PIPE, cwd=cgdbpath, shell=True)
@@ -34,18 +34,19 @@ def sctWrapper(cgdbpath, *args):
     return ret
 
 
-def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str) -> str:
+def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str, srctrl_db_name: str) -> None:
     proj_srctrl_config_file_name = proj_name + \
         '.srctrlprj'  # original file was copied to this path
     proj_commit_srctrl_config_file_name = proj_name + commit_hash + '.srctrlprj'
 
+    # if configuration file for parsing the call graph does not exist, create
     if not os.path.exists(os.path.join(path_to_cache_cg_dbs, proj_commit_srctrl_config_file_name)):
         make_config_file_copy(orig_file_dir=path_to_cache_cg_dbs, orig_file_name=proj_srctrl_config_file_name,
                               target_file_dir=path_to_cache_cg_dbs, target_file_name=proj_commit_srctrl_config_file_name)
     else:
         logging.info("Commit srctrl prj config file already exists.")
 
-    srctrl_db_name = proj_name + commit_hash + '.srctrldb'
+    # if srctrl database does not exist, create
     if not os.path.exists(os.path.join(path_to_cache_cg_dbs, srctrl_db_name)):
         # creates srctrl db for the commit
         curr_src_args = [proj_commit_srctrl_config_file_name]
@@ -53,21 +54,28 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs: str, commi
     else:
         logging.info("Commit srctrl database already exists.")
 
-    # name to current scrtrl cg db
-    return srctrl_db_name
 
-
-def save_cg_data(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str):
-    curr_srctrl_db_name = parse_source_for_call_graph(proj_name,
-                                                      path_to_cache_cg_dbs, commit_hash)
-    path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs, curr_srctrl_db_name)
+def save_cg_data(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str, delete_cg_src_db: bool):
     cg_commit_db_path = os.path.join(path_to_cache_cg_dbs,
                                      (proj_name + commit_hash + '_raw_cg.db'))
+    srctrl_db_name = proj_name + commit_hash + '.srctrldb'
+    path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs,
+                                     srctrl_db_name)
 
     if not os.path.exists(cg_commit_db_path):
+        parse_source_for_call_graph(proj_name, path_to_cache_cg_dbs,
+                                    commit_hash, srctrl_db_name)
+
         save_curr_cg_from_source_parcing(path_to_srctrl_db, cg_commit_db_path)
     else:
         logging.info("Commit raw callgraph database already exists.")
+
+    if delete_cg_src_db:
+        if os.path.isfile(path_to_srctrl_db):
+            os.remove(path_to_srctrl_db)
+        else:  # Show an error ##
+            logging.debug(
+                "Error: {0} file not found".format(path_to_srctrl_db))
 
 
 def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, cg_commit_db_path: str):
@@ -133,6 +141,8 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str, c
         curr_commit_cg_db_name = proj_name + commit_hash + '_raw_cg.db'
         curr_commit_cg_db_path = os.path.join(
             path_to_cache_cg_dbs, curr_commit_cg_db_name)
+        if os.path.exists(curr_commit_cg_db_path):
+            print("TODO")
         # print(source_file_path)
         # print(os.path.exists(source_file_path))
     else:
@@ -141,6 +151,8 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs: str, commit_hash: str, c
 # in theory the git_repository_mining_util.git_traverse_on_X() could keep the previous commit, but better go to the db in case of interruptions
 # and because the start of the current execution does not mean that there will not be saved commits on the db and call graph databases
 # move to sql util
+
+
 def get_previous_hash(path_to_project_db: str, commit_date: datetime) -> str:
     try:
         con_analytics_db = sqlite3.connect(path_to_project_db)

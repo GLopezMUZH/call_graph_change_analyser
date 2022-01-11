@@ -87,11 +87,13 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
 
     if parse_cg:
         save_cg_data(proj_name=proj_config.get_proj_name(),
-                                    path_to_cache_cg_dbs=proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash)
-
+                                    path_to_cache_cg_dbs=proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash,
+                                    delete_cg_src_db = proj_config.get_delete_cg_src_db())
+        """
         save_cg_diffs(proj_name=proj_config.get_proj_name(),
                       path_to_cache_cg_dbs=proj_paths.get_path_to_cache_cg_dbs(), commit_hash=commit.hash, commit_date=commit.committer_date,
                       path_to_project_db=proj_paths.get_path_to_project_db())
+        """
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,

@@ -4,7 +4,7 @@ from itertools import islice
 import sqlite3
 import git
 import logging
-from stopwatch import Stopwatch
+#from stopwatch import Stopwatch
 
 from models import ProjectPaths
 

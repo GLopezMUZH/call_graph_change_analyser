@@ -16,6 +16,7 @@ from datetime import datetime
 def sctWrapper(cgdbpath, *args):
     #print("Exists dir: ", os.path.exists(cgdbpath))
     file_path = os.path.join(cgdbpath, args[len(args)-1])
+    logging.debug(file_path)
     #print("File path: ", file_path)
     #print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
 
@@ -31,6 +32,7 @@ def sctWrapper(cgdbpath, *args):
     if stderr != '':
         ret += stderr.split(b'\n')
     ret.remove(b'')
+    logging.debug("ret ln1 {0}".format(ret[0]))
     return ret
 
 

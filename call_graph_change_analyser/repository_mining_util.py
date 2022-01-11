@@ -243,7 +243,7 @@ def get_import_file_data_java(path_to_src_files, code_line: str):
     """
     f_name = ''
     f_dir_path = ''
-    f_path = ''
+    f_path = '' #TODO GGG correct
     f_pkg = ''
     f_pkg = code_line[7:len(code_line.rstrip())].replace(';', '')
     chunks = f_pkg.split(".")
@@ -392,10 +392,8 @@ def set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_da
     unchanged_functions = list(
         set(commit_previous_functions).intersection(commit_current_functions) - set(changed_functions))
 
-    logging.debug("PREV FUNCTION CALLS")
-    logging.debug(prev_function_calls)
-    logging.debug("CURR FUNCTION CALLS")
-    logging.debug(curr_function_calls)
+    logging.debug("PREV FUNCTION CALLS Qty: {0}".format(len(prev_function_calls)))
+    logging.debug("CURR FUNCTION CALLS Qty: {0}".format(len(curr_function_calls)))
 
     # Called functions
     added_calls = list(set(curr_function_calls) - set(prev_function_calls))
@@ -417,8 +415,8 @@ def set_hashes_to_function_calls(curr_function_calls, prev_function_calls, cm_da
         rows_deleted.append(df + tuple([None, None, cm_dates.get_commit_hash(
         ), cm_dates.get_commiter_datetime(), cm_dates.get_commit_hash(), cm_dates.get_commiter_datetime(), 1]))
 
-    logging.debug(added_calls)
-    logging.debug(unchanged_calls)
-    logging.debug(deleted_calls)
-
+    logging.debug("added_calls qty {0}".format(len(added_calls)))
+    logging.debug("unchanged_calls qty {0}".format(len(unchanged_calls)))
+    logging.debug("deleted_calls qty {0}".format(len(deleted_calls)))
+    
     return rows_curr, rows_deleted

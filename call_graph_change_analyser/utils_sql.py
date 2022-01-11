@@ -423,6 +423,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                 fi.get_import_file_dir_path(), fi.get_import_file_pkg(),
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime)
+            #logging.debug(sql_string)
             cur.execute(sql_string)
 
         # handle deleted file_imports
@@ -436,6 +437,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), ln)
+            #logging.debug(sql_string)
             cur.execute(sql_string)
 
         # handle unchanged file_imports
@@ -447,6 +449,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         AND import_file_path='{3}';""".format(
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), fi.get_import_file_path())
+            #logging.debug(sql_string)
             cur.execute(sql_string)
 
         con_analytics_db.commit()
@@ -891,10 +894,12 @@ def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_
                                                   fc[0],
                                                   fc[1],
                                                   fc[2])
+            #logging.debug(sql_string)
             cur.execute(sql_string)
+            logging.debug("cur.rowcount {0}".format(cur.rowcount))
 
             # raw_function_call did not previously exist, then insert only with end hash values
-            if(cur.arraysize <= 0):
+            if(cur.rowcount <= 0):
                 logging.debug("Del func_call not previously existing: {0},{1},{2}".format(
                     fc[0], fc[1], fc[2],))
                 sql_string = """INSERT INTO raw_function_call
@@ -918,9 +923,12 @@ def save_raw_function_call_deleted_rows(path_to_project_db: str, rows, mod_file_
                     fc[0],
                     fc[1],
                     fc[2],
+                    fc[7],
                     fc[6],
                     fc[7],
+                    fc[6],
                     1)
+                #logging.debug(sql_string)
                 cur.execute(sql_string)
 
         con_analytics_db.commit()

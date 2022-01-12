@@ -2,7 +2,7 @@
 import subprocess
 from subprocess import *
 from git import Repo
-import os
+import os, platform
 from shutil import copy as shutil_copy
 import sqlite3
 import pandas
@@ -20,8 +20,12 @@ def sctWrapper(cgdbpath, *args):
     #print("File path: ", file_path)
     #print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
 
+    shell_value = True
+    if platform.system() == 'Linux':
+        shell_value = False
+
     process = Popen(['sourcetrail', 'index']+list(args),
-                    stdout=PIPE, stderr=PIPE, cwd=cgdbpath, shell=True)
+                    stdout=PIPE, stderr=PIPE, cwd=cgdbpath, shell=shell_value)
     ret = []
     while process.poll() is None:
         line = process.stdout.readline()

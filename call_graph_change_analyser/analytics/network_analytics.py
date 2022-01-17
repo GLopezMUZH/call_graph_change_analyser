@@ -57,7 +57,7 @@ def getNetworkValues(G, drawGraph = False):
 
     networkValues = NetworkValues(diameter=diameter, nrCC=comps, degreedistribution=degreedistribution, maxDegree=maxDegree, nrNodesLCC= nrNodesLCC)
 
-    print("G: ", nx.info(largest_cc))
+    print("G: ", nx.info(G))
     print(networkValues)
     print("LCC: ", nx.info(largest_cc))
 

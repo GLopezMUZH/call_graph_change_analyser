@@ -136,7 +136,7 @@ class ProjectPaths:
         # path_to_local_src_dir
 
         # temporary sourcetrail db's
-        self.path_to_cache_cg_dbs = os.path.join(
+        self.path_to_cache_cg_dbs_dir = os.path.join(
             self.path_to_cache_dir, 'callgraphdb')
 
         # TODO delete
@@ -155,12 +155,12 @@ class ProjectPaths:
             os.makedirs(self.path_to_cache_sourcediff)
         if not os.path.exists(self.path_to_cache_src_dir):
             os.makedirs(self.path_to_cache_src_dir)
-        if not os.path.exists(self.path_to_cache_cg_dbs):
-            os.makedirs(self.path_to_cache_cg_dbs)
+        if not os.path.exists(self.path_to_cache_cg_dbs_dir):
+            os.makedirs(self.path_to_cache_cg_dbs_dir)
 
         # copy original srctrail config file to temporary folder
         if os.path.isfile(self.srctrl_orig_config_file_path):
-            shutil_copy(self.srctrl_orig_config_file_path, self.path_to_cache_cg_dbs)
+            shutil_copy(self.srctrl_orig_config_file_path, self.path_to_cache_cg_dbs_dir)
         else:
             print("Wrong configuration file path.")
 
@@ -191,8 +191,8 @@ class ProjectPaths:
     def get_path_to_cache_src_dir(self):
         return self.path_to_cache_src_dir
 
-    def get_path_to_cache_cg_dbs(self):
-        return self.path_to_cache_cg_dbs
+    def get_path_to_cache_cg_dbs_dir(self):
+        return self.path_to_cache_cg_dbs_dir
 
     # TODO delete
     def get_path_to_srctrail_db(self):

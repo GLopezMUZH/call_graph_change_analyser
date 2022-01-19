@@ -1,4 +1,5 @@
 # %%
+from sqlite3.dbapi2 import OperationalError
 import subprocess
 from subprocess import *
 from git import Repo
@@ -76,6 +77,8 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, c
             raw_cg_table_exists = True
             logging.debug("Table '{0} already exists'".format(commit_hash))
         cur.close()
+    except OperationalError:
+        logging.info("Table '{0} does not exists'".format(commit_hash))
     except Exception as err:
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"

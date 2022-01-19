@@ -133,7 +133,7 @@ def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: Modif
             mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
         file_path_deleted = os.path.join(
             proj_paths.get_path_to_cache_src_dir(), str(mod_file._old_path))
-        delete_source_code(file_path_deleted, mod_file.source_code)
+        delete_source_code(file_path_deleted) #, mod_file.source_code)
         return os.path.dirname(file_path_deleted)
 
     # CSHttpCameraFrameGrabber.java

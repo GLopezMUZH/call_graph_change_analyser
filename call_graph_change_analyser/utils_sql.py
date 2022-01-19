@@ -398,12 +398,13 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         con_analytics_db = sqlite3.connect(path_to_project_db)
         cur = con_analytics_db.cursor()
 
+        #TODO because inverse processing, previos refers to commit, one commit next to curr
         # get existing in prev but not in curr
         added_functions = list(
-            set(curr_file_imports_long_names) - set(previous_file_import_long_names))
+            set(previous_file_import_long_names) - set(curr_file_imports_long_names))
         # get existing in prev but not in curr
         deleted_functions = list(
-            set(previous_file_import_long_names) - set(curr_file_imports_long_names))
+            set(curr_file_imports_long_names) - set(previous_file_import_long_names))
         # get intersection
         unchanged_functions = list(set(curr_file_imports_long_names).intersection(
             previous_file_import_long_names))
@@ -430,13 +431,14 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
         for ln in deleted_functions:
             sql_string = """UPDATE file_import SET
                         commit_hash_end='{0}', commit_end_datetime='{1}',
-                        commit_hash_oldest='{2}', commit_oldest_datetime='{3}'
+                        commit_hash_oldest='{2}', commit_oldest_datetime='{3}',
+                        closed=1
                         WHERE
                         file_path='{4}'
                         AND import_file_path='{5}';""".format(
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime,
-                mod_file_data.get_file_path(), ln)
+                mod_file_data.get_file_path(), ln[0])
             logging.debug(sql_string)
             cur.execute(sql_string)
 
@@ -446,7 +448,8 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         commit_hash_oldest='{0}', commit_oldest_datetime='{1}'
                         WHERE
                         file_path='{2}'
-                        AND import_file_path='{3}';""".format(
+                        AND import_file_path='{3}'
+                        AND closed=0;""".format(
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), fi.get_import_file_path())
             logging.debug(sql_string)

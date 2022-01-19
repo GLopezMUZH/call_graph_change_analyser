@@ -62,7 +62,7 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                            is_valid_file_type=is_valid_file_type, commit=commit)
 
 
-def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_valid_file_type, commit: Commit, parse_cg: bool = False):
+def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_valid_file_type, commit: Commit, parse_cg: bool = True):
     # git_commit
     insert_git_commit(proj_paths.get_path_to_project_db(),
                       commit_hash=commit.hash, commit_commiter_datetime=str(

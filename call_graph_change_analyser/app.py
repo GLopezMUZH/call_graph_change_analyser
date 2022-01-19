@@ -10,7 +10,6 @@ from utils_sql import create_db_tables
 from project_configs import *
 
 from initial_indexing import execute_intitial_indexing, download_initial_cache_source
-from call_graph_analysis import get_call_graph, print_graph_stats
 
 
 # %%
@@ -122,14 +121,3 @@ def init_db(proj_paths):
 # %%
 if __name__ == '__main__':
     main()
-
-# %%
-# init_db()
-
-# %%
-#initate_analytics_db(proj_paths, drop=True, load_init_graph=True)
-
-# %%
-# only the graph part
-#G = get_call_graph(proj_paths)
-# print_graph_stats(G)

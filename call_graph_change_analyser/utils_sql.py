@@ -388,6 +388,10 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         path_to_project_db: str,
                         commit_hash: str,
                         commit_datetime: str):
+    if len(fis) ==0:
+        logging.warn("fis is empty.")
+        return
+
     try:
         # TODO change to parsing previous file....
         previous_file_import_long_names = get_previous_file_import_long_names(

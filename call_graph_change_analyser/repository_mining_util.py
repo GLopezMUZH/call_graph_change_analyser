@@ -153,6 +153,10 @@ def get_file_type_validation_function(proj_lang):
 
 def get_file_imports(proj_lang: str, path_to_src_files: str, source_code: str, mod_file_data: FileData) -> List[FileImport]:
     fis = []
+    if source_code is None or len(source_code) ==0:
+        logging.warn("sourcecode is empty.")
+        return fis
+
     if proj_lang == 'cpp':
         fis = get_file_imports_cpp(source_code, mod_file_data)
     if proj_lang == 'java':

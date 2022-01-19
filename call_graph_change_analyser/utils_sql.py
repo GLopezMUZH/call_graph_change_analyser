@@ -423,7 +423,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                 fi.get_import_file_dir_path(), fi.get_import_file_pkg(),
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime)
-            #logging.debug(sql_string)
+            logging.debug(sql_string)
             cur.execute(sql_string)
 
         # handle deleted file_imports
@@ -437,7 +437,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                 commit_hash, commit_datetime,
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), ln)
-            #logging.debug(sql_string)
+            logging.debug(sql_string)
             cur.execute(sql_string)
 
         # handle unchanged file_imports
@@ -449,7 +449,7 @@ def update_file_imports(mod_file_data: FileData, fis: List[FileImport],
                         AND import_file_path='{3}';""".format(
                 commit_hash, commit_datetime,
                 mod_file_data.get_file_path(), fi.get_import_file_path())
-            #logging.debug(sql_string)
+            logging.debug(sql_string)
             cur.execute(sql_string)
 
         con_analytics_db.commit()

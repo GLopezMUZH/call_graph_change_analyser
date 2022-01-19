@@ -230,6 +230,9 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         # Current source code
         curr_function_calls = []
         if file_path_current is not None:
+            logging.debug(file_path_current)
+            if not os.path.exists(file_path_current):
+                logging.warning("file_path_current does not exist {0}".format(file_path_current))
             # get compact xml parsed source
             curr_src_args = [
                 proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
@@ -256,6 +259,9 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         # Previous source code
         prev_function_calls = []
         if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
+            logging.debug(file_path_previous)
+            if not os.path.exists(file_path_previous):
+                logging.warning("file_path_previous does not exist {0}".format(file_path_previous))
             # get compact xml parsed source
             prev_src_args = [
                 proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]

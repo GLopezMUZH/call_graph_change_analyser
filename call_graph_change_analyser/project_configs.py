@@ -16,6 +16,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     to_date = None
     save_cache_files = None
     delete_cache_files = None
+    delete_cg_src_db = None
     path_to_proj_data_dir = None
     path_to_src_files = None
     proj_lang = None
@@ -41,9 +42,11 @@ def execute_project_conf_from_file(path_to_config_file:str):
             if (line.lstrip()).startswith("to_date:"):
                 to_date=get_label_content(line, len("to_date:"))
             if (line.lstrip()).startswith("save_cache_files:"):
-                save_cache_files=get_label_content(line, len("save_cache_files:"))
+                save_cache_files=False if get_label_content(line, len("save_cache_files:")) == 'False' else True
             if (line.lstrip()).startswith("delete_cache_files:"):
-                delete_cache_files=get_label_content(line, len("delete_cache_files:"))
+                delete_cache_files=False if get_label_content(line, len("delete_cache_files:")) == 'False' else True
+            if (line.lstrip()).startswith("delete_cg_src_db:"):
+                delete_cg_src_db=False if get_label_content(line, len("delete_cg_src_db:")) == 'False' else True
             if (line.lstrip()).startswith("path_to_proj_data_dir:"):
                 path_to_proj_data_dir=os.path.normpath(get_label_content(line, len("path_to_proj_data_dir:")))
             if (line.lstrip()).startswith("path_to_src_files:"):
@@ -60,8 +63,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 srctrl_orig_config_file_path=get_label_content(line, len("srctrl_orig_config_file_path:"))
             if (line.lstrip()).startswith("cache_files_dir_path:"):
                 cache_files_dir_path=get_label_content(line, len("cache_files_dir_path:"))
-                
-                
+    
     if proj_lang == 'cpp':
         commit_file_types=['.cpp']
     if proj_lang == 'java':
@@ -81,6 +83,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
                                 end_repo_date=end_repo_date,
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files,
+                                delete_cg_src_db=delete_cg_src_db,
                                 only_in_branch=only_in_branch)
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir,
@@ -95,6 +98,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     logging.basicConfig(filename=log_filepath, level=logging.DEBUG,
                         format='%(asctime)-15s [%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s')
     logging.debug('Started App - {0}'.format(str(datetime.now())))
+    logging.debug("delete_cg_src_db {0}".format(delete_cg_src_db))
 
     logging.debug(proj_config)
     logging.debug(proj_paths)

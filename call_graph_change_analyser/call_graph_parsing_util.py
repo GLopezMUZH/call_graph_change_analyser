@@ -2,6 +2,7 @@
 from sqlite3.dbapi2 import OperationalError
 import subprocess
 from subprocess import *
+from typing import Optional
 from git import Repo
 import os
 import platform
@@ -14,16 +15,18 @@ import re
 import collections
 
 import time
-#from stopwatch import Stopwatch, profile
+# from stopwatch import Stopwatch, profile
 from datetime import datetime
+
+from models import ProjectConfig, ProjectPaths
 
 
 def sctWrapper(cgdbpath, *args):
-    #print("Exists dir: ", os.path.exists(cgdbpath))
+    # print("Exists dir: ", os.path.exists(cgdbpath))
     file_path = os.path.join(cgdbpath, args[len(args)-1])
     logging.debug(file_path)
-    #print("File path: ", file_path)
-    #print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
+    # print("File path: ", file_path)
+    # print("Exists file: ", args[len(args)-1], os.path.exists(file_path))
 
     shell_value = True
     if platform.system() == 'Linux':
@@ -62,11 +65,11 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, c
     # check if call graph data for commit exist
     raw_cg_table_exists = False
     raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
-                                (proj_name + '_raw_cg.db'))
+                                  (proj_name + '_raw_cg.db'))
     con_commit_cg_db = sqlite3.connect(raw_cg_db_path)
     cur = con_commit_cg_db.cursor()
     try:
-        sql_string="""SELECT *
+        sql_string = """SELECT *
             FROM '{0}'
             LIMIT 1;""".format(commit_hash)
         cur.execute(sql_string)
@@ -83,8 +86,7 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, c
         cur.close()
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         err_message = template.format(type(err).__name__, err.args)
-        logging.error(err_message)            
-
+        logging.error(err_message)
 
     # if srctrl database does not exist, create
     if not raw_cg_table_exists:
@@ -95,7 +97,8 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, c
         else:
             logging.info("Commit srctrl database already exists.")
     else:
-        logging.info("Table '{0}' already exists at raw_cg_db_path".format(commit_hash))
+        logging.info(
+            "Table '{0}' already exists at raw_cg_db_path".format(commit_hash))
 
 
 def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
@@ -126,7 +129,7 @@ def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, raw_cg_db_path: str
         con_commit_cg_db = sqlite3.connect(raw_cg_db_path)
         cur = con_commit_cg_db.cursor()
         try:
-            sql_string="""SELECT *
+            sql_string = """SELECT *
                 FROM '{0}'
                 LIMIT 1;""".format(commit_hash)
             cur.execute(sql_string)
@@ -135,7 +138,7 @@ def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, raw_cg_db_path: str
         except Exception as err:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             err_message = template.format(type(err).__name__, err.args)
-            logging.error(err_message)            
+            logging.error(err_message)
 
         if(cur.rowcount <= 0):
             sql_string = """select
@@ -145,15 +148,15 @@ def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, raw_cg_db_path: str
                 s_file.path as s_file_path,
                 t_file.path as t_file_path,
                 "" as mod_type
-                from edge, node as s_node, node as t_node, 
-                source_location as s_src_loc, source_location as t_src_loc, 
+                from edge, node as s_node, node as t_node,
+                source_location as s_src_loc, source_location as t_src_loc,
                 occurrence as s_oc, occurrence as t_oc,
                 file as s_file, file as t_file
                 where
                 edge.target_node_id = t_node.id
                 and edge.source_node_id = s_node.id
                 and t_node.type in (4096,8192) -- fuction and methods
-                and edge.type = 8 -- call 
+                and edge.type = 8 -- call
                 and s_oc.element_id = s_node.id
                 and s_file.id = s_src_loc.file_node_id
                 and s_src_loc.id = s_oc.source_location_id
@@ -175,7 +178,8 @@ def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, raw_cg_db_path: str
             con_commit_cg_db.commit()
             con_commit_cg_db.close()
         else:
-            logging.info("Table '{0}' already exist, don't overwrite".format(commit_hash))
+            logging.info(
+                "Table '{0}' already exist, don't overwrite".format(commit_hash))
 
     except Exception as err:
         # TODO handle db connection errors
@@ -225,10 +229,10 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             sql_string = """SELECT '{0}' as commit_hash,
                 '{1}' as commit_date,
                 'curr' as commit_type,
-                *  
+                *
                 FROM '{0}' as curr_t
                 WHERE NOT EXISTS (
-                    SELECT *  
+                    SELECT *
                     FROM  "{2}" as next_t
                     WHERE next_t.s_file_path = curr_t.s_file_path
                     AND next_t.t_file_path = curr_t.t_file_path
@@ -242,10 +246,10 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             sql_string = """SELECT "{0}" as commit_hash,
                 '{1}' as commit_date,
                 'next' as commit_type,
-                *  
+                *
                 FROM '{0}' as next_t
                 WHERE NOT EXISTS (
-                    SELECT *  
+                    SELECT *
                     FROM  "{2}" as curr_t
                     WHERE next_t.s_file_path = curr_t.s_file_path
                     AND next_t.t_file_path = curr_t.t_file_path
@@ -286,7 +290,8 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
 
             logging.debug("len added_calls {0}".format(len(added_calls)))
             logging.debug("len deleted_calls {0}".format(len(deleted_calls)))
-            logging.debug("len unchanged_calls {0}".format(len(unchanged_calls)))
+            logging.debug("len unchanged_calls {0}".format(
+                len(unchanged_calls)))
 
             curr_node_name_nosrcref_dupplicates = get_node_name_nosrcref_dupplicates(
                 s_curr)
@@ -313,13 +318,13 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                                     s_file_path = "{4}"
                                     AND t_file_path = "{5}"
                                     AND source_node_name = "{6}"
-                                    AND target_node_name = "{7}" 
+                                    AND target_node_name = "{7}"
                                     AND closed = 0;""".format(
                             df_next_row.iloc[0]['commit_hash'], df_next_row.iloc[0]['commit_date'],
                             df_next_row.iloc[0]['commit_hash'], df_next_row.iloc[0]['commit_date'],
                             df_next_row.iloc[0]['s_file_path'], df_next_row.iloc[0]['t_file_path'],
                             df_next_row.iloc[0]['source_node_name'], df_next_row.iloc[0]['target_node_name'])
-                        #logging.debug(sql_string)
+                        # logging.debug(sql_string)
                         cur.execute(sql_string)
 
                     else:
@@ -333,9 +338,9 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                                                      & (raw_cg_df_curr['target_node_name_nosrcref'] == d[1])]
                     if len(df_curr_row) == 1:
                         sql_string = """INSERT INTO edge_hist
-                                    (source_node_id, 
-                                    source_node_type, 
-                                    source_node_name, 
+                                    (source_node_id,
+                                    source_node_type,
+                                    source_node_name,
                                     target_node_id,
                                     target_node_type,
                                     target_node_name,
@@ -352,7 +357,7 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                                     closed)
                                     VALUES
                                     ({0},"{1}","{2}",{3},"{4}","{5}","{6}","{7}","{8}","{9}",
-                                    "{10}","{11}","{12}","{13}","{14}","{15}","{16}",0);""".format(
+                                    "{10}","{11}","{12}","{13}","{14}","{15}",0);""".format(
                             df_curr_row.iloc[0]['source_node_id'],
                             df_curr_row.iloc[0]['source_node_type'],
                             df_curr_row.iloc[0]['source_node_name'],
@@ -370,7 +375,7 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                             df_curr_row.iloc[0]['source_node_name_nosrcref'],
                             df_curr_row.iloc[0]['target_node_name_nosrcref'],
                             1)  # we know that this was his last commit
-                        #logging.debug(sql_string)
+                        # logging.debug(sql_string)
                         cur.execute(sql_string)
 
                     else:
@@ -396,7 +401,7 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                                     s_file_path = "{4}"
                                     AND t_file_path = "{5}"
                                     AND source_node_name = "{6}"
-                                    AND target_node_name = "{7}" 
+                                    AND target_node_name = "{7}"
                                     AND closed = 0;""".format(
                             df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'],
                             commit_hash, commit_date,
@@ -415,7 +420,7 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             # Case 2: there are more than one node_name_nosrcref similar edges
             else:
                 logging.debug(
-                    "There are more than one node_name_nosrcref similar edges. curr {0}, next {1}".format(len(curr_node_name_nosrcref_dupplicates),len(next_node_name_nosrcref_dupplicates)))
+                    "There are more than one node_name_nosrcref similar edges. curr {0}, next {1}".format(len(curr_node_name_nosrcref_dupplicates), len(next_node_name_nosrcref_dupplicates)))
 
         else:
             logging.info("First commit in the database.")
@@ -436,7 +441,7 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             df.to_sql(
                 "edge_hist", con_raw_cg_db, if_exists='replace', index=False)
             con_raw_cg_db.commit()
-            con_raw_cg_db.close()
+            cur.close()
 
     except Exception as err:
         con_raw_cg_db.rollback()
@@ -447,6 +452,330 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
         return None
 
 
+def save_start_commit_in_edge_hist(path_to_edge_hist_db, raw_cg_db_path, commit_hash, commit_date):
+    logging.debug(
+        "------- save_start_commit_in_edge_hist: {0}, {1}".format(commit_hash, commit_date))
+    try:
+        eh_target_db_path = path_to_edge_hist_db if path_to_edge_hist_db is not None else raw_cg_db_path
+        con_raw_cg_db = sqlite3.connect(raw_cg_db_path)
+        con_edge_hist_db = sqlite3.connect(eh_target_db_path)
+        cur_edge_hist_db = con_edge_hist_db.cursor()
+        pattern = re.compile(r"\<\d+\:\d+\>")
+
+        logging.info("First commit in the database.")
+        sql_string = """select *,
+            "" as commit_hash_start,
+            "" as commit_start_datetime,
+            "{0}" as commit_hash_oldest,
+            "{1}" as commit_oldest_datetime,
+            "" as commit_hash_end,
+            "" as commit_end_datetime,
+            0 as closed
+            from "{0}";""".format(commit_hash, commit_date)
+        df = pandas.read_sql_query(sql_string, con_raw_cg_db)
+        df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
+            pattern, '<:>')
+        df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
+            pattern, '<:>')
+        df.to_sql(
+            "edge_hist", con_edge_hist_db, if_exists='replace', index=False)
+        con_edge_hist_db.commit()
+        cur_edge_hist_db.close()
+
+    except Exception as err:
+        con_raw_cg_db.rollback()
+        # cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(err).__name__, err.args)
+        logging.error(err_message)
+        return None
+
+
+def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    """We care about absolute calls between functions. if the same function B is called twice in function A, and in the next commit
+    one of the calls is dropped, the call graph remains the same because function A is still calling function B.
+    Because all relevant cg data is already fetched we work from older to newer date/commit"""
+
+    # if (proj_config.get_start_repo_date() is not None and proj_config.get_end_repo_date()):
+    #    git_traverse_between_dates(proj_config, proj_paths)
+
+    # TODO check that start date is not None
+    start_date = proj_config.get_start_repo_date()
+    end_date = proj_config.get_end_repo_date()
+
+    proj_name = proj_config.get_proj_name()
+    path_to_cache_cg_dbs_dir = proj_paths.get_path_to_cache_cg_dbs_dir()
+    path_to_project_db = proj_paths.get_path_to_project_db()
+    path_to_edge_hist_db = proj_paths.get_path_to_edge_hist_db()
+
+    raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
+                                  (proj_name + '_raw_cg.db'))
+    if not os.path.exists(str(raw_cg_db_path)):
+        logging.ERROR(
+            "raw_cg_db_path does not exist! {0}".format(raw_cg_db_path))
+    eh_target_db_path = path_to_edge_hist_db if path_to_edge_hist_db is not None else raw_cg_db_path
+
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    con_raw_cg_db = sqlite3.connect(raw_cg_db_path)
+    con_edge_hist_db = sqlite3.connect(eh_target_db_path)
+
+    # get first hash to process
+    r = get_start_hash(con_analytics_db, start_date)
+    start_commit_hash = None if r is None else r[0]
+    start_commit_date = None if r is None else r[1]
+    logging.debug(
+        "------- start_commit_hash: {0}, {1}".format(start_commit_hash, start_commit_date))
+
+    # get last hash to process
+    r = get_end_hash(con_analytics_db, end_date)
+    end_commit_hash = None if r is None else r[0]
+    end_commit_date = None if r is None else r[1]
+    logging.debug("end_commit_hash: {0}, {1}".format(
+        end_commit_hash, end_commit_date))
+
+    # process first hash
+    save_start_commit_in_edge_hist(
+        path_to_edge_hist_db, raw_cg_db_path, start_commit_hash, start_commit_date)
+
+    curr_commit_hash = start_commit_hash
+    curr_commit_date = start_commit_date
+    # some function names include the source code row and column
+    pattern = re.compile(r"\<\d+\:\d+\>")
+    end_hash_reached = False
+    while not end_hash_reached:
+        logging.debug(
+            "------- curr_commit_hash: {0}, {1}".format(curr_commit_hash, curr_commit_date))
+        r = get_next_hash(con_analytics_db, curr_commit_date)
+        next_commit_hash = None if r is None else r[0]
+        next_commit_date = None if r is None else r[1]
+        logging.debug("next_commit_hash: {0}, {1}".format(
+            next_commit_hash, next_commit_date))
+
+        if next_commit_date >= end_commit_date:
+            logging.debug("last commit reached: {0}, {1}".format(
+                end_commit_hash, end_commit_date))
+            end_hash_reached = True
+
+        # example glucosio-android0ff0d3fae09581ea490794eaa82b4279fabeb7f4.srctrldb
+        try:
+            cur_raw_cg_db = con_raw_cg_db.cursor()
+            cur_edge_hist_db = con_edge_hist_db.cursor()
+            # TODO split for testability
+            # get nodes only existing in current commit
+            sql_string = """SELECT '{0}' as commit_hash,
+                '{1}' as commit_date,
+                'curr' as commit_type,
+                *  
+                FROM '{0}' as curr_t
+                WHERE NOT EXISTS (
+                    SELECT *  
+                    FROM  "{2}" as next_t
+                    WHERE next_t.s_file_path = curr_t.s_file_path
+                    AND next_t.t_file_path = curr_t.t_file_path
+                    AND next_t.source_node_name = curr_t.source_node_name
+                    AND next_t.target_node_name = curr_t.target_node_name
+                );""".format(curr_commit_hash, curr_commit_date, next_commit_hash)
+
+            raw_cg_df_curr = pandas.read_sql_query(
+                sql_string, con_raw_cg_db)
+
+            # get nodes only existing in next commit
+            sql_string = """SELECT "{0}" as commit_hash,
+                '{1}' as commit_date,
+                'next' as commit_type,
+                *  
+                FROM '{0}' as next_t
+                WHERE NOT EXISTS (
+                    SELECT *  
+                    FROM  "{2}" as curr_t
+                    WHERE next_t.s_file_path = curr_t.s_file_path
+                    AND next_t.t_file_path = curr_t.t_file_path
+                    AND next_t.source_node_name = curr_t.source_node_name
+                    AND next_t.target_node_name = curr_t.target_node_name
+                );""".format(next_commit_hash, next_commit_date, curr_commit_hash)
+
+            raw_cg_df_next = pandas.read_sql_query(
+                sql_string, con_raw_cg_db)
+
+            # name of node might include line number in code
+            raw_cg_df_curr['source_node_name_nosrcref'] = raw_cg_df_curr['source_node_name'].str.replace(
+                pattern, '<:>')
+            raw_cg_df_curr['target_node_name_nosrcref'] = raw_cg_df_curr['target_node_name'].str.replace(
+                pattern, '<:>')
+            raw_cg_df_next['source_node_name_nosrcref'] = raw_cg_df_next['source_node_name'].str.replace(
+                pattern, '<:>')
+            raw_cg_df_next['target_node_name_nosrcref'] = raw_cg_df_next['target_node_name'].str.replace(
+                pattern, '<:>')
+            # remove the begin_line:begin_column from the node serialized name
+            t_curr = tuple(zip(raw_cg_df_curr['source_node_name_nosrcref'], raw_cg_df_curr['target_node_name_nosrcref'],
+                               raw_cg_df_curr['s_file_path'], raw_cg_df_curr['t_file_path']))
+            s_curr = set(t_curr)
+            logging.debug("""len t_curr {0}, len s_curr {1} """.format(
+                len(t_curr), len(s_curr)))
+            t_next = tuple(zip(raw_cg_df_next['source_node_name_nosrcref'], raw_cg_df_next['target_node_name_nosrcref'],
+                               raw_cg_df_next['s_file_path'], raw_cg_df_next['t_file_path']))
+            s_next = set(t_next)
+            logging.debug("""len t_next {0}, len s_next {1} """.format(
+                len(t_curr), len(s_curr)))
+
+            # get added calls on next (existing in next but not curr)
+            added_calls = list(s_next - s_curr)
+            # get deleted calls on next (existing in curr but not in next)
+            deleted_calls = list(s_curr - s_next)
+            # get unchanged calls
+            unchanged_calls = list(s_curr.intersection(s_next))
+
+            logging.debug("len added_calls {0}".format(len(added_calls)))
+            logging.debug("len deleted_calls {0}".format(len(deleted_calls)))
+            logging.debug("len unchanged_calls {0}".format(
+                len(unchanged_calls)))
+
+            curr_node_name_nosrcref_dupplicates = get_node_name_nosrcref_dupplicates(
+                s_curr)
+            next_node_name_nosrcref_dupplicates = get_node_name_nosrcref_dupplicates(
+                s_next)
+
+            has_unique_node_name_nosrcref = False
+            # Case 1: added/deleted call has unique node_name_nosrcref
+            if len(curr_node_name_nosrcref_dupplicates) + len(next_node_name_nosrcref_dupplicates) == 0:
+                has_unique_node_name_nosrcref = True
+
+            if has_unique_node_name_nosrcref:
+                for a in added_calls:
+                    df_next_row = raw_cg_df_next.loc[(raw_cg_df_next['s_file_path'] == a[2])
+                                                     & (raw_cg_df_next['t_file_path'] == a[3])
+                                                     & (raw_cg_df_next['source_node_name_nosrcref'] == a[0])
+                                                     & (raw_cg_df_next['target_node_name_nosrcref'] == a[1])]
+                    if len(df_next_row) == 1:
+                        sql_string = """INSERT INTO edge_hist
+                                    (source_node_id, 
+                                    source_node_type, 
+                                    source_node_name, 
+                                    target_node_id,
+                                    target_node_type,
+                                    target_node_name,
+                                    s_file_path,
+                                    t_file_path,
+                                    commit_hash_start,
+                                    commit_start_datetime,
+                                    commit_hash_oldest,
+                                    commit_oldest_datetime,
+                                    commit_hash_end,
+                                    commit_end_datetime,
+                                    source_node_name_nosrcref,
+                                    target_node_name_nosrcref,
+                                    closed)
+                                    VALUES
+                                    ({0},"{1}","{2}",{3},"{4}","{5}","{6}","{7}","{8}","{9}",
+                                    "{10}","{11}","{12}","{13}","{14}","{15}",0);""".format(
+                            df_next_row.iloc[0]['source_node_id'],
+                            df_next_row.iloc[0]['source_node_type'],
+                            df_next_row.iloc[0]['source_node_name'],
+                            df_next_row.iloc[0]['target_node_id'],
+                            df_next_row.iloc[0]['target_node_type'],
+                            df_next_row.iloc[0]['target_node_name'],
+                            df_next_row.iloc[0]['s_file_path'],
+                            df_next_row.iloc[0]['t_file_path'],
+                            df_next_row.iloc[0]['commit_hash'],  # start hash
+                            df_next_row.iloc[0]['commit_date'],  # start date
+                            df_next_row.iloc[0]['commit_hash'],  # oldest hash
+                            df_next_row.iloc[0]['commit_date'],  # oldest date
+                            '',  # end hash
+                            '',  # end date
+                            df_next_row.iloc[0]['source_node_name_nosrcref'],
+                            df_next_row.iloc[0]['target_node_name_nosrcref'])
+                        logging.debug(sql_string)
+                        cur_edge_hist_db.execute(sql_string)
+
+                    else:
+                        logging.error(
+                            "has_unique_node_name_nosrcref found more than one row in raw_cg_df_curr!")
+
+                for d in deleted_calls:
+                    df_curr_row = raw_cg_df_curr.loc[(raw_cg_df_curr['s_file_path'] == d[2])
+                                                     & (raw_cg_df_curr['t_file_path'] == d[3])
+                                                     & (raw_cg_df_curr['source_node_name_nosrcref'] == d[0])
+                                                     & (raw_cg_df_curr['target_node_name_nosrcref'] == d[1])]
+
+                    if len(df_next_row) == 1:
+                        sql_string = """UPDATE edge_hist SET
+                                    commit_hash_end = "{0}", commit_end_datetime="{1}",
+                                    commit_hash_oldest="{2}", commit_oldest_datetime="{3}"
+                                    WHERE
+                                    s_file_path = "{4}"
+                                    AND t_file_path = "{5}"
+                                    AND source_node_name = "{6}"
+                                    AND target_node_name = "{7}" 
+                                    AND closed = 0;""".format(
+                            df_curr_row.iloc[0]['commit_hash'], df_curr_row.iloc[0]['commit_date'],
+                            df_curr_row.iloc[0]['commit_hash'], df_curr_row.iloc[0]['commit_date'],
+                            df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
+                            df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
+                        logging.debug(sql_string)
+                        cur_edge_hist_db.execute(sql_string)
+
+                    else:
+                        logging.error(
+                            "has_unique_node_name_nosrcref found more than one row in raw_cg_df_next!")
+
+
+                # TODO deal with re-insertions
+                for u in unchanged_calls:
+                    df_curr_row = raw_cg_df_curr.loc[(raw_cg_df_curr['s_file_path'] == u[2])
+                                                     & (raw_cg_df_curr['t_file_path'] == u[3])
+                                                     & (raw_cg_df_curr['source_node_name_nosrcref'] == u[0])
+                                                     & (raw_cg_df_curr['target_node_name_nosrcref'] == u[1])]
+                    df_next_row = raw_cg_df_next.loc[(raw_cg_df_next['s_file_path'] == u[2])
+                                                     & (raw_cg_df_next['t_file_path'] == u[3])
+                                                     & (raw_cg_df_next['source_node_name_nosrcref'] == u[0])
+                                                     & (raw_cg_df_next['target_node_name_nosrcref'] == u[1])]
+
+                    if len(df_next_row) == 1:
+                        #logging.info("Do nothing for unchanted calls")
+
+                        sql_string = """UPDATE edge_hist SET
+                                    source_node_name = "{0}", target_node_name="{1}"
+                                    WHERE
+                                    s_file_path = "{2}"
+                                    AND t_file_path = "{3}"
+                                    AND source_node_name = "{4}"
+                                    AND target_node_name = "{5}" 
+                                    AND closed = 0;""".format(
+                            df_next_row.iloc[0]['source_node_name'], df_next_row.iloc[0]['target_node_name'],
+                            df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
+                            df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
+                        logging.debug(sql_string)
+                        cur_edge_hist_db.execute(sql_string)
+
+                    else:
+                        logging.error(
+                            "has_unique_node_name_nosrcref found more than one row in raw_cg_df_curr!")
+
+                con_raw_cg_db.commit()
+                cur_raw_cg_db.close()
+
+                con_edge_hist_db.commit()
+                cur_edge_hist_db.close()
+
+            # Case 2: there are more than one node_name_nosrcref similar edges
+            else:
+                logging.debug(
+                    "There are more than one node_name_nosrcref similar edges. curr {0}, next {1}".format(len(curr_node_name_nosrcref_dupplicates), len(next_node_name_nosrcref_dupplicates)))
+
+            curr_commit_hash = next_commit_hash
+            curr_commit_date = next_commit_date
+
+        except Exception as err:
+            con_raw_cg_db.rollback()
+            # cur.close()
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            err_message = template.format(type(err).__name__, err.args)
+            logging.error(err_message)
+            return None
+
+    logging.debug("end_hash_reached {0}".format(end_hash_reached))
+
+
 # in theory the git_repository_mining_util.git_traverse_on_X() could keep the commit previously processed (next in commit date),
 # but better go to the db in case of interruptions
 # and because the start of the current execution does not mean that there will not be
@@ -454,9 +783,36 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
 # move to sql util
 
 
-def get_next_hash(path_to_project_db: str, commit_date: datetime) -> str:
+def get_start_hash(con_analytics_db, commit_date: datetime) -> str:
     try:
-        con_analytics_db = sqlite3.connect(path_to_project_db)
+        cur = con_analytics_db.cursor()
+
+        sql_string = """select commit_hash, commit_commiter_datetime
+            from git_commit
+            where commit_commiter_datetime >= '{0}'
+            order by commit_commiter_datetime
+            limit 1""".format(commit_date)
+
+        cur.execute(sql_string)
+        result = cur.fetchone()
+        print("result", result)
+        logging.debug(result)
+
+        con_analytics_db.commit()
+        cur.close()
+        return result
+
+    except Exception as err:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(err).__name__, err.args)
+        logging.error(err_message)
+        return None
+
+
+def get_next_hash(con_analytics_db, commit_date: datetime) -> str:
+    try:
         cur = con_analytics_db.cursor()
 
         sql_string = """select commit_hash, commit_commiter_datetime
@@ -464,6 +820,40 @@ def get_next_hash(path_to_project_db: str, commit_date: datetime) -> str:
             where commit_commiter_datetime > '{0}'
             order by commit_commiter_datetime
             limit 1""".format(commit_date)
+
+        cur.execute(sql_string)
+        result = cur.fetchone()
+        print("result", result)
+        logging.debug(result)
+
+        con_analytics_db.commit()
+        cur.close()
+        return result
+
+    except Exception as err:
+        con_analytics_db.rollback()
+        cur.close()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(type(err).__name__, err.args)
+        logging.error(err_message)
+        return None
+
+
+def get_end_hash(con_analytics_db, commit_date: datetime) -> str:
+    try:
+        cur = con_analytics_db.cursor()
+
+        if commit_date is None:
+            sql_string = """select commit_hash, commit_commiter_datetime
+                from git_commit
+                order by commit_commiter_datetime desc
+                limit 1"""
+        else:
+            sql_string = """select commit_hash, commit_commiter_datetime
+                from git_commit
+                where commit_commiter_datetime >= '{0}'
+                order by commit_commiter_datetime
+                limit 1""".format(commit_date)
 
         cur.execute(sql_string)
         result = cur.fetchone()

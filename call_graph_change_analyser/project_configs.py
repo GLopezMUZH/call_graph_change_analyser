@@ -24,6 +24,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     repo_type = None
     commit_file_types = None
     only_in_branch = None
+    separate_edge_hist_db = None
 
     def get_label_content(line, label_size):
         return line[label_size:len(line.rstrip())].replace("'", '')
@@ -63,6 +64,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 srctrl_orig_config_file_path=get_label_content(line, len("srctrl_orig_config_file_path:"))
             if (line.lstrip()).startswith("cache_files_dir_path:"):
                 cache_files_dir_path=get_label_content(line, len("cache_files_dir_path:"))
+            if (line.lstrip()).startswith("separate_edge_hist_db:"):
+                separate_edge_hist_db=False if get_label_content(line, len("separate_edge_hist_db:")) == 'False' else True
     
     if proj_lang == 'cpp':
         commit_file_types=['.cpp']
@@ -88,7 +91,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
     proj_paths = ProjectPaths(proj_name=proj_config.proj_name,
                               path_to_proj_data_dir=path_to_proj_data_dir,
                               path_to_src_files=path_to_src_files,
-                              srctrl_orig_config_file_path=srctrl_orig_config_file_path)
+                              srctrl_orig_config_file_path=srctrl_orig_config_file_path,
+                              separate_edge_hist_db=separate_edge_hist_db)
 
 
 

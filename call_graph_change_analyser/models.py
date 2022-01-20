@@ -30,7 +30,7 @@ class ProjectConfig:
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
             delete_cache_files: Optional[bool] = True,
-            delete_cg_src_db: Optional [bool] = True,
+            delete_cg_src_db: Optional[bool] = True,
             only_in_branch: Optional[str] = None) -> None:
         self.proj_name = proj_name
         self.proj_lang = proj_lang
@@ -100,7 +100,8 @@ class ProjectConfig:
 
 
 class ProjectPaths:
-    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None, srctrl_orig_config_file_path: str = None) -> None:
+    def __init__(self, proj_name: str, path_to_proj_data_dir: str, path_to_src_files: str = None,
+                 srctrl_orig_config_file_path: str = None, separate_edge_hist_db: Optional[bool] = True) -> None:
         # project data directory
         self.path_to_proj_data_dir = os.path.join(
             path_to_proj_data_dir, proj_name)
@@ -116,7 +117,11 @@ class ProjectPaths:
         self.path_to_project_db = os.path.join(
             path_to_proj_data_dir, proj_name, proj_name + '_analytics.db')
 
-        # CACHE FILES 
+        # edge_hist database
+        self.path_to_edge_hist_db = os.path.join(
+            path_to_proj_data_dir, proj_name, proj_name + '_edge_hist.db')
+
+        # CACHE FILES
         # temporary files main folder
         self.path_to_cache_dir = os.path.join(
             path_to_proj_data_dir, proj_name, '.cache')
@@ -160,7 +165,8 @@ class ProjectPaths:
 
         # copy original srctrail config file to temporary folder
         if os.path.isfile(self.srctrl_orig_config_file_path):
-            shutil_copy(self.srctrl_orig_config_file_path, self.path_to_cache_cg_dbs_dir)
+            shutil_copy(self.srctrl_orig_config_file_path,
+                        self.path_to_cache_cg_dbs_dir)
         else:
             print("Wrong configuration file path.")
 
@@ -175,6 +181,9 @@ class ProjectPaths:
 
     def get_path_to_project_db(self):
         return self.path_to_project_db
+
+    def get_path_to_edge_hist_db(self):
+        return self.path_to_edge_hist_db
 
     def get_path_to_cache_dir(self):
         return self.path_to_cache_dir

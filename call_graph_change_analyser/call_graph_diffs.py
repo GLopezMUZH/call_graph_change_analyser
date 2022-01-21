@@ -2,11 +2,9 @@
 from models import *
 import logging
 from datetime import datetime
-import sys
-from pydriller import Repository
+
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
-from repository_mining_util import get_file_type_validation_function
 from utils_sql import create_db_tables
 from project_configs import *
 from call_graph_parsing_util import calculate_cg_diffs

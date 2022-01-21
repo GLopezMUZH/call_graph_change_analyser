@@ -143,3 +143,6 @@ dmypy.json
 
 # vscode
 /.vscode
+
+# notebooks local
+/notebooks_local

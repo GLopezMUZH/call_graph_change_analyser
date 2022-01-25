@@ -98,9 +98,12 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
                      path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
                      delete_cg_src_db=proj_config.get_delete_cg_src_db())
 
+        """
         save_cg_diffs(proj_name=proj_config.get_proj_name(),
                       path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash, commit_date=commit.committer_date,
-                      path_to_project_db=proj_paths.get_path_to_project_db())
+                      path_to_project_db=proj_paths.get_path_to_project_db(),
+                      path_to_edge_hist_db=proj_paths.get_path_to_edge_hist_db())
+        """
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,

@@ -6,6 +6,7 @@ from repository_mining_util import *
 from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
 from call_graph_parsing_util import save_cg_data, save_cg_diffs
+from git_util import reset_git_to_hash
 
 
 def git_traverse_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
@@ -77,6 +78,10 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
 
     for mod_file in commit.modified_files:
         if is_valid_file_type(str(mod_file._new_path)) or is_valid_file_type(str(mod_file._old_path)):
+            process_file_git_commit(proj_config, proj_paths,
+                                                       commit, mod_file)
+    
+    """
             dir_deleted_file = process_file_git_commit(proj_config, proj_paths,
                                                        commit, mod_file)
             if dir_deleted_file != '':
@@ -84,16 +89,18 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
 
     for d in dir_deleted_files:
         delete_empty_dir(d)
+    """
 
     if parse_cg:
+        reset_git_to_hash(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir(), commit.hash)
+
         save_cg_data(proj_name=proj_config.get_proj_name(),
-                                    path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
-                                    delete_cg_src_db = proj_config.get_delete_cg_src_db())
+                     path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
+                     delete_cg_src_db=proj_config.get_delete_cg_src_db())
 
         save_cg_diffs(proj_name=proj_config.get_proj_name(),
                       path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash, commit_date=commit.committer_date,
                       path_to_project_db=proj_paths.get_path_to_project_db())
-
 
 
 def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths,
@@ -103,10 +110,10 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                                             commit, mod_file)
 
     # process call graph sourceTrail
-    dir_deleted_file = process_file_git_commit_cg_parsing(
-        proj_paths, mod_file)
+    #dir_deleted_file = process_file_git_commit_cg_parsing(
+    #    proj_paths, mod_file)
 
-    return dir_deleted_file
+    #return dir_deleted_file
 
 
 def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):
@@ -133,7 +140,7 @@ def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: Modif
             mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
         file_path_deleted = os.path.join(
             proj_paths.get_path_to_cache_src_dir(), str(mod_file._old_path))
-        delete_source_code(file_path_deleted) #, mod_file.source_code)
+        delete_source_code(file_path_deleted)  # , mod_file.source_code)
         return os.path.dirname(file_path_deleted)
 
     # CSHttpCameraFrameGrabber.java
@@ -148,6 +155,7 @@ def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: Modif
             proj_paths.get_path_to_cache_src_dir(), str(mod_file._old_path))
         save_source_code(file_path_added,
                          mod_file.source_code)
+        delete_source_code(file_path_deleted)  # , mod_file.source_code)
         return os.path.dirname(file_path_deleted)
 
     if mod_file.change_type == ModificationType.COPY or mod_file.change_type == ModificationType.UNKNOWN:
@@ -155,6 +163,10 @@ def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: Modif
             mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
         logging.info("ModType COPY1/UNKN6 {3}. File {0} old path: {1}, new path: {2}. TODO".format(
             mod_file.filename, mod_file._new_path, mod_file._old_path, mod_file.change_type.name))
+        file_path_changed = os.path.join(
+            proj_paths.get_path_to_cache_src_dir(), str(mod_file._new_path))
+        save_source_code(file_path_changed,
+                         mod_file.source_code)
         return ''
 
 
@@ -232,7 +244,8 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         if file_path_current is not None:
             logging.debug(file_path_current)
             if not os.path.exists(file_path_current):
-                logging.warning("file_path_current does not exist {0}".format(file_path_current))
+                logging.warning(
+                    "file_path_current does not exist {0}".format(file_path_current))
             # get compact xml parsed source
             curr_src_args = [
                 proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_current]
@@ -261,7 +274,8 @@ def update_function_calls(proj_config: ProjectConfig, proj_paths: ProjectPaths,
         if mod_file.change_type != ModificationType.ADD and file_path_previous is not None:
             logging.debug(file_path_previous)
             if not os.path.exists(file_path_previous):
-                logging.warning("file_path_previous does not exist {0}".format(file_path_previous))
+                logging.warning(
+                    "file_path_previous does not exist {0}".format(file_path_previous))
             # get compact xml parsed source
             prev_src_args = [
                 proj_config.PATH_TO_SRC_COMPACT_XML_PARSING, file_path_previous]

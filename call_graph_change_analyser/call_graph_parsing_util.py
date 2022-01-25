@@ -50,18 +50,27 @@ def sctWrapper(cgdbpath, *args):
 # TODO define re-processing startegy
 
 
-def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, srctrl_db_name: str) -> None:
+def parse_source_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, srctrl_db_name: str) -> None:
     proj_srctrl_config_file_name = proj_name + \
         '.srctrlprj'  # original file was copied to this path
     proj_commit_srctrl_config_file_name = proj_name + commit_hash + '.srctrlprj'
 
-    # if configuration file for parsing the call graph does not exist, create
+    # if configuration file for parsing the source graph does not exist, create
     if not os.path.exists(os.path.join(path_to_cache_cg_dbs_dir, proj_commit_srctrl_config_file_name)):
         make_config_file_copy(orig_file_dir=path_to_cache_cg_dbs_dir, orig_file_name=proj_srctrl_config_file_name,
                               target_file_dir=path_to_cache_cg_dbs_dir, target_file_name=proj_commit_srctrl_config_file_name)
     else:
         logging.info("Commit srctrl prj config file already exists.")
 
+    if not os.path.exists(os.path.join(path_to_cache_cg_dbs_dir, srctrl_db_name)):
+        # creates srctrl db for the commit
+        curr_src_args = [proj_commit_srctrl_config_file_name]
+        result = sctWrapper(path_to_cache_cg_dbs_dir, *curr_src_args)
+    else:
+        logging.info("Commit srctrl database already exists.")
+
+
+def exists_in_raw_cg_db(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str):
     # check if call graph data for commit exist
     raw_cg_table_exists = False
     raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
@@ -87,18 +96,7 @@ def parse_source_for_call_graph(proj_name: str, path_to_cache_cg_dbs_dir: str, c
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
         err_message = template.format(type(err).__name__, err.args)
         logging.error(err_message)
-
-    # if srctrl database does not exist, create
-    if not raw_cg_table_exists:
-        if not os.path.exists(os.path.join(path_to_cache_cg_dbs_dir, srctrl_db_name)):
-            # creates srctrl db for the commit
-            curr_src_args = [proj_commit_srctrl_config_file_name]
-            result = sctWrapper(path_to_cache_cg_dbs_dir, *curr_src_args)
-        else:
-            logging.info("Commit srctrl database already exists.")
-    else:
-        logging.info(
-            "Table '{0}' already exists at raw_cg_db_path".format(commit_hash))
+    return raw_cg_table_exists
 
 
 def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
@@ -108,11 +106,18 @@ def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str
     path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
                                      srctrl_db_name)
 
-    # save general source info from parsing component
-    parse_source_for_call_graph(proj_name, path_to_cache_cg_dbs_dir,
-                                commit_hash, srctrl_db_name)
+    # if srctrl database does not exist, create
+    if not exists_in_raw_cg_db(
+            proj_name, path_to_cache_cg_dbs_dir, commit_hash):
+        # save general source info from parsing component
+        parse_source_graph(proj_name, path_to_cache_cg_dbs_dir,
+                        commit_hash, srctrl_db_name)
+    else:
+        logging.info(
+            "Table '{0}' already exists in raw_cg_db_path".format(commit_hash))
+
     # retreive cg info from genearted db from parsing componen and save focused cg data
-    save_curr_cg_from_source_parcing(
+    save_curr_cg_from_source_graph_parcing(
         path_to_srctrl_db, raw_cg_db_path, commit_hash)
 
     logging.debug("delete_cg_src_db {0}".format(delete_cg_src_db))
@@ -124,7 +129,7 @@ def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str
                 "Error: {0} file not found".format(path_to_srctrl_db))
 
 
-def save_curr_cg_from_source_parcing(path_to_srctrl_db: str, raw_cg_db_path: str, commit_hash: str):
+def save_curr_cg_from_source_graph_parcing(path_to_srctrl_db: str, raw_cg_db_path: str, commit_hash: str):
     try:
         con_commit_cg_db = sqlite3.connect(raw_cg_db_path)
         cur = con_commit_cg_db.cursor()
@@ -209,7 +214,8 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
     """We care about absolute calls between functions. if the same function B is called twice in function A, and in the next commit
     one of the calls is dropped, the call graph remains the same because function A is still calling function B."""
     logging.debug("------- commit_hash: {0}".format(commit_hash))
-    r = get_next_hash(path_to_project_db, commit_date)
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+    r = get_next_hash(con_analytics_db, commit_date)
     next_commit_hash = None if r is None else r[0]
     next_commit_date = None if r is None else r[1]
     raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
@@ -717,7 +723,6 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                     else:
                         logging.error(
                             "has_unique_node_name_nosrcref found more than one row in raw_cg_df_next!")
-
 
                 # TODO deal with re-insertions
                 for u in unchanged_calls:

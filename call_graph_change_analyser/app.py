@@ -9,8 +9,8 @@ from repository_mining import load_source_repository_data
 from utils_sql import create_db_tables
 from project_configs import *
 
-from initial_indexing import execute_intitial_indexing, download_initial_cache_source
-
+from initial_indexing import execute_intitial_indexing
+from git_util import download_initial_cache_source
 
 # %%
 def main():

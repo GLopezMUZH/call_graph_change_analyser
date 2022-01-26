@@ -16,11 +16,11 @@ from cg_to_commit_util import update_commit_changes_to_cg_nodes
 def main():
 
     path_to_config_file = os.path.normpath(
-        '..\project_config\glucosio_small_ubuntu.pconfig')
+        '..\project_config\glucosio_small.pconfig')
 
     if platform.system() == 'Linux':
         path_to_config_file = os.path.normpath(
-            '../project_config/glucosio_small_ubuntu.pconfig')
+            '../project_config/glucosio_small.pconfig')
 
 
     print('Started App ------------ {0}'.format(datetime.now()))

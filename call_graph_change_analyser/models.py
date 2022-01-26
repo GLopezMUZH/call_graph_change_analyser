@@ -107,7 +107,10 @@ class ProjectPaths:
             path_to_proj_data_dir, proj_name)
 
         # for finding path from package
-        self.path_to_src_files = path_to_src_files
+        self.path_to_src_files = os.path.normpath(path_to_src_files)
+        
+        # for replacing paths on the cg db
+        self.str_path_to_src_files = path_to_src_files
 
         # sourcetrail config file
         self.srctrl_orig_config_file_path = os.path.normpath(
@@ -175,6 +178,9 @@ class ProjectPaths:
 
     def get_path_to_src_files(self):
         return self.path_to_src_files
+
+    def get_str_path_to_src_files(self):
+        return self.str_path_to_src_files
 
     def get_srctrl_orig_config_file_path(self):
         return self.srctrl_orig_config_file_path

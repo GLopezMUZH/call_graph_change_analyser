@@ -8,6 +8,7 @@ from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from utils_sql import create_db_tables
 from project_configs import *
 from call_graph_parsing_util import calculate_cg_diffs
+from cg_to_commit_util import update_commit_changes_to_cg_nodes
 
 
 
@@ -24,7 +25,8 @@ def main():
     # can only log after seting log file path
     logging.info('Started App ---------- {0}'.format(datetime.now()))
 
-    calculate_cg_diffs(proj_config=proj_config, proj_paths=proj_paths)
+    #calculate_cg_diffs(proj_config=proj_config, proj_paths=proj_paths)
+    update_commit_changes_to_cg_nodes(proj_config=proj_config, proj_paths=proj_paths)
 
     logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------{0}'.format(datetime.now()))
@@ -39,4 +41,3 @@ def init_db(proj_paths):
 if __name__ == '__main__':
     main()
 
-# %%

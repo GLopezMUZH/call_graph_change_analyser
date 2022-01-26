@@ -51,7 +51,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
             if (line.lstrip()).startswith("path_to_proj_data_dir:"):
                 path_to_proj_data_dir=os.path.normpath(get_label_content(line, len("path_to_proj_data_dir:")))
             if (line.lstrip()).startswith("path_to_src_files:"):
-                path_to_src_files=os.path.normpath(get_label_content(line, len("path_to_src_files:")))
+                path_to_src_files=get_label_content(line, len("path_to_src_files:"))
             if (line.lstrip()).startswith("proj_lang:"):
                 proj_lang=get_label_content(line, len("proj_lang:"))
             if (line.lstrip()).startswith("repo_url:"):

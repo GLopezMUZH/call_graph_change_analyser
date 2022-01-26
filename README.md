@@ -2,9 +2,9 @@
 call_graph_change_analyser
 
 ### Table of Contents
-* [README.md#Quick-Start](README.md#Quick-Start)
-* [README.md#Project structure](README.md#Project structure)
-* [README.md#Prerequisites](README.md#Prerequisites)
+* [Quick-Start](README.md#Quick-Start)
+* [Project structure](README.md#Project structure)
+* [Prerequisites](README.md#Prerequisites)
 
 
 ### Quick-Start

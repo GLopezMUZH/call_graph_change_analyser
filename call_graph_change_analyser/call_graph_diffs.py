@@ -2,7 +2,7 @@
 from models import *
 import logging
 from datetime import datetime
-
+import platform
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
 from utils_sql import create_db_tables
@@ -14,8 +14,14 @@ from cg_to_commit_util import update_commit_changes_to_cg_nodes
 
 # %%
 def main():
+
     path_to_config_file = os.path.normpath(
-        '..\project_config\glucosio_small.pconfig')
+        '..\project_config\glucosio_small_ubuntu.pconfig')
+
+    if platform.system() == 'Linux':
+        path_to_config_file = os.path.normpath(
+            '../project_config/glucosio_small_ubuntu.pconfig')
+
 
     print('Started App ------------ {0}'.format(datetime.now()))
 

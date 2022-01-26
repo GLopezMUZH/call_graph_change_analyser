@@ -2,6 +2,7 @@ import sqlite3
 import logging
 import pandas as pd
 import os
+import platform
 
 from models import ProjectConfig, ProjectPaths
 
@@ -41,19 +42,26 @@ def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: Pr
         # add transformed file path
         hash_raw_cg_df['s_file_path_original'] = hash_raw_cg_df['s_file_path']
         hash_raw_cg_df['t_file_path_original'] = hash_raw_cg_df['t_file_path']
+        #print(hash_raw_cg_df[0:1]['s_file_path_original'][0])
+        #print(hash_raw_cg_df[0:1].s_file_path[0])
 
         hash_raw_cg_df['s_file_path'] = hash_raw_cg_df['s_file_path'].str.replace(
             path_to_src_files_raw_cg, '')
         hash_raw_cg_df['t_file_path'] = hash_raw_cg_df['t_file_path'].str.replace(
             path_to_src_files_raw_cg, '')
-        # replace window direcotry dash
-        hash_raw_cg_df['s_file_path'] = hash_raw_cg_df['s_file_path'].str.replace(
-            "/", "\\")
-        hash_raw_cg_df['t_file_path'] = hash_raw_cg_df['t_file_path'].str.replace(
-            "/", "\\")
+        #print(hash_raw_cg_df[0:1].s_file_path[0])
+
+        # replace window direcotry slash in cg df
+        if platform.system() == 'Windows':
+            hash_raw_cg_df['s_file_path'] = hash_raw_cg_df['s_file_path'].str.replace(
+                "/", "\\")
+            hash_raw_cg_df['t_file_path'] = hash_raw_cg_df['t_file_path'].str.replace(
+                "/", "\\")
+            #print(hash_raw_cg_df[0:1].s_file_path[0])
 
         fc_for_hash = function_commit_df[(
             function_commit_df['commit_hash'] == g['commit_hash'])]
+        #print(fc_for_hash[0:1].s_file_path[0])
 
         intersection_s_file_path = pd.merge(
             hash_raw_cg_df, fc_for_hash, how='inner', on=['s_file_path'])

@@ -57,11 +57,11 @@ def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: Pr
 
         intersection_s_file_path = pd.merge(
             hash_raw_cg_df, fc_for_hash, how='inner', on=['s_file_path'])
-        print(len(intersection_s_file_path))
+        logging.debug("Len intersection_s_file_path: {0}".format(len(intersection_s_file_path)))
 
         intersection_t_file_path = pd.merge(
             hash_raw_cg_df, fc_for_hash, how='inner', on=['t_file_path'])
-        print(len(intersection_t_file_path))
+        logging.debug("Len intersection_t_file_path: {0}".format(len(intersection_t_file_path)))
 
         str_update = ""
 
@@ -112,6 +112,6 @@ def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: Pr
             cur.close()
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             err_message = template.format(type(err).__name__, err.args)
-            print(err_message)
+            logging.error(err_message)
 
     logging.debug("End update_commit_changes_to_cg_nodes")

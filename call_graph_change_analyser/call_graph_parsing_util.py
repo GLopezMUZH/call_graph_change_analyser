@@ -210,6 +210,7 @@ def get_node_name_nosrcref_dupplicates(set_call_edges: set):
             val_node_name_nosrcref_dupplicates[i] = val_curr[i]
     return val_node_name_nosrcref_dupplicates
 
+# TODO delete
 def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str,
                   commit_date: datetime, path_to_project_db: str, path_to_edge_hist_db: str):
     """We care about absolute calls between functions. if the same function B is called twice in function A, and in the next commit

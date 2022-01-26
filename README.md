@@ -13,25 +13,52 @@ call_graph_change_analyser
 ### Project structure
 .
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.
 
 .
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
 
 ### Prerequisites
 The following tools need to be installed in order to use callgraphCA:

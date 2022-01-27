@@ -79,9 +79,11 @@ Table of Contents
 -----------------
 The following tools need to be installed in order to use callgraphCA:
 
- * python >= 3.9
-- [srcML][1]
-- [sourceTrail][2]
+- python >= 3.9
+- [Git][1]
+- [srcML][2]
+- [sourceTrail][3]
 
-[1]: https://www.srcml.org/
-[2]: https://github.com/CoatiSoftware/Sourcetrail
+[1]: https://git-scm.com/
+[2]: https://www.srcml.org/
+[3]: https://github.com/CoatiSoftware/Sourcetrail

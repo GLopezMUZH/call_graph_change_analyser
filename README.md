@@ -2,6 +2,7 @@
 *callgraphCA* is a prototype tool to help the understanding of software evolution. Based on information extracted from Git repositories. Models change proneness, change coupling and call-graph evolution.
 
 ### Table of Contents
+---------------------
 
 Table of Contents
 *	*callgraphCA* functionality
@@ -21,6 +22,7 @@ Table of Contents
 
 
 ### Quick-Start
+---------------
 .
 
 ### Project structure
@@ -74,9 +76,12 @@ Table of Contents
 
 
 ### Prerequisites
+-----------------
 The following tools need to be installed in order to use callgraphCA:
 
  * python >= 3.9
- * sourceml >= 
- * sourceTrail >= 
+- [srcML][1]
+- [sourceTrail][2]
 
+[1]: https://www.srcml.org/
+[2]: https://github.com/CoatiSoftware/Sourcetrail

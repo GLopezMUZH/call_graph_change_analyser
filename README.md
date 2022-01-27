@@ -1,10 +1,23 @@
 # call_graph_change_analyser
-call_graph_change_analyser
+*callgraphCA* is a prototype tool to help the understanding of software evolution. Based on information extracted from Git repositories. Models change proneness, change coupling and call-graph evolution.
 
 ### Table of Contents
+
+Table of Contents
+*	*callgraphCA* functionality
+    *	Contributions
+*	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.rst)
+* [Installation](README.md#Installation)
+    * [Prerequisites](README.md#Prerequisites)
 * [Quick-Start](README.md#Quick-Start)
-* [Project structure](README.md#Project structure)
-* [Prerequisites](README.md#Prerequisites)
+    *	Pre-generated data
+*	Quick notebooks
+*	How to analyze new projects
+*	Memory requirements
+*	How to use *callgraphCA* as a dockers container (optional)
+*	Research results (link to file in the /docs folder)
+*	License
+
 
 
 ### Quick-Start
@@ -63,7 +76,7 @@ call_graph_change_analyser
 ### Prerequisites
 The following tools need to be installed in order to use callgraphCA:
 
- * python >= 9.3
+ * python >= 3.9
  * sourceml >= 
  * sourceTrail >= 
 

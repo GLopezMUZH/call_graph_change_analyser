@@ -16,7 +16,7 @@ class NetworkValues:
                                                                                                                     self.nrCC, len(self.degreedistribution), self.maxDegree, self.nrNodesLCC))
 
 
-def getNetworkValues(G, drawGraph = False):    
+def getNetworkValues(G, drawGraph = False, edge_color_map = None):    
 
     maxDegree_values = 0    
     numberNodes = G.number_of_nodes()
@@ -31,8 +31,21 @@ def getNetworkValues(G, drawGraph = False):
         # read edgelist from grid.edgelist
         H = nx.read_edgelist(path="grid.edgelist", delimiter=":")
 
-        nx.draw(H, node_color='b', node_size = 9)
+        if edge_color_map is not None:
+            nx.draw(H, node_color='b',  edge_color=edge_color_map, node_size = 10)
+        else:
+            nx.draw(H, node_color='b',  node_size = 10)
+        plt.figure(figsize=(18, 18))
         plt.show()
+
+        if edge_color_map is not None:
+            nx.draw(G, edge_color=edge_color_map, node_size = 10)
+        else:    
+            nx.draw(G, node_color='b', node_size = 10)
+        plt.figure(figsize=(18, 18))
+        plt.show()
+        plt.draw()
+
 
     # save the number of connected components
     #comps = len( [ _ for _ in nx.connected_components(G) ] )

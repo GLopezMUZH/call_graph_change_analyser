@@ -4,4 +4,4 @@ callgraphCA Architecture
 ========================
 
 
-.. image:: architectureDiagramm.*
+.. image:: architectureDiagramm.png

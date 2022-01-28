@@ -14,6 +14,19 @@ class ActionClass(Enum):
     MODIFIY = 5
 
 
+class StatisticNames(Enum):
+    cg_f_changes = 1
+
+
+class StatisticParams1(Enum):
+    degree_distance = 1
+
+
+class StatisticParams2(Enum):
+    nr_edges = 1
+    nr_nodes = 1
+
+
 class ProjectConfig:
     PATH_TO_SRC_DIFF_JAR_CPP = os.path.normpath(
         '../resources/astChangeAnalyzer_0_1_cpp.jar')

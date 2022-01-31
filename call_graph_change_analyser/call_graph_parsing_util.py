@@ -833,11 +833,17 @@ def get_start_hash(con_analytics_db, commit_date: datetime) -> str:
     try:
         cur = con_analytics_db.cursor()
 
-        sql_string = """select commit_hash, commit_commiter_datetime
-            from git_commit
-            where commit_commiter_datetime >= '{0}'
-            order by commit_commiter_datetime
-            limit 1""".format(commit_date)
+        if commit_date is None:
+            sql_string = """select commit_hash, commit_commiter_datetime
+                from git_commit
+                order by commit_commiter_datetime
+                limit 1"""
+        else:
+            sql_string = """select commit_hash, commit_commiter_datetime
+                from git_commit
+                where commit_commiter_datetime >= '{0}'
+                order by commit_commiter_datetime
+                limit 1""".format(commit_date)
 
         cur.execute(sql_string)
         result = cur.fetchone()

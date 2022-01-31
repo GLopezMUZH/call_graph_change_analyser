@@ -541,6 +541,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     """We care about absolute calls between functions. if the same function B is called twice in function A, and in the next commit
     one of the calls is dropped, the call graph remains the same because function A is still calling function B.
     Because all relevant cg data is already fetched we work from older to newer date/commit"""
+    logging.debug("Start calculate_cg_diffs")
 
     # if (proj_config.get_start_repo_date() is not None and proj_config.get_end_repo_date()):
     #    git_traverse_between_dates(proj_config, proj_paths)
@@ -818,6 +819,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             return None
 
     logging.debug("end_hash_reached {0}".format(end_hash_reached))
+    logging.debug("End calculate_cg_diffs")
 
 
 # in theory the git_repository_mining_util.git_traverse_on_X() could keep the commit previously processed (next in commit date),

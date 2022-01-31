@@ -18,6 +18,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
     to_tag = None
     since_date = None
     to_date = None
+    from_commit = None
+    to_commit = None
     save_cache_files = None
     delete_cache_files = None
     delete_cg_src_db = None
@@ -29,6 +31,7 @@ def execute_project_conf_from_file(path_to_config_file:str):
     commit_file_types = None
     only_in_branch = None
     separate_edge_hist_db = None
+    parallel_processing = None
 
     def get_label_content(line, label_size):
         return line[label_size:len(line.rstrip())].replace("'", '')
@@ -42,6 +45,10 @@ def execute_project_conf_from_file(path_to_config_file:str):
                 from_tag=get_label_content(line, len("from_tag:"))
             if (line.lstrip()).startswith("to_tag:"):
                 to_tag=get_label_content(line, len("to_tag:"))
+            if (line.lstrip()).startswith("from_commit:"):
+                from_commit=get_label_content(line, len("from_commit:"))
+            if (line.lstrip()).startswith("to_commit:"):
+                to_commit=get_label_content(line, len("to_commit:"))
             if (line.lstrip()).startswith("since_date:"):
                 since_date=get_label_content(line, len("since_date:"))
             if (line.lstrip()).startswith("to_date:"):
@@ -88,6 +95,8 @@ def execute_project_conf_from_file(path_to_config_file:str):
                                 repo_to_tag=to_tag,
                                 start_repo_date=start_repo_date,
                                 end_repo_date=end_repo_date,
+                                repo_from_commit=from_commit,
+                                repo_to_commit=to_commit,
                                 save_cache_files=save_cache_files,
                                 delete_cache_files=delete_cache_files,
                                 delete_cg_src_db=delete_cg_src_db,

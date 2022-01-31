@@ -49,7 +49,7 @@ def git_traverse_from_date(proj_config: ProjectConfig, proj_paths: ProjectPaths)
                            is_valid_file_type=is_valid_file_type, commit=commit, parse_cg=True)
 
 
-def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+def git_traverse_between_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
     for commit in Repository(
@@ -62,9 +62,23 @@ def git_traverse_on_tags(proj_config: ProjectConfig, proj_paths: ProjectPaths):
         process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
                            is_valid_file_type=is_valid_file_type, commit=commit)
 
+def git_traverse_between_commits(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    is_valid_file_type = get_file_type_validation_function(
+        proj_config.proj_lang)
+    for commit in Repository(
+            path_to_repo=proj_config.get_repo_url(),
+            from_commit=proj_config.get_repo_from_commit(),
+            to_commit=proj_config.get_repo_to_commit(),
+            only_modifications_with_file_types=proj_config.get_commit_file_types(),
+            order='reverse', only_no_merge=True,
+            only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
+        process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
+                           is_valid_file_type=is_valid_file_type, commit=commit)
+
+
 
 def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_valid_file_type, commit: Commit, parse_cg: bool = True):
-    # git_commit
+    # insert git_commit
     insert_git_commit(proj_paths.get_path_to_project_db(),
                       commit_hash=commit.hash, commit_commiter_datetime=str(
         commit.committer_date),

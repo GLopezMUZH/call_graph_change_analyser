@@ -41,6 +41,7 @@ class ProjectConfig:
             repo_url: str, repo_type: str = 'Git',
             start_repo_date: Optional[datetime] = None, end_repo_date: Optional[datetime] = None,
             repo_from_tag: Optional[str] = None, repo_to_tag: Optional[str] = None,
+            repo_from_commit: Optional[str] = None, repo_to_commit: Optional[str] = None,
             save_cache_files: Optional[bool] = True,
             delete_cache_files: Optional[bool] = True,
             delete_cg_src_db: Optional[bool] = True,
@@ -54,6 +55,8 @@ class ProjectConfig:
         self.end_repo_date = end_repo_date
         self.repo_from_tag = repo_from_tag
         self.repo_to_tag = repo_to_tag
+        self.repo_from_commit = repo_from_commit
+        self.repo_to_commit = repo_to_commit
         self.save_cache_files = save_cache_files
         self.delete_cache_files = delete_cache_files
         self.delete_cg_src_db = delete_cg_src_db
@@ -92,6 +95,12 @@ class ProjectConfig:
 
     def get_repo_to_tag(self):
         return self.repo_to_tag
+
+    def get_repo_from_commit(self):
+        return self.repo_from_commit
+
+    def get_repo_to_commit(self):
+        return self.repo_to_commit
 
     def get_path_to_src_diff_jar(self):
         return self.path_to_src_diff_jar

@@ -14,7 +14,7 @@ from call_graph_parsing_util import calculate_cg_diffs
 def main():
 
     path_to_config_file = os.path.normpath(
-        '..\project_config\glucosio_small.pconfig')
+        '..\project_config\glucosio_large_commits.pconfig') #glucosio_small
 
     if platform.system() == 'Linux':
         path_to_config_file = os.path.normpath(
@@ -33,11 +33,6 @@ def main():
 
     logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------{0}'.format(datetime.now()))
-
-
-def init_db(proj_paths):
-    logging.info('Initialize the db.')
-    create_db_tables(proj_paths, drop=True)
 
 
 # %%

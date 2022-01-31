@@ -99,26 +99,39 @@ def exists_in_raw_cg_db(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_ha
     return raw_cg_table_exists
 
 
-def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
-    raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
-                                  (proj_name + '_raw_cg.db'))
+def save_cg_data_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    logging.debug("Start save_cg_data_all")
+    path_to_cache_cg_dbs_dir = proj_paths.get_path_to_cache_cg_dbs_dir()
+    path_to_project_db = proj_paths.get_path_to_project_db()
+    path_to_src_files_raw_cg = proj_paths.get_str_path_to_src_files()
+    logging.debug(path_to_src_files_raw_cg)
+
+    con_analytics_db = sqlite3.connect(path_to_project_db)
+
+    sql_statement = """select * from git_commit;"""
+    git_commit_df = pd.read_sql_query(sql_statement, con_analytics_db)
+    logging.debug("Nr of commits: {0}".format(len(git_commit_df)))
+
+    for g_idx, g in git_commit_df.iterrows():
+        logging.debug("commit_hash: {0}".format(g['commit_hash']))
+        save_cg_data_for_commit(proj_config.get_proj_name(),
+                                path_to_cache_cg_dbs_dir, g['commit_hash'],
+                                proj_config.get_delete_cg_src_db())
+
+
+def save_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
     srctrl_db_name = proj_name + commit_hash + '.srctrldb'
     path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
                                      srctrl_db_name)
-
     # if srctrl database does not exist, create
     if not exists_in_raw_cg_db(
             proj_name, path_to_cache_cg_dbs_dir, commit_hash):
         # save general source info from parsing component
         parse_source_graph(proj_name, path_to_cache_cg_dbs_dir,
-                        commit_hash, srctrl_db_name)
+                           commit_hash, srctrl_db_name)
     else:
         logging.info(
             "Table '{0}' already exists in raw_cg_db_path".format(commit_hash))
-
-    # retreive cg info from genearted db from parsing componen and save focused cg data
-    save_curr_cg_from_source_graph_parcing(
-        path_to_srctrl_db, raw_cg_db_path, commit_hash)
 
     logging.debug("delete_cg_src_db {0}".format(delete_cg_src_db))
     if delete_cg_src_db:
@@ -127,6 +140,21 @@ def save_cg_data(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str
         else:  # Show an error ##
             logging.debug(
                 "Error: {0} file not found".format(path_to_srctrl_db))
+
+
+def save_cg_data_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
+    raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
+                                  (proj_name + '_raw_cg.db'))
+    srctrl_db_name = proj_name + commit_hash + '.srctrldb'
+    path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
+                                     srctrl_db_name)
+    # parse source graph
+    save_source_graph_for_commit(
+        proj_name, path_to_cache_cg_dbs_dir, commit_hash, delete_cg_src_db)
+
+    # retreive cg info from genearted db from parsing componen and save focused cg data
+    save_curr_cg_from_source_graph_parcing(
+        path_to_srctrl_db, raw_cg_db_path, commit_hash)
 
 
 def save_curr_cg_from_source_graph_parcing(path_to_srctrl_db: str, raw_cg_db_path: str, commit_hash: str):
@@ -211,6 +239,8 @@ def get_node_name_nosrcref_dupplicates(set_call_edges: set):
     return val_node_name_nosrcref_dupplicates
 
 # TODO delete
+
+
 def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str,
                   commit_date: datetime, path_to_project_db: str, path_to_edge_hist_db: str):
     """We care about absolute calls between functions. if the same function B is called twice in function A, and in the next commit
@@ -435,10 +465,11 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
                     "There are more than one node_name_nosrcref similar edges. curr {0}, next {1}".format(len(curr_node_name_nosrcref_dupplicates), len(next_node_name_nosrcref_dupplicates)))
 
         else:
-            save_start_commit_in_edge_hist(path_to_edge_hist_db, raw_cg_db_path, commit_hash, commit_date)
+            save_start_commit_in_edge_hist(
+                path_to_edge_hist_db, raw_cg_db_path, commit_hash, commit_date)
 
             #logging.info("First commit in the database.")
-            #sql_string = """select *,
+            # sql_string = """select *,
             #    "" as commit_hash_start,
             #    "" as commit_start_datetime,
             #    "{0}" as commit_hash_oldest,
@@ -448,14 +479,14 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             #    0 as closed
             #    from "{0}";""".format(commit_hash, commit_date)
             #df = pandas.read_sql_query(sql_string, con_raw_cg_db)
-            #df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
+            # df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
             #    pattern, '<:>')
-            #df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
+            # df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
             #    pattern, '<:>')
-            #df.to_sql(
+            # df.to_sql(
             #    "edge_hist", con_raw_cg_db, if_exists='replace', index=False)
-            #con_raw_cg_db.commit()
-            #cur.close()
+            # con_raw_cg_db.commit()
+            # cur.close()
 
     except Exception as err:
         con_raw_cg_db.rollback()

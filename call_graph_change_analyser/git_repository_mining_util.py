@@ -5,7 +5,7 @@ from models import *
 from repository_mining_util import *
 from compact_xml_parsing_java import get_function_calls_java
 from utils_sql import *
-from call_graph_parsing_util import save_cg_data, save_cg_diffs
+from call_graph_parsing_util import save_cg_data_for_commit, save_cg_diffs
 from git_util import reset_git_to_hash
 
 
@@ -94,7 +94,7 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
     if parse_cg:
         reset_git_to_hash(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir(), commit.hash)
 
-        save_cg_data(proj_name=proj_config.get_proj_name(),
+        save_cg_data_for_commit(proj_name=proj_config.get_proj_name(),
                      path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
                      delete_cg_src_db=proj_config.get_delete_cg_src_db())
 

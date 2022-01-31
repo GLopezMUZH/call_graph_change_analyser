@@ -731,7 +731,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             '',  # end date
                             df_next_row.iloc[0]['source_node_name_nosrcref'],
                             df_next_row.iloc[0]['target_node_name_nosrcref'])
-                        logging.debug(sql_string)
+                        #logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:
@@ -744,7 +744,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                                                      & (raw_cg_df_curr['source_node_name_nosrcref'] == d[0])
                                                      & (raw_cg_df_curr['target_node_name_nosrcref'] == d[1])]
 
-                    if len(df_next_row) == 1:
+                    if len(df_curr_row) == 1:
                         sql_string = """UPDATE edge_hist SET
                                     commit_hash_end = "{0}", commit_end_datetime="{1}",
                                     closed = 1
@@ -757,7 +757,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             df_curr_row.iloc[0]['commit_hash'], df_curr_row.iloc[0]['commit_date'],
                             df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
                             df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
-                        logging.debug(sql_string)
+                        #logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:
@@ -776,8 +776,6 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                                                      & (raw_cg_df_next['target_node_name_nosrcref'] == u[1])]
 
                     if len(df_next_row) == 1:
-                        #logging.info("Do nothing for unchanted calls")
-
                         sql_string = """UPDATE edge_hist SET
                                     source_node_name = "{0}", target_node_name="{1}"
                                     WHERE
@@ -789,7 +787,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             df_next_row.iloc[0]['source_node_name'], df_next_row.iloc[0]['target_node_name'],
                             df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
                             df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
-                        logging.debug(sql_string)
+                        #logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:

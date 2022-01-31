@@ -78,5 +78,4 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         #print(set_nodes_changed_in_cg)
         
     df_stats = pd.DataFrame(list_stat, columns =['stat_name', 'commit_hash', 'param1', 'param1_value', 'param2', 'param2_value', 'value'])
-    df_stats.to_sql('cg_coupling', con_analytics_db, if_exists='replace', index=False)
-    
+    df_stats.to_sql(StatisticNames.cg_f_changes.name, con_analytics_db, if_exists='replace', index=False)

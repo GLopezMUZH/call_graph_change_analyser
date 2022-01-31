@@ -13,6 +13,8 @@ from initial_indexing import execute_intitial_indexing
 from git_util import download_initial_cache_source
 from call_graph_parsing_util import calculate_cg_diffs
 from cg_to_commit_util import update_commit_changes_to_cg_nodes
+from cg_change_coupling_util import save_cg_change_coupling
+
 
 # %%
 def main():
@@ -114,6 +116,8 @@ def main():
     calculate_cg_diffs(proj_config=proj_config, proj_paths=proj_paths)
 
     update_commit_changes_to_cg_nodes(proj_config=proj_config, proj_paths=proj_paths)
+
+    save_cg_change_coupling(proj_config=proj_config, proj_paths=proj_paths)
 
     logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------{0}'.format(datetime.now()))

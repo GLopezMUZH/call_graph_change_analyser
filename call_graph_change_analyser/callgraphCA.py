@@ -1,53 +1,65 @@
 # %%
-import argparse
+from project_configs import execute_project_conf_from_file
+import logging
+from datetime import datetime
+import sys
+
+from git_util import download_initial_cache_source
+from initial_indexing import execute_intitial_indexing
+from repository_mining import load_source_repository_data
+from call_graph_parsing_util import calculate_cg_diffs
+from cg_to_commit_util import update_commit_changes_to_cg_nodes
+from utils_sql import create_db_tables
+
 
 # error messages
-INVALID_FILETYPE_MSG = "Error: Invalid file format. %s must be a .txt file."
 INVALID_PATH_MSG = "Error: Invalid file path/name. Path %s does not exist."
 
 
 def main():
-    # create parser object
-    parser = argparse.ArgumentParser(
-        description="A call graph and code evolution analytics tool.")
+    """
+    since_date format '12-11-2019'
+    """
+    print('Started App ------------ {0}'.format(datetime.now()))
 
-    # defining arguments for parser object
-    parser.add_argument("-P", "--project", type=str, nargs=1,
-                        metavar="project_name", default=None,
-                        help="The name of the project, will be used to set the path of the resulting data.")
+    args = sys.argv[1:]
 
-    parser.add_argument("-from_tag", "--from_tag", type=str, nargs=1,
-                        metavar="git_tag", default=None,
-                        help="Git repository tag.")
+    # argument format -P proj_name -from_tag tag -to_tag tag
+    if '-C' in args:
+        f_idx = args.index("-C")
+        path_to_config_file = args[f_idx+1]
+        proj_config, proj_paths = execute_project_conf_from_file(
+            path_to_config_file)
+    else:
+        raise("Configuration file is mandatory. -C path")
 
-    parser.add_argument("-to_tag", "--to_tag", type=str, nargs=1,
-                        metavar="git_tag", default=None,
-                        help="Git repository tag.")
+    # can only log after seting log file path
+    logging.info('Started App ---------- {0}'.format(datetime.now()))
 
-    parser.add_argument('-init_db', metavar="int_bool", type=int, nargs=1,
-                        #dest='db_initialization',
-                        help="Initialize the database = 1.")
-    #parser.add_argument('--no-init_db', dest='feature', action='store_false')
-    # parser.set_defaults(feature=True)
+    if '-not_init_db_yes' in args:
+        logging.info('Not re-initialized database...')
+    else:
+        init_db(proj_paths)
 
-    # parse the arguments from standard input
-    args = parser.parse_args()
+    #if '-init_index_yes' in args:
+    download_initial_cache_source(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir(), proj_config.get_only_in_branch())
+    execute_intitial_indexing(proj_paths)
 
-    # calling functions depending on type of argument
-    if args.init_db != None:
-        init_db(args)
+    load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
+
+    calculate_cg_diffs(proj_config=proj_config, proj_paths=proj_paths)
+
+    update_commit_changes_to_cg_nodes(proj_config=proj_config, proj_paths=proj_paths)
+
+    logging.info('Finished App ---------- {0}'.format(datetime.now()))
+    print('Finished App -------------{0}'.format(datetime.now()))
 
 
-def init_db(args):
-    print("init_db called")
-    for arg in vars(args):
-        print(arg, getattr(args, arg))
-    # proj_paths
-    #logging.info('Initialize the db.')
-    #create_db_tables(proj_paths, drop=True)
+def init_db(proj_paths):
+    logging.info('Initialize the db.')
+    create_db_tables(proj_paths, drop=True)
 
 
 # %%
-if __name__ == "__main__":
-    # calling the main function
+if __name__ == '__main__':
     main()

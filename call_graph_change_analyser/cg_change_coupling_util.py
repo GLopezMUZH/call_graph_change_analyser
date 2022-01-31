@@ -17,8 +17,6 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
     path_to_project_db = proj_paths.get_path_to_project_db()
     path_to_src_files_raw_cg = proj_paths.get_str_path_to_src_files()
     logging.debug(path_to_src_files_raw_cg)
-    # 'C:/Users/lopm/Documents/gitprojects/call_graph_change_analyser/project_results/glucosio-android/.cache/git/'
-    # 'C:/Users/lopm/Documents/gitprojects/call_graph_change_analyser/project_results/glucosio-android/.cache/git/'
 
     con_analytics_db = sqlite3.connect(path_to_project_db)
     con_raw_cg_db = sqlite3.connect(raw_cg_db_path)

@@ -119,7 +119,7 @@ def save_cg_data_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                                 proj_config.get_delete_cg_src_db())
 
 
-def save_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
+def load_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
     srctrl_db_name = proj_name + commit_hash + '.srctrldb'
     path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
                                      srctrl_db_name)
@@ -148,8 +148,8 @@ def save_cg_data_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commi
     srctrl_db_name = proj_name + commit_hash + '.srctrldb'
     path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
                                      srctrl_db_name)
-    # parse source graph
-    save_source_graph_for_commit(
+    # generate source graph file
+    load_source_graph_for_commit(
         proj_name, path_to_cache_cg_dbs_dir, commit_hash, delete_cg_src_db)
 
     # retreive cg info from genearted db from parsing componen and save focused cg data

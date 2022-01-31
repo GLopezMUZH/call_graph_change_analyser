@@ -1,7 +1,7 @@
 from models import ProjectConfig, ProjectPaths
 from git_repository_mining_util import git_traverse_from_date, git_traverse_on_tags, git_traverse_all, git_traverse_between_dates
 
-def load_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+def analyse_source_repository_data(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     if proj_config.get_repo_type() == 'Git':
         if (proj_config.get_start_repo_date() is not None and proj_config.get_end_repo_date()):
             git_traverse_between_dates(proj_config, proj_paths)

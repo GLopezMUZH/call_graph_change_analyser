@@ -5,7 +5,7 @@ from datetime import datetime
 import sys
 
 from models import CallCommitInfo, ProjectPaths, ProjectConfig
-from repository_mining import load_source_repository_data
+from repository_mining import analyse_source_repository_data
 from utils_sql import create_db_tables
 from project_configs import *
 
@@ -34,7 +34,7 @@ def main():
     ), proj_paths.get_path_to_cache_src_dir(), proj_config.get_only_in_branch())
     execute_intitial_indexing(proj_paths)
 
-    load_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
+    analyse_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
 
     logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------{0}'.format(datetime.now()))

@@ -7,6 +7,10 @@ from utils_py import replace_timezone
 from models import ProjectPaths, ProjectConfig
 
 def execute_project_conf_from_file(path_to_config_file:str):
+
+    if not os.path.exists(path_to_config_file):
+        raise("Configuration file path does not exist.")
+
     path_to_config_file = os.path.normpath(path_to_config_file)
 
     proj_name = None

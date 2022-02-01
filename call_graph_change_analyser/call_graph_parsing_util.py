@@ -13,6 +13,7 @@ import pandas
 import logging
 import re
 import collections
+import base64
 
 import time
 # from stopwatch import Stopwatch, profile
@@ -157,6 +158,13 @@ def save_cg_data_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commi
         path_to_srctrl_db, raw_cg_db_path, commit_hash)
 
 
+def get_uid(str1,str2):
+    conc = ''.join([str1,str2])
+    urlSafeEncodedBytes = base64.urlsafe_b64encode(conc.encode("utf-8"))
+    urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
+    return urlSafeEncodedStr
+
+
 def save_curr_cg_from_source_graph_parcing(path_to_srctrl_db: str, raw_cg_db_path: str, commit_hash: str):
     try:
         con_commit_cg_db = sqlite3.connect(raw_cg_db_path)
@@ -182,7 +190,8 @@ def save_curr_cg_from_source_graph_parcing(path_to_srctrl_db: str, raw_cg_db_pat
                 t_file.path as t_file_path,
                 "" as mod_type,
                 0 as s_node_change,
-                0 as t_node_change
+                0 as t_node_change,
+                0 as cg_change
                 from edge, node as s_node, node as t_node,
                 source_location as s_src_loc, source_location as t_src_loc,
                 occurrence as s_oc, occurrence as t_oc,
@@ -203,6 +212,17 @@ def save_curr_cg_from_source_graph_parcing(path_to_srctrl_db: str, raw_cg_db_pat
 
             con_srctrl_db = sqlite3.connect(path_to_srctrl_db)
             df = pandas.read_sql_query(sql_string, con_srctrl_db)
+
+            # add columns with no source references
+            pattern = re.compile(r"\<\d+\:\d+\>")
+            df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
+                pattern, '<:>')
+            df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
+                pattern, '<:>')
+            # add columns of source and target node uid
+            df['source_node_uid'] = df.apply(lambda x: get_uid(x['s_file_path'], x['source_node_name_nosrcref']), axis=1)
+            df['target_node_uid'] = df.apply(lambda x: get_uid(x['t_file_path'], x['target_node_name_nosrcref']), axis=1)
+
             con_srctrl_db.commit()
             con_srctrl_db.close()
 
@@ -302,16 +322,6 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             raw_cg_df_next = pandas.read_sql_query(
                 sql_string, con_raw_cg_db)
 
-            # name of node might include line number in code
-            raw_cg_df_curr['source_node_name_nosrcref'] = raw_cg_df_curr['source_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_curr['target_node_name_nosrcref'] = raw_cg_df_curr['target_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_next['source_node_name_nosrcref'] = raw_cg_df_next['source_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_next['target_node_name_nosrcref'] = raw_cg_df_next['target_node_name'].str.replace(
-                pattern, '<:>')
-            # remove the begin_line:begin_column from the node serialized name
             t_curr = tuple(zip(raw_cg_df_curr['source_node_name_nosrcref'], raw_cg_df_curr['target_node_name_nosrcref'],
                            raw_cg_df_curr['s_file_path'], raw_cg_df_curr['t_file_path']))
             s_curr = set(t_curr)
@@ -468,26 +478,6 @@ def save_cg_diffs(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: st
             save_start_commit_in_edge_hist(
                 path_to_edge_hist_db, raw_cg_db_path, commit_hash, commit_date)
 
-            #logging.info("First commit in the database.")
-            # sql_string = """select *,
-            #    "" as commit_hash_start,
-            #    "" as commit_start_datetime,
-            #    "{0}" as commit_hash_oldest,
-            #    "{1}" as commit_oldest_datetime,
-            #    "" as commit_hash_end,
-            #    "" as commit_end_datetime,
-            #    0 as closed
-            #    from "{0}";""".format(commit_hash, commit_date)
-            #df = pandas.read_sql_query(sql_string, con_raw_cg_db)
-            # df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
-            #    pattern, '<:>')
-            # df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
-            #    pattern, '<:>')
-            # df.to_sql(
-            #    "edge_hist", con_raw_cg_db, if_exists='replace', index=False)
-            # con_raw_cg_db.commit()
-            # cur.close()
-
     except Exception as err:
         con_raw_cg_db.rollback()
         con_edge_hist_db.rollback()
@@ -506,7 +496,6 @@ def save_start_commit_in_edge_hist(path_to_edge_hist_db, raw_cg_db_path, commit_
         con_raw_cg_db = sqlite3.connect(raw_cg_db_path)
         con_edge_hist_db = sqlite3.connect(eh_target_db_path)
         cur_edge_hist_db = con_edge_hist_db.cursor()
-        pattern = re.compile(r"\<\d+\:\d+\>")
 
         logging.info("First commit in the database.")
         sql_string = """select *,
@@ -519,10 +508,6 @@ def save_start_commit_in_edge_hist(path_to_edge_hist_db, raw_cg_db_path, commit_
             0 as closed
             from "{0}";""".format(commit_hash, commit_date)
         df = pandas.read_sql_query(sql_string, con_raw_cg_db)
-        df['source_node_name_nosrcref'] = df['source_node_name'].str.replace(
-            pattern, '<:>')
-        df['target_node_name_nosrcref'] = df['target_node_name'].str.replace(
-            pattern, '<:>')
         df.to_sql(
             "edge_hist", con_edge_hist_db, if_exists='replace', index=False)
         con_edge_hist_db.commit()
@@ -542,11 +527,11 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     one of the calls is dropped, the call graph remains the same because function A is still calling function B.
     Because all relevant cg data is already fetched we work from older to newer date/commit"""
     logging.debug("Start calculate_cg_diffs")
+    print("calculate_cg_diffs")
 
     # if (proj_config.get_start_repo_date() is not None and proj_config.get_end_repo_date()):
     #    git_traverse_between_dates(proj_config, proj_paths)
 
-    # TODO check that start date is not None
     start_date = proj_config.get_start_repo_date()
     end_date = proj_config.get_end_repo_date()
 
@@ -587,7 +572,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     curr_commit_hash = start_commit_hash
     curr_commit_date = start_commit_date
     # some function names include the source code row and column
-    pattern = re.compile(r"\<\d+\:\d+\>")
+    #pattern = re.compile(r"\<\d+\:\d+\>")
     end_hash_reached = False
     while not end_hash_reached:
         logging.debug(
@@ -644,16 +629,6 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
             raw_cg_df_next = pandas.read_sql_query(
                 sql_string, con_raw_cg_db)
 
-            # name of node might include line number in code
-            raw_cg_df_curr['source_node_name_nosrcref'] = raw_cg_df_curr['source_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_curr['target_node_name_nosrcref'] = raw_cg_df_curr['target_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_next['source_node_name_nosrcref'] = raw_cg_df_next['source_node_name'].str.replace(
-                pattern, '<:>')
-            raw_cg_df_next['target_node_name_nosrcref'] = raw_cg_df_next['target_node_name'].str.replace(
-                pattern, '<:>')
-            # remove the begin_line:begin_column from the node serialized name
             t_curr = tuple(zip(raw_cg_df_curr['source_node_name_nosrcref'], raw_cg_df_curr['target_node_name_nosrcref'],
                                raw_cg_df_curr['s_file_path'], raw_cg_df_curr['t_file_path']))
             s_curr = set(t_curr)
@@ -731,7 +706,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             '',  # end date
                             df_next_row.iloc[0]['source_node_name_nosrcref'],
                             df_next_row.iloc[0]['target_node_name_nosrcref'])
-                        #logging.debug(sql_string)
+                        # logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:
@@ -757,7 +732,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             df_curr_row.iloc[0]['commit_hash'], df_curr_row.iloc[0]['commit_date'],
                             df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
                             df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
-                        #logging.debug(sql_string)
+                        # logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:
@@ -787,7 +762,7 @@ def calculate_cg_diffs(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                             df_next_row.iloc[0]['source_node_name'], df_next_row.iloc[0]['target_node_name'],
                             df_curr_row.iloc[0]['s_file_path'], df_curr_row.iloc[0]['t_file_path'],
                             df_curr_row.iloc[0]['source_node_name'], df_curr_row.iloc[0]['target_node_name'])
-                        #logging.debug(sql_string)
+                        # logging.debug(sql_string)
                         cur_edge_hist_db.execute(sql_string)
 
                     else:

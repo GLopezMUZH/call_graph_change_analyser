@@ -9,7 +9,7 @@ from initial_indexing import execute_intitial_indexing
 from repository_mining import analyse_source_repository_data
 from call_graph_parsing_util import calculate_cg_diffs
 from cg_to_commit_util import update_commit_changes_to_cg_nodes
-from utils_sql import create_db_tables
+from utils_sql import create_db_tables, remove_unparsed_git_commits
 from cg_change_coupling_util import save_cg_change_coupling
 
 
@@ -47,6 +47,8 @@ def main():
     execute_intitial_indexing(proj_paths)
 
     analyse_source_repository_data(proj_config=proj_config, proj_paths=proj_paths)
+
+    remove_unparsed_git_commits(proj_config=proj_config, proj_paths=proj_paths)
 
     calculate_cg_diffs(proj_config=proj_config, proj_paths=proj_paths)
 

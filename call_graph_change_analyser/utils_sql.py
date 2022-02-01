@@ -8,7 +8,7 @@ from pydriller.domain.commit import Commit, ModifiedFile
 from models import FileImport, CallCommitInfo, ActionClass, FileData
 
 import models
-from models import ProjectPaths
+from models import ProjectPaths, ProjectConfig
 
 
 def create_db_tables(proj_paths: ProjectPaths, drop=False):
@@ -409,8 +409,6 @@ def update_file_imports(mod_file_data: FileData,
         previous_file_import_long_names = [
             f.get_import_file_path() for f in fis_prev]
 
-
-
         # TODO make absolute empty table
         # first commit on db
         if len(previous_file_import_long_names_from_db) == 0:
@@ -427,7 +425,7 @@ def update_file_imports(mod_file_data: FileData,
                     fi.get_import_file_name(), fi.get_import_file_path(),
                     fi.get_import_file_dir_path(), fi.get_import_file_pkg(),
                     commit_hash, commit_datetime)
-                #logging.debug(sql_string)
+                # logging.debug(sql_string)
                 cur.execute(sql_string)
             con_analytics_db.commit()
         else:
@@ -1002,20 +1000,41 @@ def complete_function_calls_data(arr_function_calls):
     print("TODO")
 
 
-"""
-create table edge_node_info (edge_id, edge_type, source_node_id, source_node_type, source_node_name, target_node_id, target_node_type, target_node_name)
+def remove_unparsed_git_commits(proj_config: ProjectConfig, proj_paths: ProjectPaths):
+    try:
+        con_analytics_db = sqlite3.connect(proj_paths.get_path_to_project_db())
+        raw_cg_db_path = os.path.join(proj_paths.get_path_to_cache_cg_dbs_dir(),
+                                      (proj_config.get_proj_name() + '_raw_cg.db'))
+        con_raw_cg_db = sqlite3.connect(raw_cg_db_path)
 
-insert into edge_node_info (edge_id, edge_type, source_node_id, source_node_type, source_node_name, target_node_id, target_node_type, target_node_name)
-	SELECT
-	edge.id,
-	edge.type,
-	edge.source_node_id,
-	s_node.type,
-	s_node.serialized_name,
-	edge.target_node_id,
-	t_node.type,
-	t_node.serialized_name
-	from edge, node s_node, node t_node
-	where edge.source_node_id = s_node.id
-	and edge.target_node_id = t_node.id
-"""
+        sql_statement = """select * from git_commit;"""
+        git_commit_df = pandas.read_sql_query(sql_statement, con_analytics_db)
+        logging.debug("Nr of commits: {0}".format(len(git_commit_df)))
+
+        rm_git_commit = pandas.DataFrame()
+        for g_idx, g in git_commit_df.iterrows():
+            try:
+                sql_statement = """select * from '{0}';""".format(
+                    g['commit_hash'])
+                hash_raw_cg_df = pandas.read_sql_query(
+                    sql_statement, con_raw_cg_db)
+            except Exception as raw_err:
+                cur = con_analytics_db.cursor()
+                logging.debug("deleting commit_hash: {0} {1}".format(
+                    g['commit_hash'], g['commit_commiter_datetime']))
+                # TODO delete other tables...
+                sql_statement = """DELETE FROM git_commit WHERE commit_hash='{0}';""".format(
+                    g['commit_hash'])
+                cur.execute(sql_statement)
+                rm_git_commit = rm_git_commit.append(g, ignore_index=True)
+
+        con_analytics_db.commit()
+        if len(rm_git_commit) > 0:
+            rm_git_commit.to_sql('rm_git_commit', con_analytics_db, if_exists='replace', index=False)
+
+    except Exception as err:
+        con_raw_cg_db.rollback()
+        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+        err_message = template.format(
+            type(raw_err).__name__, raw_err.args)
+        logging.info(err_message)

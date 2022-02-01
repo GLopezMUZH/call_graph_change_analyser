@@ -29,15 +29,16 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
 
         list_stat = []
 
-        skip_commit = False
         nr_skip_commits = 0
         nr_processed_commits = 0
         for g_idx, g in git_commit_df.iterrows():
+            skip_commit = False
+            
             try:
                 sql_statement = """select * from '{0}';""".format(g['commit_hash'])
                 hash_raw_cg_df = pd.read_sql_query(sql_statement, con_raw_cg_db)
             except Exception as raw_err:
-                logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
+                #logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
                 skip_commit = True
                 nr_skip_commits += 1
                 con_raw_cg_db.rollback()

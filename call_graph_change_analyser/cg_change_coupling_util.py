@@ -29,7 +29,7 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
     list_stat = []
 
     for g_idx, g in git_commit_df.iterrows():
-        logging.debug("commit_hash: {0}".format(g['commit_hash']))
+        logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
 
         sql_statement = """select * from '{0}';""".format(g['commit_hash'])
         hash_raw_cg_df = pd.read_sql_query(sql_statement, con_raw_cg_db)
@@ -39,8 +39,8 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         deg1_coupling_nr_edges = len(df_s_and_t)
         set_s_and_t_nodes_changed = set(df_s_and_t['source_node_id']).union(set(df_s_and_t['target_node_id']))
         deg1_coupling_nr_nodes = len(set_s_and_t_nodes_changed)
-        list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_edges.name, deg1_coupling_nr_edges])
-        list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_nodes.name, deg1_coupling_nr_nodes])
+        list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], g['commit_commiter_datetime'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_edges.name, deg1_coupling_nr_edges])
+        list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], g['commit_commiter_datetime'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_nodes.name, deg1_coupling_nr_nodes])
         #logging.debug("Param2 {0}, v {1}".format(StatisticParams2.nr_edges.name, deg1_coupling_nr_edges))
         #logging.debug("Param2 {0}, v {1}".format(StatisticParams2.nr_nodes.name, deg1_coupling_nr_nodes))
         
@@ -48,6 +48,11 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         df_s = hash_raw_cg_df[(hash_raw_cg_df['s_node_change'] == 1) & (hash_raw_cg_df['t_node_change'] == 0)]
         df_t = hash_raw_cg_df[(hash_raw_cg_df['s_node_change'] == 0) & (hash_raw_cg_df['t_node_change'] == 1)]
         G=nx.from_pandas_edgelist(hash_raw_cg_df, 'source_node_id', 'target_node_id', create_using=nx.DiGraph())
+
+        # statistics on the graph
+        list_stat.append([StatisticNames.cg_stats.name, g['commit_hash'], g['commit_commiter_datetime'], StatisticParams1.cg_n_nodes.name, G.number_of_nodes(), '', ''])
+        list_stat.append([StatisticNames.cg_stats.name, g['commit_hash'], g['commit_commiter_datetime'], StatisticParams1.cg_n_edges.name, G.number_of_edges(), '', ''])
+
         set_nodes_changed = set(df_s['source_node_id']).union(set(df_t['target_node_id']))
         # we do all the permutations because is a directed graph
         pair_permutations = itertools.permutations(set_nodes_changed, 2)
@@ -76,7 +81,7 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
                 if k == 1:
                     continue
                 #logging.debug("dd: {0}, nnodes: {1}".format(k,v))
-                list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, k,  StatisticParams2.nr_edges.name, v])
+                list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], g['commit_commiter_datetime'], StatisticParams1.degree_distance.name, k,  StatisticParams2.nr_edges.name, v])
 
         logging.debug("Nr linked nodes within paths {0}".format(len(set_nodes_changed_in_cg)))
         logging.debug(set_nodes_changed_in_cg)
@@ -90,6 +95,6 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         cur_raw_cg_db.close()
 
     # update general statistics, replace because we append per commit itteration 
-    df_stats = pd.DataFrame(list_stat, columns =['stat_name', 'commit_hash', 'param1', 'param1_value', 'param2', 'param2_value'])
-    df_stats.to_sql(StatisticNames.cg_f_changes.name, con_analytics_db, if_exists='replace', index=False)
+    df_stats = pd.DataFrame(list_stat, columns =['stat_name', 'commit_hash', 'commit_commiter_datetime', 'param1', 'param1_value', 'param2', 'param2_value'])
+    df_stats.to_sql('cg_statistics', con_analytics_db, if_exists='replace', index=False)
 

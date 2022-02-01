@@ -19,7 +19,7 @@ def main():
 
     if platform.system() == 'Linux':
         path_to_config_file = os.path.normpath(
-            '../project_config/glucosio_small.pconfig')
+            '../project_config/glucosio-android.pconfig')
 
 
     print('Started App ------------ {0}'.format(datetime.now()))

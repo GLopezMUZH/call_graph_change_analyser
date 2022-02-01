@@ -62,6 +62,7 @@ def git_traverse_between_tags(proj_config: ProjectConfig, proj_paths: ProjectPat
         process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
                            is_valid_file_type=is_valid_file_type, commit=commit)
 
+
 def git_traverse_between_commits(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     is_valid_file_type = get_file_type_validation_function(
         proj_config.proj_lang)
@@ -74,7 +75,6 @@ def git_traverse_between_commits(proj_config: ProjectConfig, proj_paths: Project
             only_in_branch=proj_config.get_only_in_branch()).traverse_commits():
         process_git_commit(proj_config=proj_config, proj_paths=proj_paths,
                            is_valid_file_type=is_valid_file_type, commit=commit)
-
 
 
 def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_valid_file_type, commit: Commit, parse_cg: bool = True):
@@ -93,8 +93,8 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
     for mod_file in commit.modified_files:
         if is_valid_file_type(str(mod_file._new_path)) or is_valid_file_type(str(mod_file._old_path)):
             process_file_git_commit(proj_config, proj_paths,
-                                                       commit, mod_file)
-    
+                                    commit, mod_file)
+
     """
             dir_deleted_file = process_file_git_commit(proj_config, proj_paths,
                                                        commit, mod_file)
@@ -106,11 +106,12 @@ def process_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths, is_
     """
 
     if parse_cg:
-        reset_git_to_hash(proj_config.get_repo_url(), proj_paths.get_path_to_cache_src_dir(), commit.hash)
+        reset_git_to_hash(proj_config.get_repo_url(),
+                          proj_paths.get_path_to_cache_src_dir(), commit.hash)
 
         save_cg_data_for_commit(proj_name=proj_config.get_proj_name(),
-                     path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
-                     delete_cg_src_db=proj_config.get_delete_cg_src_db())
+                                path_to_cache_cg_dbs_dir=proj_paths.get_path_to_cache_cg_dbs_dir(), commit_hash=commit.hash,
+                                delete_cg_src_db=proj_config.get_delete_cg_src_db())
 
         """
         save_cg_diffs(proj_name=proj_config.get_proj_name(),
@@ -127,10 +128,10 @@ def process_file_git_commit(proj_config: ProjectConfig, proj_paths: ProjectPaths
                                             commit, mod_file)
 
     # process call graph sourceTrail
-    #dir_deleted_file = process_file_git_commit_cg_parsing(
+    # dir_deleted_file = process_file_git_commit_cg_parsing(
     #    proj_paths, mod_file)
 
-    #return dir_deleted_file
+    # return dir_deleted_file
 
 
 def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: ModifiedFile):
@@ -190,6 +191,7 @@ def process_file_git_commit_cg_parsing(proj_paths: ProjectPaths, mod_file: Modif
 def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_paths: ProjectPaths,
                                             commit: Commit, mod_file: ModifiedFile):
     mod_file_data = FileData(str(mod_file._new_path))
+    mod_file_data_prev = FileData(str(mod_file._old_path))
 
     # Create sourcediff directory
     if proj_config.get_save_cache_files:
@@ -227,9 +229,12 @@ def process_file_git_commit_ASTdiff_parsing(proj_config: ProjectConfig, proj_pat
                        change_type=mod_file.change_type)
 
     # update file imports
-    fis = get_file_imports(proj_config.get_proj_lang(), proj_paths.get_path_to_src_files(),
-                           mod_file.source_code, mod_file_data)
-    update_file_imports(mod_file_data, fis,
+    fis = get_file_imports(proj_lang=proj_config.get_proj_lang(), path_to_src_files=proj_paths.get_path_to_src_files(),
+                           source_code=mod_file.source_code, mod_file_data=mod_file_data)
+    fis_prev = get_file_imports(proj_lang=proj_config.get_proj_lang(), path_to_src_files=proj_paths.get_path_to_src_files(),
+                           source_code=mod_file.source_code_before, mod_file_data=mod_file_data_prev)
+
+    update_file_imports(mod_file_data, fis, fis_prev,
                         proj_paths.get_path_to_project_db(),
                         commit_hash=commit.hash,
                         commit_datetime=str(commit.committer_date))

@@ -24,7 +24,7 @@ class StatisticParams1(Enum):
 
 class StatisticParams2(Enum):
     nr_edges = 1
-    nr_nodes = 1
+    nr_nodes = 2
 
 
 class ProjectConfig:

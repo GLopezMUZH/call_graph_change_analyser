@@ -46,15 +46,15 @@ def create_graph_based_tables(path_to_project_db, drop=False):
         try:
             cur.execute('''DROP TABLE node''')
         except Exception as error:
-            print("node ", error)
+            logging.debug("node {0}".format(error))
         try:
             cur.execute('''DROP TABLE node_call''')
         except Exception as error:
-            print("node_call ", error)
+            logging.debug("node_call {0}".format(error))
         try:
             cur.execute('''DROP TABLE edge_call''')
         except Exception as error:
-            print("edge_call ", error)
+            logging.debug("edge_call {0}".format(error))
 
     cur.execute('''CREATE TABLE IF NOT EXISTS node
                 (id number, type text, name text, file_path text, start_datetime text, end_datetime text)''')
@@ -78,35 +78,35 @@ def create_commit_based_tables(path_to_project_db, drop=False):
         try:
             cur.execute('''DROP TABLE git_commit''')
         except Exception as error:
-            print("call_commit ", error)
+            logging.debug("git_commit {0}".format(error))
         try:
             cur.execute('''DROP TABLE file_commit''')
         except Exception as error:
-            print("call_commit ", error)
+            logging.debug("file_commit {0}".format(error))
         try:
             cur.execute('''DROP TABLE function_commit''')
         except Exception as error:
-            print("call_commit ", error)
+            logging.debug("function_commit {0}".format(error))
         try:
             cur.execute('''DROP TABLE file_import''')
         except Exception as error:
-            print("file_import ", error)
+            logging.debug("file_import {0}".format(error))
         try:
             cur.execute('''DROP TABLE call_commit''')
         except Exception as error:
-            print("call_commit ", error)
+            logging.debug("call_commit {0}".format(error))
         try:
             cur.execute('''DROP TABLE function_to_file''')
         except Exception as error:
-            print("function_to_file ", error)
+            logging.debug("function_to_file {0}".format(error))
         try:
             cur.execute('''DROP TABLE function_call''')
         except Exception as error:
-            print("function_call ", error)
+            logging.debug("function_call {0}".format(error))
         try:
             cur.execute('''DROP TABLE raw_function_call''')
         except Exception as error:
-            print("raw_function_call ", error)
+            logging.debug("raw_function_call {0}".format(error))
 
     cur.execute('''CREATE TABLE IF NOT EXISTS git_commit
                 (commit_hash text, commit_commiter_datetime text, author text,

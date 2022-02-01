@@ -11,6 +11,7 @@ from models import ProjectConfig, ProjectPaths, StatisticNames, StatisticParams1
 
 def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     logging.debug("Start save_cg_change_coupling")
+    print("save_cg_change_coupling")
     path_to_cache_cg_dbs_dir = proj_paths.get_path_to_cache_cg_dbs_dir()
     raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
                                   (proj_config.get_proj_name() + '_raw_cg.db'))
@@ -59,26 +60,36 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         #print(pair_s_n)
             try:
                 p_l = nx.shortest_path_length(G,pair_s_n[0],pair_s_n[1])
-                print(p_l)
                 set_nodes_changed_in_cg.add(pair_s_n[0])
                 set_nodes_changed_in_cg.add(pair_s_n[1])
                 i += 1
-                print(nx.shortest_path(G, pair_s_n[0],pair_s_n[1]))
+                sp = nx.shortest_path(G, pair_s_n[0],pair_s_n[1])
+                set_nodes_changed_in_cg.update(sp)
                 cg_path_length[p_l]=cg_path_length.get(p_l,0)+1
             except nx.NetworkXNoPath as noPathErr:
                 # do nothing
                 pass
 
         #print("Nr pair permutations: ",len(list_pairs_s_nodes))
-        logging.debug("Nr linked nodes: {0}".format(i))
+        #logging.debug("Nr linked nodes: {0}".format(i))
         for k,v in cg_path_length.items():
                 if k == 1:
                     continue
-                logging.debug("dd: {0}, nnodes: {1}".format(k,v))
+                #logging.debug("dd: {0}, nnodes: {1}".format(k,v))
                 list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, k,  StatisticParams2.nr_edges.name, v])
 
-        #print("Nr linked nodes with paths", len(set_nodes_changed_in_cg))
-        #print(set_nodes_changed_in_cg)
-        
+        logging.debug("Nr linked nodes within paths {0}".format(len(set_nodes_changed_in_cg)))
+        logging.debug(set_nodes_changed_in_cg)
+    
+        # update cg table
+        cur_raw_cg_db = con_raw_cg_db.cursor()
+        for n in set_nodes_changed_in_cg:
+            sql_statement = """update '{0}' set cg_change=1 where source_node_id = {1} or target_node_id = {1};""".format(g['commit_hash'], n)
+            cur_raw_cg_db.execute(sql_statement)
+        con_raw_cg_db.commit()
+        cur_raw_cg_db.close()
+
+    # update general statistics, replace because we append per commit itteration 
     df_stats = pd.DataFrame(list_stat, columns =['stat_name', 'commit_hash', 'param1', 'param1_value', 'param2', 'param2_value'])
     df_stats.to_sql(StatisticNames.cg_f_changes.name, con_analytics_db, if_exists='replace', index=False)
+

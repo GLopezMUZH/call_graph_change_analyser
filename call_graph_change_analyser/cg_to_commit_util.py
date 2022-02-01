@@ -15,8 +15,6 @@ def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: Pr
     path_to_project_db = proj_paths.get_path_to_project_db()
     path_to_src_files_raw_cg = proj_paths.get_str_path_to_src_files()
     logging.debug(path_to_src_files_raw_cg)
-    # 'C:/Users/lopm/Documents/gitprojects/call_graph_change_analyser/project_results/glucosio-android/.cache/git/'
-    # 'C:/Users/lopm/Documents/gitprojects/call_graph_change_analyser/project_results/glucosio-android/.cache/git/'
 
     con_analytics_db = sqlite3.connect(path_to_project_db)
     con_raw_cg_db = sqlite3.connect(raw_cg_db_path)
@@ -98,7 +96,7 @@ def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: Pr
                 if t_edge_row['function_unqualified_name'] in t_edge_row['target_node_name']:
                     k += 1
                     set_t_nodes.add(
-                        (t_edge_row['s_file_path_original'], t_edge_row['source_node_name']))
+                        (t_edge_row['t_file_path_original'], t_edge_row['target_node_name']))
 
             for t in set_t_nodes:
                 str_update = """update '{0}' set t_node_change = 1 where t_file_path = '{1}' and target_node_name = '{2}';""".format(

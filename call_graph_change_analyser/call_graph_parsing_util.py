@@ -120,10 +120,8 @@ def save_cg_data_all(proj_config: ProjectConfig, proj_paths: ProjectPaths):
                                 proj_config.get_delete_cg_src_db())
 
 
-def load_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
+def load_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str):
     srctrl_db_name = proj_name + commit_hash + '.srctrldb'
-    path_to_srctrl_db = os.path.join(path_to_cache_cg_dbs_dir,
-                                     srctrl_db_name)
     # if srctrl database does not exist, create
     if not exists_in_raw_cg_db(
             proj_name, path_to_cache_cg_dbs_dir, commit_hash):
@@ -134,13 +132,6 @@ def load_source_graph_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, 
         logging.info(
             "Table '{0}' already exists in raw_cg_db_path".format(commit_hash))
 
-    logging.debug("delete_cg_src_db {0}".format(delete_cg_src_db))
-    if delete_cg_src_db:
-        if os.path.isfile(path_to_srctrl_db):
-            os.remove(path_to_srctrl_db)
-        else:  # Show an error ##
-            logging.debug(
-                "Error: {0} file not found".format(path_to_srctrl_db))
 
 
 def save_cg_data_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commit_hash: str, delete_cg_src_db: bool):
@@ -151,11 +142,31 @@ def save_cg_data_for_commit(proj_name: str, path_to_cache_cg_dbs_dir: str, commi
                                      srctrl_db_name)
     # generate source graph file
     load_source_graph_for_commit(
-        proj_name, path_to_cache_cg_dbs_dir, commit_hash, delete_cg_src_db)
+        proj_name, path_to_cache_cg_dbs_dir, commit_hash)
 
     # retreive cg info from genearted db from parsing componen and save focused cg data
     save_curr_cg_from_source_graph_parcing(
         path_to_srctrl_db, raw_cg_db_path, commit_hash)
+
+    # delete source graph file
+    logging.debug("delete_cg_src_db {0}".format(delete_cg_src_db))
+    srctrl_bm_name = proj_name + commit_hash + '.srctrlbm'
+    path_to_srctrl_bm = os.path.join(path_to_cache_cg_dbs_dir,
+                                     srctrl_bm_name)
+    try:
+        if delete_cg_src_db:
+            if os.path.isfile(path_to_srctrl_db):
+                os.remove(path_to_srctrl_db)
+            else:  # Show an error ##
+                logging.debug(
+                    "Error: {0} file not found".format(path_to_srctrl_db))
+            if os.path.isfile(path_to_srctrl_bm):
+                os.remove(path_to_srctrl_bm)
+
+    except:
+        logging.debug(
+            "Error: {0} file not found".format(path_to_srctrl_db))
+
 
 
 def get_uid(str1,str2):

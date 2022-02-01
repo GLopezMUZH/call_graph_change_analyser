@@ -38,7 +38,7 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
                 logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
                 skip_commit = True
                 con_raw_cg_db.rollback()
-                template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+                template = "skip_commit An exception of type {0} occurred. Arguments:\n{1!r}"
                 err_message = template.format(
                     type(raw_err).__name__, raw_err.args)
                 logging.info(err_message)

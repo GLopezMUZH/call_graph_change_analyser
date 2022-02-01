@@ -31,12 +31,11 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
 
         skip_commit = False
         for g_idx, g in git_commit_df.iterrows():
-            logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
-
             try:
                 sql_statement = """select * from '{0}';""".format(g['commit_hash'])
                 hash_raw_cg_df = pd.read_sql_query(sql_statement, con_raw_cg_db)
             except Exception as raw_err:
+                logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
                 skip_commit = True
                 con_raw_cg_db.rollback()
                 template = "An exception of type {0} occurred. Arguments:\n{1!r}"
@@ -45,6 +44,7 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
                 logging.info(err_message)
 
             if not skip_commit:
+                logging.debug("commit_hash: {0} {1}".format(g['commit_hash'], g['commit_commiter_datetime']))
                 # first degree coupling
                 df_s_and_t = hash_raw_cg_df[(hash_raw_cg_df['s_node_change'] == 1) & (hash_raw_cg_df['t_node_change'] == 1)]
                 deg1_coupling_nr_edges = len(df_s_and_t)

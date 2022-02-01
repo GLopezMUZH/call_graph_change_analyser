@@ -16,10 +16,13 @@ class ActionClass(Enum):
 
 class StatisticNames(Enum):
     cg_f_changes = 1
+    cg_stats = 2
 
 
 class StatisticParams1(Enum):
     degree_distance = 1
+    cg_n_nodes = 2
+    cg_n_edges = 3
 
 
 class StatisticParams2(Enum):

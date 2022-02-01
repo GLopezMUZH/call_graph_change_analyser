@@ -40,7 +40,9 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         deg1_coupling_nr_nodes = len(set_s_and_t_nodes_changed)
         list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_edges.name, deg1_coupling_nr_edges])
         list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, 1,  StatisticParams2.nr_nodes.name, deg1_coupling_nr_nodes])
-
+        #logging.debug("Param2 {0}, v {1}".format(StatisticParams2.nr_edges.name, deg1_coupling_nr_edges))
+        #logging.debug("Param2 {0}, v {1}".format(StatisticParams2.nr_nodes.name, deg1_coupling_nr_nodes))
+        
         # nth degree coupling
         df_s = hash_raw_cg_df[(hash_raw_cg_df['s_node_change'] == 1) & (hash_raw_cg_df['t_node_change'] == 0)]
         df_t = hash_raw_cg_df[(hash_raw_cg_df['s_node_change'] == 0) & (hash_raw_cg_df['t_node_change'] == 1)]
@@ -70,6 +72,9 @@ def save_cg_change_coupling(proj_config: ProjectConfig, proj_paths: ProjectPaths
         #print("Nr pair permutations: ",len(list_pairs_s_nodes))
         logging.debug("Nr linked nodes: {0}".format(i))
         for k,v in cg_path_length.items():
+                if k == 1:
+                    continue
+                logging.debug("dd: {0}, nnodes: {1}".format(k,v))
                 list_stat.append([StatisticNames.cg_f_changes.name, g['commit_hash'], StatisticParams1.degree_distance.name, k,  StatisticParams2.nr_edges.name, v])
 
         #print("Nr linked nodes with paths", len(set_nodes_changed_in_cg))

@@ -9,6 +9,7 @@ from models import ProjectConfig, ProjectPaths
 
 def update_commit_changes_to_cg_nodes(proj_config: ProjectConfig, proj_paths: ProjectPaths):
     logging.debug("Start update_commit_changes_to_cg_nodes")
+    print("update_commit_changes_to_cg_nodes")
     path_to_cache_cg_dbs_dir = proj_paths.get_path_to_cache_cg_dbs_dir()
     raw_cg_db_path = os.path.join(path_to_cache_cg_dbs_dir,
                                   (proj_config.get_proj_name() + '_raw_cg.db'))

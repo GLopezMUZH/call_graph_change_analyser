@@ -10,7 +10,6 @@ from project_configs import *
 from cg_change_coupling_util import save_cg_change_coupling
 
 
-
 # %%
 def main():
 
@@ -36,13 +35,9 @@ def main():
     logging.info('Finished App ---------- {0}'.format(datetime.now()))
     print('Finished App -------------{0}'.format(datetime.now()))
 
-
-def init_db(proj_paths):
-    logging.info('Initialize the db.')
-    create_db_tables(proj_paths, drop=True)
-
-
 # %%
 if __name__ == '__main__':
     main()
 
+
+# %%

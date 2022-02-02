@@ -1,12 +1,11 @@
-# call_graph_change_analyser
+# *callgraphCA*
 *callgraphCA* is a prototype tool to help the understanding of software evolution. Based on information extracted from Git repositories. Models change proneness, change coupling and call-graph evolution.
 
-### Table of Contents
----------------------
+## Table of Contents
 
 Table of Contents
-*	*callgraphCA* functionality
-    *	Contributions
+*	[*callgraphCA* functionality](README.md#callgraphCA-functionality)
+    *	[Contributions](README.md#contributions)
 *	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.md)
 * [Installation](README.md#Installation)
     * [Prerequisites](README.md#Prerequisites)
@@ -21,9 +20,15 @@ Table of Contents
     * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
 *	[License](README.md#License)
 
-
-### Quick-Start
 --------------
+## *callgraphCA* functionality
+The main purpose of *callgraphCA* is to generate data to suppor the analysis and understanding of the evolution of softwrare projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
+In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered, and how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
+### Contributions
+
+
+## Quick-Start
+
 
 ## Installation
 

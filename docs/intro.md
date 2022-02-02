@@ -8,11 +8,15 @@ It is based on information extracted from any Git repository and method and func
 Requirements
 ---------------------
 
-* Python 3.9 [^1]
-* Git [^2] 
+- python >= 3.9[^1]
+- [Git][^2]
+- [srcML][^3]
+- [sourceTrail][^4]
 
 [^1]: https://www.python.org
 [^2]: https://git-scm.com/
+[^3]: https://www.srcml.org/
+[^4]: https://github.com/CoatiSoftware/Sourcetrail
 
 
 Run

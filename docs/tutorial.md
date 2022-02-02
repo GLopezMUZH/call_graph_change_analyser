@@ -1,12 +1,8 @@
-.. highlight:: python
-
-==================
 Analysing new projects
-==================
+---------------------
 
 Running the analysis
-============
-
+---------------------
 For analysing new projects, or different ranges of the history of a project it is necessary to provide a configuration file and run the following command:
 
 ```
@@ -27,7 +23,7 @@ The arguments for starting the analysis are:
 
 
 Configuration file
-============
+---------------------
 
 In the configuration file, the following arguments must be set:
 Project specifications:

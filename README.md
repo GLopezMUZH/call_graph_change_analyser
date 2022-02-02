@@ -16,7 +16,9 @@ Table of Contents
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
 *	Memory requirements
 *	How to use *callgraphCA* as a dockers container (optional)
-*	[Motivation: Research results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
+*	Empirical research
+    * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
+    * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
 *	[License](README.md#License)
 
 

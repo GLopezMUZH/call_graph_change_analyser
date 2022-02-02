@@ -22,7 +22,7 @@ Run
 ============
 Ubuntu
 
-``python .\app.py -init_db_yes -init_index_yes -C ..\project_config\project_conf_file.pconfig``
+``python .\app.py -init_db_yes -C ..\project_config\project_conf_file.pconfig``
 
 ``test_app_ubuntu.py -init_db_yes -P proj_name -from_tag tag -to_tag tag``
 
@@ -33,4 +33,4 @@ eg. ``python .\app.py -init_db_yes -P JKQtPlotter -from_tag 'v2019.11.0' -to_tag
 
 Windows
 
-``python .\app.py -init_db_yes -init_index_yes -C ..\project_config\glucosio_small.pconfig``
+``python .\app.py -init_db_yes -C ..\project_config\glucosio_small.pconfig``

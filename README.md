@@ -22,63 +22,13 @@ Table of Contents
 *	[License](README.md#License)
 
 
-
 ### Quick-Start
----------------
-.
+--------------
 
-### Project structure
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
-
-.
+## Installation
 
 
-### Prerequisites
------------------
+## Prerequisites
 The following tools need to be installed in order to use callgraphCA:
 
 - python >= 3.9

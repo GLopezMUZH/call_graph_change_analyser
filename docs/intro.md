@@ -1,25 +1,22 @@
-.. _intro_toplevel:
-
-==================
 Overview
-==================
+---------------------
 
 call_graph_change_analyser is a Python tool that helps the understanding of software evolution. 
 It is based on information extracted from any Git repository and method and function call-graphs.
 
 
 Requirements
-============
+---------------------
 
-* `Python`_ 3.9
-* `Git`_
+* Python 3.9 [^1]
+* Git [^2] 
 
-.. _Python: https://www.python.org
-.. _Git: https://git-scm.com/
+[^1]: https://www.python.org
+[^2]: https://git-scm.com/
 
 
 Run
-============
+---------------------
 Ubuntu
 
 ``python .\app.py -init_db_yes -C ..\project_config\project_conf_file.pconfig``

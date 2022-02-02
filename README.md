@@ -13,7 +13,7 @@ Table of Contents
 * [Quick-Start](README.md#Quick-Start)
     *	Pre-generated data
 *	Quick notebooks
-*	How to analyze new projects
+*	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.rst)
 *	Memory requirements
 *	How to use *callgraphCA* as a dockers container (optional)
 *	Research results (link to file in the /docs folder)

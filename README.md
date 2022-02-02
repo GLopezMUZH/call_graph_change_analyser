@@ -5,7 +5,7 @@
 ---------------------
 
 Table of Contents
-*	*callgraphCA* functionality
+*	[*callgraphCA* functionality](README.md#callgraphCA-functionality)
     *	Contributions
 *	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.md)
 * [Installation](README.md#Installation)
@@ -21,6 +21,7 @@ Table of Contents
     * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
 *	[License](README.md#License)
 
+### *callgraphCA* functionality
 
 ### Quick-Start
 --------------

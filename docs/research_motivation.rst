@@ -29,6 +29,14 @@ This is the list of the selected projects and in the Table 'Systems under study'
 * GRIP Computer Vision Engine - GRIP (the Graphically Represented Image Processing engine) is an application for rapidly prototyping and deploying computer vision algorithms, primarily for robotics applications. 5
 
 
+| Project Name              | Main programming language | LOC  | Nr. of commits | Stars | Nr. Tags | Topic             |
+|---------------------------|---------------------------|------|----------------|-------|----------|-------------------|
+| Glucosio/glucosio-android | java                      | 59K  |          1’166 |   332 |       31 | health automation |
+| isl-org/OpenBot           | java                      | 191K |            730 |    2K |        7 | robots            |
+| eclipse/concierge         | java                      | 62K  |            502 |    32 |        2 | iot               |
+| WPIRoboticsProjects/GRIP  | java                      | 54K  |          1’170 |   334 |       26 | robotic vision    |
+
+
 .. list-table:: Systems under study
    :widths: 25 25 50
    :header-rows: 1

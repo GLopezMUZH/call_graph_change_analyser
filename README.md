@@ -7,16 +7,16 @@
 Table of Contents
 *	*callgraphCA* functionality
     *	Contributions
-*	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.rst)
+*	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.md)
 * [Installation](README.md#Installation)
     * [Prerequisites](README.md#Prerequisites)
 * [Quick-Start](README.md#Quick-Start)
     *	Pre-generated data
 *	Quick notebooks
-*	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.rst)
+*	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
 *	Memory requirements
 *	How to use *callgraphCA* as a dockers container (optional)
-*	[Motivation: Research results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.rst)
+*	[Motivation: Research results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
 *	[License](README.md#License)
 
 

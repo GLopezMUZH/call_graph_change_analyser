@@ -1,5 +1,6 @@
 import numpy as np
 import networkx as nx
+import pandas as pd
 import matplotlib.pyplot as plt
 
 class NetworkValues:
@@ -40,8 +41,8 @@ def getNetworkValues(G, drawGraph = False, edge_color_map = None):
 
         if edge_color_map is not None:
             nx.draw(G, edge_color=edge_color_map, node_size = 10)
-        else:    
-            nx.draw(G, node_color='b', node_size = 10)
+        #else:    
+        #    nx.draw(G, node_color='b', node_size = 10)
         plt.figure(figsize=(18, 18))
         plt.show()
         plt.draw()
@@ -75,3 +76,23 @@ def getNetworkValues(G, drawGraph = False, edge_color_map = None):
     print("LCC: ", nx.info(largest_cc))
 
     return networkValues, largest_cc
+
+
+def display_gaph_evolution(con_analytics_db, con_graph_db, num_samples=5):
+
+    sql_statement = """SELECT * FROM git_commit order by commit_commiter_datetime;"""
+    git_commit_df = pd.read_sql_query(sql_statement, con_analytics_db)
+    print("Number of commits in database: {0}".format(len(git_commit_df)))
+
+    row_idx_list = np.linspace(0, len(git_commit_df)-1, num=num_samples, dtype=int)
+
+    for i in row_idx_list:
+        sql_statement = """SELECT * FROM '{0}';""".format(git_commit_df.iloc[i]['commit_hash'])
+        cg_at_hash = pd.read_sql_query(sql_statement, con_graph_db)
+
+        print("---------------------------------------------------")
+        print("Sample nr: {0}. Commit: {1}".format(i, git_commit_df.iloc[i]['commit_hash']))
+        print()
+        G=nx.from_pandas_edgelist(cg_at_hash,'source_node_id',	'target_node_id', create_using=nx.DiGraph() )
+        nv, lcc = getNetworkValues(G, drawGraph = True)
+        print()

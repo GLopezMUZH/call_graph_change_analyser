@@ -32,11 +32,11 @@ def show_file_change_proneness(con, period_type: Optional[str] = None, start_dat
         (strftime('%j', date(commit_commiter_datetime, '-3 days', 'weekday 4')) - 1) / 7 + 1;"""
         df = pd.read_sql_query(sql_statement, con)
 
-        df['yr-wk'] = df.apply(lambda row: ''.join([str(row.iso_yr),
+        df['yr_wk'] = df.apply(lambda row: ''.join([str(row.iso_yr),
                                '-', str(row.iso_week)]), axis=1)
-        pdf = df[['yr-wk', 'file_name', 'changes_in_week']]
+        pdf = df[['yr_wk', 'file_name', 'changes_in_week']]
         changes_matrix = pd.pivot_table(pdf, index=['file_name'], values='changes_in_week',
-                                        columns=['yr-wk'], aggfunc=np.sum)
+                                        columns=['yr_wk'], aggfunc=np.sum)
         changes_matrix = changes_matrix.style.background_gradient(cmap='viridis')\
             .set_properties(**{'font-size': '5px'})
         display(changes_matrix)
@@ -54,10 +54,10 @@ def show_file_change_proneness(con, period_type: Optional[str] = None, start_dat
         strftime('%m', date(commit_commiter_datetime));"""
         df_m = pd.read_sql_query(sql_statement, con)
 
-        df_m['yr-m'] = df_m.apply(lambda row: ''.join(
+        df_m['yr_m'] = df_m.apply(lambda row: ''.join(
             [str(row.iso_yr), '-', str(row.iso_month)]), axis=1)
         changes_matrix_m = pd.pivot_table(df_m, index=['file_name'], values='changes_in_month',
-                                          columns=['yr-m'], aggfunc=np.sum)
+                                          columns=['yr_m'], aggfunc=np.sum)
         changes_matrix_m = changes_matrix_m.style.background_gradient(cmap='viridis')\
             .set_properties(**{'font-size': '5px'})
         display(changes_matrix_m)

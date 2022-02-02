@@ -22,8 +22,8 @@ Table of Contents
 
 --------------
 ## *callgraphCA* functionality
-The main purpose of *callgraphCA* is to generate data to suppor the analysis of the evolution of softwrare projects. The main areas of functionality are change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
-In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered and how the example notebooks can be used to understand the systems under study and the support that the analytic libraries provide.
+The main purpose of *callgraphCA* is to generate data to suppor the analysis and understanding of the evolution of softwrare projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
+In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered, and how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
 ### Contributions
 
 

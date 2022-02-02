@@ -7,7 +7,7 @@ callgraphCA Architecture
 .. image:: architectureDiagramm.png
 
 
-Figure "Architectural Diagram" shows the main architecture of *callgraphCA*. To start running the analysis of a git project, the user must provide a configuration file, the detailed content is explained in [Analysing new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.rst). For the the processing and analyzing of the project changes, *callgraphCA* contains the following subcomponents: 
+Figure "Architectural Diagram" shows the main architecture of *callgraphCA*. To start running the analysis of a git project, the user must provide a configuration file, the detailed content is explained in `Analysing new projects <https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.rst>`_. For the the processing and analyzing of the project changes, *callgraphCA* contains the following subcomponents: 
 
 * Configuration reader. The configuration reader loads the parameters from a text file and converts them into class objects callable through the application.
 * Data source adapters. One of the goals is that *callgraphCA* will easily be extensible to other types of source code repositories, like SVN or Microsoft Team Foundation Version Control (TFVC) for legacy systems. This component uses repository specific libraries that are responsible for accessing and loading the source code changes from the repositories. The repository type can be set in the configuration file.

@@ -1,10 +1,7 @@
-
-========================
 callgraphCA Architecture
-========================
+---------------------
 
-
-.. image:: architectureDiagramm.png
+![architectureDiagramm.png](./architectureDiagramm.png "Architecture diagramm")
 
 
 Figure "Architectural Diagram" shows the main architecture of *callgraphCA*. To start running the analysis of a git project, the user must provide a configuration file, the detailed content is explained in [Analysing new projects](<https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.rst>). For the the processing and analyzing of the project changes, *callgraphCA* contains the following subcomponents: 

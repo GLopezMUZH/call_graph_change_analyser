@@ -28,6 +28,9 @@ networks, present long tailed behaviours with scarce matrices. The identificatio
 patterns in complex systems with such exponential behaviours is not a task for intuitive pattern
 detection and needs support from appropriate tools.
 
+![change_proneness_table.png](./change_proneness_table.png "Change proneness distributions")
+![change_proneness_plot.png](./change_proneness_plot.png "Change proneness distributions plot")
+
 
 Change coupling
 ---------------------

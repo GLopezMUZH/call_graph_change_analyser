@@ -1,10 +1,6 @@
 from typing import List
 from re import search
 import pandas as pd
-import numpy as np
-
-from mlxtend.frequent_patterns import apriori, association_rules
-from mlxtend.preprocessing import TransactionEncoder
 
 """
 class SupportRecord():
@@ -186,16 +182,3 @@ def transactions_5_elem_rule(df, col_name: str, items_list: List[str], print_ele
     msg = """Element count. Df len {0}. 1ind: {1}, 2dep: {2}, 3dep: {3}, 4dep: {4}, 5dep: {5}
     2ind: {6}, 3ind: {7}, 4ind: {8}, 5ind: {9}""".format(len(df),i,j,k,l,m,jj,kk,ll,mm)
     print(msg)
-
-
-def get_rules_by_threshold(df, min_t=0.1, max_t=0.5, n=11, max_nr_rules=100):
-    """
-    Returns list of [threshold, nr_rules]
-    """
-    r = []
-    for threshold in np.linspace(max_t,min_t,n):
-        tmp = apriori(df, min_support=threshold, use_colnames=True)
-        r.append([threshold, len(tmp)])
-        if len(tmp)> max_nr_rules:
-            break
-    return r

@@ -28,7 +28,7 @@ In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/
 
 - combine graph analysis with code change analysis
 - analyze the system’s call graph of the changed functions
-- can be used as a proxy to measure how high the change coupling of subsequent software
+- can be used as a proxy to measure change coupling of subsequent software
 - changes is within the call graph and outside of it
 - can be computed at different levels of granularity (commit or release tags, file, function, and call graph level)
 

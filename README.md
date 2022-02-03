@@ -31,9 +31,15 @@ In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/
 
 
 ## Installation
+- You can clone the OpenBot repository from GitHub with the following command:
+    ```bash
+    git clone https://github.com/GLopezMUZH/call_graph_change_analyser.git
+    ```
+- You can fork the OpenBot repository and then clone your local copy.
+- You can download the repository as a [zip file](https://github.com/GLopezMUZH/call_graph_change_analyser/archive/master.zip) and extract it into a folder of your choice.
 
 
-## Prerequisites
+### Prerequisites
 The following tools need to be installed in order to use callgraphCA:
 
 - python >= 3.9

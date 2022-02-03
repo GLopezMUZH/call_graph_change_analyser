@@ -14,7 +14,7 @@ Table of Contents
     *	[Replication packages](README.md#Replication-packages)
 *	[Quick notebooks](https://github.com/GLopezMUZH/call_graph_change_analyser/tree/main/notebooks)
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
-*	[Empirical research](README.md#Empirial-research)
+*	[Empirical research](README.md#Empirical-research)
     * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
     * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
 *	[License](README.md#License)
@@ -22,7 +22,7 @@ Table of Contents
 --------------
 ## *callgraphCA* functionality
 The main purpose of *callgraphCA* is to generate data to support the analysis and understanding of the evolution of software projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution, and change coupling within the call graphs.
-In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how these areas of analysis are covered, how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
+In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how these areas of analysis are covered, how the example notebooks can be used to understand the systems under study, and what support our analytic libraries provide.
 ### Contributions
 *callgraphCA* presents novel functionality with the focus of producing user-friendly processing and overview metrics that:
 
@@ -70,7 +70,7 @@ The following tools need to be installed in order to use callgraphCA:
 When analyzing complete histories of Java systems with over 50K LOC and over 500 commits, the two generated databases have sizes between 25MB and 1.3GB. In Ubuntu, the `project_result` folder for Glucosio/glucosio-android had a size of 1.7GB.
 
 ### Empirical research
-
+In the [research motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md) section, we explain the goals and research questions that drive our research and the development of *callgraphCA*. In [research results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md), we present the outcomes of our research and how the system supports the analysis of software projects. 
 
 ### License
 -----------------

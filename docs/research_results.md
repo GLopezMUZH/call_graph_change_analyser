@@ -60,3 +60,11 @@ number of occurrences where the first item is the predecesor and so forward unti
 
 Call graph evolution
 ---------------------
+
+|                           | nr. nodes |      | nr. edges |      | growth rate |       | diameter |     |
+|---------------------------|-----------|------|-----------|------|-------------|-------|----------|-----|
+|                           | start     | end  | start     | end  | nodes       | edges | start    | end |
+| Glucosio/glucosio-android |        24 | 1004 |        21 | 1608 |        41,8 |   1,6 |        1 |   6 |
+| eclipse/concierge         |       840 | 1579 |      1373 | 3066 |         1,9 |   1,9 |       24 |  24 |
+| isl-org/OpenBot           |       251 |  783 |       328 | 1207 |         3,1 |   1,5 |        7 |   8 |
+| WPIRoboticsProjects/GRIP  |      1553 | 2602 |      2684 | 6285 |         1,7 |   2,4 |        8 |   9 |

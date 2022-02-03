@@ -18,18 +18,17 @@ pointed out that frequent changes in clusters of classes might reflect functiona
 problems in the architecture of the system; both Nagappan et al. [108] and D’Ambros et al. [40]
 found that change proneness correlates stronger that coupling in the projects they studied back
 then.
-The summary of results analyzing the change proneness trough out the life of the systems
-under study is shown in Table 5.1. For a visual aid, in Figure 5.1 we present the distribution of
-number of commits per file for the projects glucosio-android and GRIP.The skewed distribution
-comes from the many files changing rarely, and very few files who are often updated, this distribution
-is similarly present in all of our projects. These results align with previous research,
-like discussed in Section 2, that has found that many social artifacts, like social and economical
-networks, present long tailed behaviours with scarce matrices. The identification of co-change
-patterns in complex systems with such exponential behaviours is not a task for intuitive pattern
-detection and needs support from appropriate tools.
+In Table t.1 we summarize the results of the change proneness trough out the life of the systems under study. For a visual aid, in Figure f.1 we show the distribution of
+number of commits per file for the projects glucosio-android, GRIP and OpenBot.The skewed distribution comes from the many files changing rarely, and very few files who are often updated, this distribution is similarly present in all of our projects. These results align with previous research, that has found that many social artifacts, like social and economical networks, present long tailed behaviours with scarce matrices. 
+
+Change proneness: long-tailed distribution. Over 80% of the changes happen in less than 40% of the files or functions in the system.
+
+
 
 ![change_proneness_table.png](./change_proneness_table.png "Change proneness distributions")
 ![change_proneness_plot.png](./change_proneness_plot.png "Change proneness distributions plot")
+
+The identification of co-change patterns in complex systems with such exponential behaviours is not a task for intuitive pattern detection and needs support from appropriate tools.
 
 
 Change coupling

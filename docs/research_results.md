@@ -49,6 +49,9 @@ rules that are found to have a structural coupling seem in a range of the expect
 we need to mention the limitations and threats to validity of not slicing over time windows. For
 the current implementation we compare just the existence of a structural dependency without
 filtering for time periods.
+
+![association_rules.png](./association_rules.png "Association rules, displaying structural coupling and itemsets.")
+
 With the output of the association rules, the user can easily know the number of occurrences of
 each of the rule’s item’s within the set of transactions. For such purpose our analytics library offers
 support functions. Figure 5.3 show_transactions_containing_items( ) displays the number of times

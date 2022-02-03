@@ -24,39 +24,23 @@ The identification of co-change patterns in complex systems with such exponentia
 
 Change coupling
 ---------------------
-When adopting association rule learning to discover co-changing patterns, it is important to find
-a balance between highly restrictive thresholds that eliminate loose couplings but reduce the number
-of discovered rules to small sets that might be not actionable, and on the other side, where so
-much association rules are found, with low support, the user finds them irrelevant. In Table 5.2
-we display the amount of generated rules when applying the Apriori algorithm with the given
-support threshold. We can observe that, the lower the threshold, the more rules will be found,
-respectively more itemsets. Referring again to the study by Bavota et al. [^101] on developers perception,
-and taking into account the results from the table, we opted for using a support threshold
-of 0.02.
+Association rule mining is a process to find frequent associations. In *callgraphCA* we use the algorithm "apriori" to discover association rules. This algorithm requires thresholds for a minimum *support* to find the frequent itemsets. Optionally, a minimum *confidence* that sets the minimum conditional probability  <img src="https://render.githubusercontent.com/render/math?math=P = (X| Y)">. It is necesary to adjust between high thresholds, that eliminate loose relations but reduce the number of rules to small sets that might be not actionable, or lower thresholds where much association rules are found, with low support that the user finds them irrelevant. In the following Table we display the amount of generated rules for a range of thresholds.
 
-![association_rules_thresholds.png](./association_rules_thresholds.png "Association rule learning on file commit level. Nr of rules from thresholds.")
+<center><img src="./association_rules_thresholds.png" width="65%" /></center>
 
-
-In Table 5.3 we compare the logical and structural coupling at the level of file commit for the
-association rules found for the projects. The first column is the number of rules found with a
-threshold of 0.02. The second column displays the number of rules with itemsets that present a
-structural dependency. For each project there are two rows. The first row shows rules generated
-with the threshold and no limit of items, the second row shows the numbers having itemsets
-larger than two. In 2018 Ajienka et al. [^93] found that when two objects had a dependency, 70%
-of the time they were also semantically linked. Despite our small sample and risking to leave the
-project eclipse-concierge aside as an outlier, we are inclined to say that our values of the association
-rules that are found to have a structural coupling seem in a range of the expected. At this point,
-we need to mention the limitations and threats to validity of not slicing over time windows. For
-the current implementation we compare just the existence of a structural dependency without
-filtering for time periods.
+In the following image we show the function `calculate_structural_coupling_rates`. This function finds asociation rules in the given set of transactions that fullfil the support and confidence parameters, additionally to the list of itemsets, it displays the total number of rules and how many of them include items that are structurally coupled. 
 
 ![association_rules.png](./association_rules.png "Association rules, displaying structural coupling and itemsets.")
 
-With the output of the association rules, the user can easily know the number of occurrences of
-each of the rule’s item’s within the set of transactions. For such purpose our analytics library offers
-support functions. Figure 5.3 show_transactions_containing_items( ) displays the number of times
-that items 1,2 and 1,2,3,4 existed in the transactions set, furthermore, it explains the directional
-number of occurrences where the first item is the predecesor and so forward until the last item.
+In the Table "Association rules and positive structural dependency rate" we show, in the first column the number of rules found with a threshold of 0.02. The second column presents the number of rules with itemsets that present a structural dependency. There are two rows for each project; the first shows rules generated including all itemsets, the second row shows the numbers having itemsets larger than two. 
+
+<center><img src="./rules_and_structural_coupling.png" width="50%" /></center>
+
+With the function `show_transactions_containing_items` the user can know the number of occurrences of each of the rule’s items within the set of transactions. It shows the number of times that the items existed in the transactions set. It explains the *'ind'* individual times that the item appears and, additioally, it explains the directional
+number of occurrences where the first item is the predecesor to the next, and so forward until the last item.
+
+![itemset_transactions.png](./itemset_transactions.png "Association rules and positive structural dependency rate.")
+
 
 Call graph evolution
 ---------------------

@@ -33,6 +33,10 @@ support threshold. We can observe that, the lower the threshold, the more rules 
 respectively more itemsets. Referring again to the study by Bavota et al. [^101] on developers perception,
 and taking into account the results from the table, we opted for using a support threshold
 of 0.02.
+
+![association_rules_thresholds.png](./association_rules_thresholds.png "Association rule learning on file commit level. Nr of rules from thresholds.")
+
+
 In Table 5.3 we compare the logical and structural coupling at the level of file commit for the
 association rules found for the projects. The first column is the number of rules found with a
 threshold of 0.02. The second column displays the number of rules with itemsets that present a

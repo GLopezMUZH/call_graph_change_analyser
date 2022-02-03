@@ -21,10 +21,6 @@ The main fields that join the tables are the *commit_hash*, *file_path*, *functi
 
 Based on this databases *callgraphCA* supports the user with analytic libraries and example notebooks for an easy analysis of the projects. The following is a list of functionalities that are included in the libraries, but based on the generated databases, additional analysis can be executed by the user. 
 
-Change proneness
------------------
-
-
 
 [^1]:https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md
 

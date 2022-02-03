@@ -36,7 +36,7 @@ In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/
     git clone https://github.com/GLopezMUZH/call_graph_change_analyser.git
     ```
 - You can fork the OpenBot repository and then clone your local copy.
-- You can download the repository as a [zip file](https://github.com/GLopezMUZH/call_graph_change_analyser/archive/master.zip) and extract it into a folder of your choice.
+- You can download the repository as a [zip file](https://github.com/GLopezMUZH/call_graph_change_analyser/archive/refs/tags/v0.1.zip) and extract it into a folder of your choice.
 
 
 ### Prerequisites

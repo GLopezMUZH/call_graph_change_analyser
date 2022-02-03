@@ -45,6 +45,8 @@ number of occurrences where the first item is the predecesor to the next, and so
 Call graph evolution
 ---------------------
 
+After analyzing the systems under study we observed that despite strong growght the graph diameters remain short. This is concistent with research about small-world systems.[^1] In the following table we can see the evolution of the systems. 
+
 |                           | nr. nodes |      | nr. edges |      | growth rate |       | diameter |     |
 |---------------------------|-----------|------|-----------|------|-------------|-------|----------|-----|
 |                           | start     | end  | start     | end  | nodes       | edges | start    | end |
@@ -54,8 +56,16 @@ Call graph evolution
 | WPIRoboticsProjects/GRIP  |      1553 | 2602 |      2684 | 6285 |         1,7 |   2,4 |        8 |   9 |
 
 
+With the function `display_gaph_evolution` the user can display the status of the call graph at different instances in the evolution.
+
+
+![graph_evol_OpenBot.png](./graph_evol_OpenBot.png "Call graph evolution OpenBot.")
+
+
 [^107]: J. Bieman, A. Andrews, and H. Yang, “Understanding change-proneness in oo software through visualization,” in 11th IEEE InternationalWorkshop on Program Comprehension, 2003.,pp. 44–53, 2003.
 [^108]: N. Nagappan and T. Ball, “Static analysis tools as early indicators of pre-release defect density,” in Proceedings of the International Conference on Software Engineering (ICSE), pp. 580–586, 2005.
 [^40]: M. D’Ambros, M. Lanza, and R. Robbes, “On the relationship between change coupling and software defects,” in 2009 16th Working Conference on Reverse Engineering, pp. 135–144, 2009.
 [^101]: G. Bavota, B. Dit, R. Oliveto, M. Di Penta, D. Poshyvanyk, and A. De Lucia, “An empirical study on the developers’ perception of software coupling,” in 2013 35th International Conference on Software Engineering (ICSE), pp. 692–701, 2013.
 [^93] N. Ajienka, A. Capiluppi, and S. Counsell, “An empirical study on the interplay between semantic coupling and co-change of software classes,” Empir. Softw. Eng., vol. 23, pp. 1791–1825, June 2018.
+[^1]:S. Valverde and R. Sole, “Hierarchical small-worlds in software architecture,” Dynamics of Continuous Discrete and Impulsive Systems: Series B; Applications and Algorithms, vol. 14, p. 1,01 2007.
+

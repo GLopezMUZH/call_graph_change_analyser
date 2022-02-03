@@ -1,5 +1,5 @@
 # *callgraphCA*
-*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change coupling and call-graph evolution.
+*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change-coupling, and call-graph evolution.
 
 ## Table of Contents
 
@@ -21,22 +21,22 @@ Table of Contents
 
 --------------
 ## *callgraphCA* functionality
-The main purpose of *callgraphCA* is to generate data to suppor the analysis and understanding of the evolution of softwrare projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
-In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered, and how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
+The main purpose of *callgraphCA* is to generate data to support the analysis and understanding of the evolution of software projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution, and change coupling within the call graphs.
+In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how these areas of analysis are covered, how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
 ### Contributions
 *callgraphCA* presents novel functionality with the focus of producing user-friendly processing and overview metrics that:
 
 - combine graph analysis with code change analysis
 - analyze the system’s call graph of the changed functions
-- can be used as proxy to measure how high the change coupling of subsequent software
+- can be used as a proxy to measure how high the change coupling of subsequent software
 - changes is within the call graph and outside of it
-- can be computed at different levels of granularity (commit or release tags, file, function and call graph level)
+- can be computed at different levels of granularity (commit or release tags, file, function, and call graph level)
 
 
 ## Quick-Start
 
 ### Replication packages
-The results of the analysis of four systems ( Glucosio/glucosio-android[^6] , isl-org/OpenBot[^7], eclipse/concierge[^8], and WPIRoboticsProjects/GRIP[^9]) is available as a replication package in the following link:
+The results from the analysis of four systems ( Glucosio/glucosio-android[^6] , isl-org/OpenBot[^7], eclipse/concierge[^8], and WPIRoboticsProjects/GRIP[^9]) is available as a replication package in the following link:
 
 https://zenodo.org/record/5923589#.YfuKsfvMIRQ
 

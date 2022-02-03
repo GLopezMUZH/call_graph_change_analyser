@@ -14,7 +14,6 @@ Table of Contents
     *	[Replication packages](README.md#Replication-packages)
 *	Quick notebooks
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
-*	How to use *callgraphCA* as a dockers container (optional)
 *	Empirical research
     * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
     * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
@@ -25,6 +24,13 @@ Table of Contents
 The main purpose of *callgraphCA* is to generate data to suppor the analysis and understanding of the evolution of softwrare projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
 In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered, and how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
 ### Contributions
+*callgraphCA* presents novel functionality with the focus of producing user-friendly processing and overview metrics that:
+
+- combine graph analysis with code change analysis
+- analyze the system’s call graph of the changed functions
+- can be used as proxy to measure how high the change coupling of subsequent software
+- changes is within the call graph and outside of it
+- can be computed at different levels of granularity (commit or release tags, file, function and call graph level)
 
 
 ## Quick-Start

@@ -55,11 +55,26 @@ After analyzing the systems under study we observed that despite strong growght 
 | isl-org/OpenBot           |       251 |  783 |       328 | 1207 |         3,1 |   1,5 |        7 |   8 |
 | WPIRoboticsProjects/GRIP  |      1553 | 2602 |      2684 | 6285 |         1,7 |   2,4 |        8 |   9 |
 
-
+<br/><br/>
 With the function `display_gaph_evolution` the user can display the status of the call graph at different instances in the evolution.
-
+<br/><br/>
 
 ![graph_evol_OpenBot.png](./graph_evol_OpenBot.png "Call graph evolution OpenBot.")
+
+
+Call graph change coupling
+--------------------------
+
+We analyzed the changes in functions within the call graphs. In the following plot we show function `display_cg_coupling_on_month` that plots the number of changed edges cummulated over months, for the project OpenBot. The colors show the different path lenghts of the edges for which the source and target nodes were changed. 
+
+<center><img src="./cg_change_coupling_month_OpenBot.png" width="65%" /></center>
+
+Reflecting the pattern from change proneness, the call graph change coupling has a long-tailed distribution. In the following plots from the the projects *concierge* and *glucosio* one can observe some commits that had a hight number of changes.
+
+
+|![alt](cg_change_coupling_commit_level_concierge_incl_total_edges.png) |![alt](cg_change_coupling_commit_level_gluc_incl_total_edges.png)|
+|-|-|
+
 
 
 [^107]: J. Bieman, A. Andrews, and H. Yang, “Understanding change-proneness in oo software through visualization,” in 11th IEEE InternationalWorkshop on Program Comprehension, 2003.,pp. 44–53, 2003.

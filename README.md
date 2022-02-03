@@ -1,5 +1,5 @@
 # *callgraphCA*
-*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change coupling and call-graph evolution.
+*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change-coupling, and call-graph evolution.
 
 ## Table of Contents
 
@@ -11,10 +11,9 @@ Table of Contents
     * [Prerequisites](README.md#Prerequisites)
     *	[Memory requirements](README.md#Memory-requirements)
 * [Quick-Start](README.md#Quick-Start)
-    *	Pre-generated data
+    *	[Replication packages](README.md#Replication-packages)
 *	Quick notebooks
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
-*	How to use *callgraphCA* as a dockers container (optional)
 *	Empirical research
     * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
     * [Results](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_results.md)
@@ -22,13 +21,29 @@ Table of Contents
 
 --------------
 ## *callgraphCA* functionality
-The main purpose of *callgraphCA* is to generate data to suppor the analysis and understanding of the evolution of softwrare projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution and change coupling within the call graphs.
-In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how this areas of analysis are covered, and how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
+The main purpose of *callgraphCA* is to generate data to support the analysis and understanding of the evolution of software projects. The major areas of analysis are: change proneness, change coupling both logical and structural, call graph evolution, and change coupling within the call graphs.
+In the [functionality](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/func.md) section, we explain how these areas of analysis are covered, how the example notebooks can be used to understand the systems under study, and what is the support that our analytic libraries provide.
 ### Contributions
+*callgraphCA* presents novel functionality with the focus of producing user-friendly processing and overview metrics that:
+
+- combine graph analysis with code change analysis
+- analyze the system’s call graph of the changed functions
+- can be used as a proxy to measure how high the change coupling of subsequent software
+- changes is within the call graph and outside of it
+- can be computed at different levels of granularity (commit or release tags, file, function, and call graph level)
 
 
 ## Quick-Start
 
+### Replication packages
+The results from the analysis of four systems ( Glucosio/glucosio-android[^6] , isl-org/OpenBot[^7], eclipse/concierge[^8], and WPIRoboticsProjects/GRIP[^9]) is available as a replication package in the following link:
+
+https://zenodo.org/record/5923589#.YfuKsfvMIRQ
+
+[^6]:https://github.com/Glucosio/glucosio-android
+[^7]:https://github.com/isl-org/OpenBot
+[^8]:https://github.com/eclipse/concierge
+[^9]:https://github.com/WPIRoboticsProjects/GRIP
 
 ## Installation
 - You can clone the OpenBot repository from GitHub with the following command:
@@ -52,8 +67,7 @@ The following tools need to be installed in order to use callgraphCA:
 [3]: https://github.com/CoatiSoftware/Sourcetrail
 
 ### Memory requirements
-When analyzing complete histories of Java systems with over 50K LOC and over 500 commits, the two generated databases have sizes between 25MB and 1.3GB. In Ubuntu, the `project_result` folder for Glucosio/glucosio-android[^5] had a size of 1.7GB.
-[^5]:https://github.com/Glucosio/glucosio-android
+When analyzing complete histories of Java systems with over 50K LOC and over 500 commits, the two generated databases have sizes between 25MB and 1.3GB. In Ubuntu, the `project_result` folder for Glucosio/glucosio-android had a size of 1.7GB.
 
 
 ### License

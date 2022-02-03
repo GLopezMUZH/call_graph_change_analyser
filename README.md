@@ -12,7 +12,7 @@ Table of Contents
     *	[Memory requirements](README.md#Memory-requirements)
 * [Quick-Start](README.md#Quick-Start)
     *	[Replication packages](README.md#Replication-packages)
-*	Quick notebooks
+*	[Quick notebooks](https://github.com/GLopezMUZH/call_graph_change_analyser/tree/main/notebooks)
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
 *	Empirical research
     * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)

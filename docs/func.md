@@ -4,11 +4,11 @@ The main purpose of *callgraphCA* is to generate data to suppor the analysis and
 
 The first process is the loading of the data from the version control repository. From this process, the information regarding the code changes that happened in each commit event on the repository are persisted in databases, additionally the source code structure is analyzed for each commit and the corresponding call graph is generated.  
 
-After runing *callgraphCA* to analyze a selected project[^1]. There are two main databases that contain the necessary information the *analytics* and the *call_graph* database. They in the `project_results`{:.language-dos}, inside a folder with the project name.
+After runing *callgraphCA* to analyze a selected project [^1] . There are two main databases that contain the necessary information the *analytics* and the *call_graph* database. The databases are saved in the folder `project_results`, inside a folder with the project name that is automatically generated when the analysis starts.
 
 Database model
 --------------
-The main tables in the **analytics* database are:
+The main tables in the *analytics* database are:
 * git_commit - list of all the commits that contained changes in source files
 * file_commit - list of the files that were changed per commit
 * function_commit - list of the functions that were changed per commit, having a reference to the file they belong
@@ -26,6 +26,5 @@ Change proneness
 
 
 
-
-[^1] https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md
+[^1]:https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md
 

@@ -61,3 +61,14 @@ def show_file_change_proneness(con, period_type: Optional[str] = None, start_dat
         changes_matrix_m = changes_matrix_m.style.background_gradient(cmap='viridis')\
             .set_properties(**{'font-size': '5px'})
         display(changes_matrix_m)
+
+
+def plot_change_distribution_file(con_analytics_db):
+    sql_statement = """select
+    file_name,
+    count(*) as nr_changes
+    from file_commit
+    group by 
+    file_name;"""
+    df = pd.read_sql_query(sql_statement, con_analytics_db)
+    dd = df.hist()    

@@ -13,17 +13,8 @@ We present here the empirical results when applied to our systems under study, t
 
 Change proneness
 ---------------------
-Before the introduction of the term change coupling by Fluri et al., in 2003, Bieman et al. [107]
-pointed out that frequent changes in clusters of classes might reflect functional coupling or chronic
-problems in the architecture of the system; both Nagappan et al. [108] and D’Ambros et al. [40]
-found that change proneness correlates stronger that coupling in the projects they studied back
-then.
-In Table t.1 we summarize the results of the change proneness trough out the life of the systems under study. For a visual aid, in Figure f.1 we show the distribution of
-number of commits per file for the projects glucosio-android, GRIP and OpenBot.The skewed distribution comes from the many files changing rarely, and very few files who are often updated, this distribution is similarly present in all of our projects. These results align with previous research, that has found that many social artifacts, like social and economical networks, present long tailed behaviours with scarce matrices. 
-
-Change proneness: long-tailed distribution. Over 80% of the changes happen in less than 40% of the files or functions in the system.
-
-
+Before the introduction of the term change coupling by Fluri et al., in 2003, Bieman et al. [107] pointed out that frequent changes in clusters of classes might reflect functional coupling or chronic problems in the architecture of the system; both Nagappan et al. [108] and D’Ambros et al. [40] found that change proneness correlates stronger that coupling in the projects they studied back then.
+In Table t.1 we summarize the results of the change proneness trough out the life of the systems under study. For a visual aid, in Figure f.1 we show the distribution of number of commits per file for the projects glucosio-android, GRIP and OpenBot.The skewed distribution comes from the many files changing rarely, and very few files who are often updated, this distribution is similarly present in all of our projects: Over 80% of the changes happen in less than 40% of the files or functions in the system. These results align with previous research, that has found that many social artifacts, like social and economical networks, present long tailed behaviours with scarce matrices. 
 
 ![change_proneness_table.png](./change_proneness_table.png "Change proneness distributions")
 ![change_proneness_plot.png](./change_proneness_plot.png "Change proneness distributions plot")

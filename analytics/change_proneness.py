@@ -71,4 +71,5 @@ def plot_change_distribution_file(con_analytics_db):
     group by 
     file_name;"""
     df = pd.read_sql_query(sql_statement, con_analytics_db)
-    dd = df.hist()    
+    dd = df.hist()
+    return df   

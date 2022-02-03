@@ -13,7 +13,7 @@ We present here the empirical results when applied to our systems under study, t
 
 Change proneness
 ---------------------
-Before the introduction of the term change coupling by Fluri et al., in 2003, Bieman et al. [107] pointed out that frequent changes in clusters of classes might reflect functional coupling or chronic problems in the architecture of the system; both Nagappan et al. [108] and D’Ambros et al. [40] found that change proneness correlates stronger that coupling in the projects they studied back then.
+Before the introduction of the term change coupling by Fluri et al., in 2003, Bieman et al. [^107] pointed out that frequent changes in clusters of classes might reflect functional coupling or chronic problems in the architecture of the system; both Nagappan et al. [^108] and D’Ambros et al. [^40] found that change proneness correlates stronger that coupling in the projects they studied back then.
 In Table t.1 we summarize the results of the change proneness trough out the life of the systems under study. For a visual aid, in Figure f.1 we show the distribution of number of commits per file for the projects glucosio-android, GRIP and OpenBot.The skewed distribution comes from the many files changing rarely, and very few files who are often updated, this distribution is similarly present in all of our projects: Over 80% of the changes happen in less than 40% of the files or functions in the system. These results align with previous research, that has found that many social artifacts, like social and economical networks, present long tailed behaviours with scarce matrices. 
 
 ![change_proneness_table.png](./change_proneness_table.png "Change proneness distributions")
@@ -30,7 +30,7 @@ of discovered rules to small sets that might be not actionable, and on the other
 much association rules are found, with low support, the user finds them irrelevant. In Table 5.2
 we display the amount of generated rules when applying the Apriori algorithm with the given
 support threshold. We can observe that, the lower the threshold, the more rules will be found,
-respectively more itemsets. Referring again to the study by Bavota et al. [101] on developers perception,
+respectively more itemsets. Referring again to the study by Bavota et al. [^101] on developers perception,
 and taking into account the results from the table, we opted for using a support threshold
 of 0.02.
 In Table 5.3 we compare the logical and structural coupling at the level of file commit for the
@@ -38,7 +38,7 @@ association rules found for the projects. The first column is the number of rule
 threshold of 0.02. The second column displays the number of rules with itemsets that present a
 structural dependency. For each project there are two rows. The first row shows rules generated
 with the threshold and no limit of items, the second row shows the numbers having itemsets
-larger than two. In 2018 Ajienka et al. [93] found that when two objects had a dependency, 70%
+larger than two. In 2018 Ajienka et al. [^93] found that when two objects had a dependency, 70%
 of the time they were also semantically linked. Despite our small sample and risking to leave the
 project eclipse-concierge aside as an outlier, we are inclined to say that our values of the association
 rules that are found to have a structural coupling seem in a range of the expected. At this point,
@@ -61,3 +61,10 @@ Call graph evolution
 | eclipse/concierge         |       840 | 1579 |      1373 | 3066 |         1,9 |   1,9 |       24 |  24 |
 | isl-org/OpenBot           |       251 |  783 |       328 | 1207 |         3,1 |   1,5 |        7 |   8 |
 | WPIRoboticsProjects/GRIP  |      1553 | 2602 |      2684 | 6285 |         1,7 |   2,4 |        8 |   9 |
+
+
+[^107]: J. Bieman, A. Andrews, and H. Yang, “Understanding change-proneness in oo software through visualization,” in 11th IEEE InternationalWorkshop on Program Comprehension, 2003.,pp. 44–53, 2003.
+[^108]: N. Nagappan and T. Ball, “Static analysis tools as early indicators of pre-release defect density,” in Proceedings of the International Conference on Software Engineering (ICSE), pp. 580–586, 2005.
+[^40]: M. D’Ambros, M. Lanza, and R. Robbes, “On the relationship between change coupling and software defects,” in 2009 16th Working Conference on Reverse Engineering, pp. 135–144, 2009.
+[^101]: G. Bavota, B. Dit, R. Oliveto, M. Di Penta, D. Poshyvanyk, and A. De Lucia, “An empirical study on the developers’ perception of software coupling,” in 2013 35th International Conference on Software Engineering (ICSE), pp. 692–701, 2013.
+[^93] N. Ajienka, A. Capiluppi, and S. Counsell, “An empirical study on the interplay between semantic coupling and co-change of software classes,” Empir. Softw. Eng., vol. 23, pp. 1791–1825, June 2018.

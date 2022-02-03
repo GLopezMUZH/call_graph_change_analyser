@@ -9,11 +9,11 @@ Table of Contents
 *	[*callgraphCA* architecture](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/arch.md)
 * [Installation](README.md#Installation)
     * [Prerequisites](README.md#Prerequisites)
+    *	[Memory requirements](README.md#Memory-requirements)
 * [Quick-Start](README.md#Quick-Start)
     *	Pre-generated data
 *	Quick notebooks
 *	[How to analyze new projects](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/tutorial.md)
-*	Memory requirements
 *	How to use *callgraphCA* as a dockers container (optional)
 *	Empirical research
     * [Motivation](https://github.com/GLopezMUZH/call_graph_change_analyser/blob/main/docs/research_motivation.md)
@@ -50,6 +50,10 @@ The following tools need to be installed in order to use callgraphCA:
 [1]: https://git-scm.com/
 [2]: https://www.srcml.org/
 [3]: https://github.com/CoatiSoftware/Sourcetrail
+
+### Memory requirements
+When analyzing complete histories of Java systems with over 50K LOC and over 500 commits, the two generated databases have sizes between 25MB and 1.3GB. In Ubuntu, the `project_result` folder for Glucosio/glucosio-android[^5] had a size of 1.7GB.
+[^5]:https://github.com/Glucosio/glucosio-android
 
 
 ### License

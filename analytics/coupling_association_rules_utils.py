@@ -35,7 +35,7 @@ def calculate_structural_coupling_rates(con_analytics_db, records, min_confidenc
     return rules_list, itemsets_list
 
 
-def get_coupling_itemsets(records, min_confidence=0.1, min_support=0.1):
+def show_component_change_proneness(records, min_confidence=0.1, min_support=0.1):
     rules = apyori.apriori(records, min_confidence=min_confidence, min_support=min_support)
     rules_list = list(rules)
     itemsets_list = []

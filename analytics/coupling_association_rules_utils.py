@@ -9,7 +9,7 @@ import sqlite3
 
 
 # %%
-def calculate_structural_coupling_rates(con_analytics_db, records, min_confidence=0.1, min_support=0.1, print_rules=False):
+def calculate_structural_coupling_rates(con_analytics_db, records, min_confidence=0.1, min_support=0.1, print_rules=False, calc_structural_dependency=True):
     rules = apyori.apriori(
         records, min_confidence=min_confidence, min_support=min_support)
     rules_list = list(rules)
@@ -19,17 +19,31 @@ def calculate_structural_coupling_rates(con_analytics_db, records, min_confidenc
     for r in rules_list:
         if len(list(r.items)) > 1:
             output_list = [i.replace("'", '') for i in list(r.items)]
-            d = exist_import_dependency(con_analytics_db, output_list)
-            if d[0][0] > 0:
-                nr_struct_coupling += 1
+            if calc_structural_dependency:
+                d = exist_import_dependency(con_analytics_db, output_list)
+                if d[0][0] > 0:
+                    nr_struct_coupling += 1
             if print_rules:
                 print(output_list, d[0][0])
             itemsets_list.append(output_list)
 
     r = 0 if nr_rules==0 else nr_struct_coupling/nr_rules
-    print("Nr rules {0}, with structural coupling {1}, {2}".format(
-        nr_rules, nr_struct_coupling, round(r, 2)))
+    if calc_structural_dependency:
+        print("Nr rules {0}, with structural coupling {1}, {2}".format(nr_rules, nr_struct_coupling, round(r, 2)))
+    else:
+        print("Nr rules {0}".format(nr_rules))
     return rules_list, itemsets_list
+
+
+def get_coupling_itemsets(records, min_confidence=0.1, min_support=0.1):
+    rules = apyori.apriori(records, min_confidence=min_confidence, min_support=min_support)
+    rules_list = list(rules)
+    itemsets_list = []
+    for r in rules_list:
+        if len(list(r.items)) > 1:
+            output_list = [i.replace("'", '') for i in list(r.items)]
+            itemsets_list.append(output_list)
+    return itemsets_list
 
 
 def get_records(con_graph_db, df_column_name, sql_statement, min_items=2):
@@ -232,5 +246,16 @@ def exist_import_dependency_2_items(con_analytics_db, A_file_name: str, B_file_n
     cur.close()
     return obj[0]
 
+def get_artifact_couplings(records, artifact_name, min_confidence=0.05, min_support=0.05):
+    """
+    Returns list with itemsets that contain the given artifact_name when analyzing 
+    apriori association rules with the given support and confidence thresholds
+    """
+    itemsets_list = get_coupling_itemsets(records, min_confidence=min_confidence, min_support=min_support)
 
-# %%
+    itemsets_including = []
+    for l in itemsets_list:
+        if artifact_name in l:
+            itemsets_including.append(l)
+
+    return itemsets_including

@@ -1,5 +1,5 @@
 # *callgraphCA*
-*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change-coupling, and call-graph evolution.
+*callgraphCA* is a prototype tool to help the understanding of software evolution based on information extracted from Git repositories. It models change proneness, change-coupling, and call-graph evolution. It was developed as a base for the author's Master Thesis in Informatics Data Science at UZH.
 
 ## Table of Contents
 
